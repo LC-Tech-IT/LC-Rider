@@ -8,7 +8,7 @@ export default function LandingPricing() {
   function goToCheckout(tier: 'pro' | 'club') {
     requestAppAccess(() => {
       setTopLevelMode('app')
-      openSubscriptionCheckout(tier, tier === 'club' ? 'yearly' : billingCycle)
+      openSubscriptionCheckout(tier, billingCycle)
     })
   }
 
@@ -178,10 +178,16 @@ export default function LandingPricing() {
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-amber-600">Plan Biker Club</p>
             <div className="mt-3 flex items-baseline gap-1">
-              <span className="font-display text-4xl font-black text-bike-ink">$299.000</span>
-              <span className="text-sm font-semibold text-slate-400">COP / año</span>
+              <span className="font-display text-4xl font-black text-bike-ink">
+                {billingCycle === 'yearly' ? '$299.000' : '$34.900'}
+              </span>
+              <span className="text-sm font-semibold text-slate-500">COP {billingCycle === 'yearly' ? '/ año' : '/ mes'}</span>
             </div>
-            <p className="mt-2 text-xs text-slate-500">Para clubes de moteros, marcas y organizadores.</p>
+            <p className="mt-2 text-xs font-bold text-amber-700">
+              {billingCycle === 'yearly'
+                ? '⚡ Equivale a ≈ $24.916 COP/mes (Ahorras 28%)'
+                : 'Flexibilidad mes a mes para tu club o rodadas'}
+            </p>
 
             <ul className="mt-8 space-y-3.5 text-sm text-slate-600">
               <li className="flex items-center gap-2.5">

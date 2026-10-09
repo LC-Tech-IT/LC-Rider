@@ -13,7 +13,7 @@ const WHATSAPP_SALES_NUMBER = '573505208592'
 
 const PLAN_PRICE: Record<'pro' | 'club', { monthly: string; yearly: string }> = {
   pro: { monthly: '$14.900 COP', yearly: '$99.000 COP' },
-  club: { monthly: '$299.000 COP', yearly: '$299.000 COP' },
+  club: { monthly: '$34.900 COP', yearly: '$299.000 COP' },
 }
 
 export default function SubscriptionModal() {
@@ -147,7 +147,7 @@ export default function SubscriptionModal() {
           customerFullName: (user?.name || guestName).trim(),
         })
         if (result.status === 'APPROVED') {
-          upgradeTier(checkoutTier, checkoutTier === 'club' ? 'monthly' : billingCycle)
+          upgradeTier(checkoutTier, billingCycle)
           setView('success')
         } else {
           setCheckoutError(t('subscription.errorPaymentDeclined'))
@@ -157,7 +157,7 @@ export default function SubscriptionModal() {
         // Sin pasarela real configurada (VITE_WOMPI_PUBLIC_KEY), se conserva el checkout simulado para no
         // bloquear la demostración del producto.
         window.setTimeout(() => {
-          upgradeTier(checkoutTier, checkoutTier === 'club' ? 'monthly' : billingCycle)
+          upgradeTier(checkoutTier, billingCycle)
           setView('success')
         }, 1000)
       }
@@ -200,7 +200,7 @@ export default function SubscriptionModal() {
     setSubscriptionModalOpen(false)
   }
 
-  const price = checkoutTier === 'club' ? PLAN_PRICE.club.monthly : PLAN_PRICE.pro[billingCycle]
+  const price = PLAN_PRICE[checkoutTier][billingCycle]
   const qrPlanName = t(checkoutTier === 'pro' ? 'subscription.proName' : 'subscription.clubName')
   const qrWhatsappUrl = `https://wa.me/${WHATSAPP_SALES_NUMBER}?text=${encodeURIComponent(
     t('subscription.qrWhatsappMessage', { plan: qrPlanName, price, reference: qrReference }),
@@ -279,8 +279,8 @@ export default function SubscriptionModal() {
                 badge={t('tier.club')}
                 name={t('subscription.clubName')}
                 tagline={t('subscription.clubTagline')}
-                price={PLAN_PRICE.club.monthly}
-                priceSuffix={t('subscription.perYear')}
+                price={PLAN_PRICE.club[billingCycle]}
+                priceSuffix={billingCycle === 'monthly' ? t('subscription.perMonth') : t('subscription.perYear')}
                 features={[t('subscription.clubFeature1'), t('subscription.clubFeature2'), t('subscription.clubFeature3')]}
                 accent="border-bike-gold/50 bg-gradient-to-b from-amber-50 to-white"
                 activateLabel={t('subscription.activateClub')}
@@ -358,22 +358,20 @@ export default function SubscriptionModal() {
               </div>
             )}
 
-            {checkoutTier === 'pro' && (
-              <div className="mb-4 flex overflow-hidden rounded-xl border border-bike-border">
-                <button
-                  onClick={() => setBillingCycle('monthly')}
-                  className={`flex-1 py-2 text-sm font-semibold transition ${billingCycle === 'monthly' ? 'bg-bike-orange text-white' : 'bg-slate-50 text-slate-500'}`}
-                >
-                  {t('subscription.billingMonthly')}
-                </button>
-                <button
-                  onClick={() => setBillingCycle('yearly')}
-                  className={`flex-1 py-2 text-sm font-semibold transition ${billingCycle === 'yearly' ? 'bg-bike-orange text-white' : 'bg-slate-50 text-slate-500'}`}
-                >
-                  {t('subscription.billingYearly')}
-                </button>
-              </div>
-            )}
+            <div className="mb-4 flex overflow-hidden rounded-xl border border-bike-border">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`flex-1 py-2 text-sm font-semibold transition ${billingCycle === 'monthly' ? 'bg-bike-orange text-white' : 'bg-slate-50 text-slate-500'}`}
+              >
+                {t('subscription.billingMonthly')}
+              </button>
+              <button
+                onClick={() => setBillingCycle('yearly')}
+                className={`flex-1 py-2 text-sm font-semibold transition ${billingCycle === 'yearly' ? 'bg-bike-orange text-white' : 'bg-slate-50 text-slate-500'}`}
+              >
+                {t('subscription.billingYearly')}
+              </button>
+            </div>
 
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">{t('subscription.paymentMethod')}</p>
 

@@ -86,7 +86,7 @@ export function buildPaymentReference(userId: string): string {
 
 /** Monto oficial en COP de cada combinación de plan/ciclo de facturación. */
 export function getPlanAmountCOP(tier: Extract<SubscriptionTier, 'pro' | 'club'>, billingCycle: 'monthly' | 'yearly'): number {
-  if (tier === 'club') return 299000
+  if (tier === 'club') return billingCycle === 'yearly' ? 299000 : 34900
   return billingCycle === 'yearly' ? 99000 : 14900
 }
 

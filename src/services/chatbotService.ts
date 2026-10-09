@@ -61,7 +61,7 @@ const PRODUCT_INTENTS: ChatbotIntent[] = [
   {
     keywords: ['precio', 'costo', 'cuanto cuesta', 'cuánto cuesta', 'plan', 'suscripcion', 'suscripción'],
     response:
-      '¡De una, parce! Así están los planes pa\' que elijas con toda la info: 🆓 **Piloto Libre** ($0 COP, pa\' siempre — convoy de hasta 3 pilotos, 1 moto en el garaje y SOS básico). ⚡ **Convoy Pro**: el más popular es el **Anual a $99.000 COP** (te sale como a $8.250 COP al mes — ¡ahorras un 45%!), o si prefieres ir mes a mes, el **Mensual a $14.900 COP**. 🏆 **Biker Club** a $299.000 COP al año, pensado pa\' tu club — hasta 25 pilotos en convoy simultáneo. Y ojo, hermano: si pagas por **QR de Bancolombia o Nequi** te ahorras las comisiones Y te regalamos **1 mes adicional gratis** 🎁. Actívalo desde "Ver Planes" en la app, o escríbenos directo al WhatsApp 📲 +57 350 520 8592 y te ayudamos personalmente.',
+      '¡De una, parce! Así están los planes pa\' que elijas con toda la info: 🆓 **Piloto Libre** ($0 COP, pa\' siempre — convoy de hasta 3 pilotos, 1 moto en el garaje y SOS básico). ⚡ **Convoy Pro**: el más popular es el **Anual a $99.000 COP** (te sale como a $8.250 COP al mes — ¡ahorras un 45%!), o si prefieres ir mes a mes, el **Mensual a $14.900 COP**. 🏆 **Biker Club**, pensado pa\' tu club — hasta 25 pilotos en convoy simultáneo: el **Anual a $299.000 COP** (como a $24.916 COP al mes — ¡ahorras un 28%!) o el **Mensual a $34.900 COP** si prefieres flexibilidad mes a mes. Y ojo, hermano: si pagas por **QR de Bancolombia o Nequi** te ahorras las comisiones Y te regalamos **1 mes adicional gratis** 🎁. Actívalo desde "Ver Planes" en la app, o escríbenos directo al WhatsApp 📲 +57 350 520 8592 y te ayudamos personalmente.',
   },
   {
     keywords: [
