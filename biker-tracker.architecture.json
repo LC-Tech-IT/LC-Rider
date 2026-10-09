@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Bike Tracker — System Architecture",
+    "subtitle": "Real-Time Convoy Telemetry, OSRM Routing, Safety & Multi-Tenant PWA",
+    "output": "biker-tracker-architecture.html",
+    "quality_profile": "showcase",
+    "visual_preset": "signal-flow",
+    "animation": "trace",
+    "views": [
+      {
+        "id": "convoy-telemetry",
+        "label": "Convoy Telemetry & Navigation",
+        "focus": ["users", "app_core", "map_telemetry", "routing_api", "audio_haptics"],
+        "note": "Follows real-time GPS coordinates, OSRM route calculations, and convoy positioning."
+      },
+      {
+        "id": "auth-and-storage",
+        "label": "Session & Garage Persistence",
+        "focus": ["users", "auth_gate", "app_core", "garage_soat", "local_storage"],
+        "note": "Multi-account isolation, Google/Email authentication gates, and SOAT document tracking."
+      },
+      {
+        "id": "edge-delivery",
+        "label": "Production Edge Delivery",
+        "focus": ["users", "edge_cdn", "app_core"],
+        "note": "Continuous deployment and static delivery via Vercel Global Edge Network."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "users",
+      "type": "external",
+      "label": "Pilotos & Convoy",
+      "sublabel": "Mobile PWA / Web",
+      "pos": [40, 260],
+      "size": [130, 60]
+    },
+    {
+      "id": "edge_cdn",
+      "type": "cloud",
+      "label": "Vercel Edge",
+      "sublabel": "CDN & Hosting",
+      "pos": [260, 100],
+      "size": [130, 60],
+      "tag": "Global Edge"
+    },
+    {
+      "id": "app_core",
+      "type": "frontend",
+      "label": "Bike Tracker SPA",
+      "sublabel": "React 18 + Vite",
+      "pos": [260, 260],
+      "size": [140, 65],
+      "tag": "AppContext Core"
+    },
+    {
+      "id": "auth_gate",
+      "type": "security",
+      "label": "Auth Gate",
+      "sublabel": "Google / Email / Demo",
+      "pos": [260, 420],
+      "size": [130, 60]
+    },
+    {
+      "id": "cockpit_view",
+      "type": "frontend",
+      "label": "Cockpit HUD",
+      "sublabel": "Telemetry & Radar",
+      "pos": [500, 100],
+      "size": [130, 60]
+    },
+    {
+      "id": "map_telemetry",
+      "type": "frontend",
+      "label": "Convoy Map",
+      "sublabel": "Leaflet + ConvoySim",
+      "pos": [500, 260],
+      "size": [140, 65],
+      "tag": "Live GPS"
+    },
+    {
+      "id": "garage_soat",
+      "type": "frontend",
+      "label": "Garage & Docs",
+      "sublabel": "SOAT & Tecnomecánica",
+      "pos": [500, 420],
+      "size": [130, 60]
+    },
+    {
+      "id": "audio_haptics",
+      "type": "messagebus",
+      "label": "Audio & Haptics",
+      "sublabel": "Web Audio / Siren",
+      "pos": [740, 100],
+      "size": [130, 60],
+      "tag": "SOS Alerts"
+    },
+    {
+      "id": "routing_api",
+      "type": "backend",
+      "label": "OSRM Routing",
+      "sublabel": "GPS & Polyline API",
+      "pos": [740, 260],
+      "size": [130, 60],
+      "tag": "GeoJSON"
+    },
+    {
+      "id": "local_storage",
+      "type": "database",
+      "label": "Isolated Storage",
+      "sublabel": "Multi-Tenant LocalDB",
+      "pos": [740, 420],
+      "size": [130, 60],
+      "tag": "Per-Account"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Client Runtime: Mobile Browser & PWA Sandbox",
+      "wraps": ["app_core", "auth_gate", "cockpit_view", "map_telemetry", "garage_soat", "audio_haptics", "local_storage"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Real-Time Telemetry & Safety Subsystem",
+      "wraps": ["cockpit_view", "map_telemetry", "audio_haptics"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "users-to-cdn",
+      "from": "users",
+      "to": "edge_cdn",
+      "label": "HTTPS",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "cdn-to-app",
+      "from": "edge_cdn",
+      "to": "app_core",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "users-to-app",
+      "from": "users",
+      "to": "app_core",
+      "label": "UI",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "app-to-auth",
+      "from": "app_core",
+      "to": "auth_gate",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "app-to-cockpit",
+      "from": "app_core",
+      "to": "cockpit_view",
+      "label": "Telemetry",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "app-to-map",
+      "from": "app_core",
+      "to": "map_telemetry",
+      "label": "Convoy",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "app-to-garage",
+      "from": "app_core",
+      "to": "garage_soat",
+      "label": "Vehicles",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "map-to-audio",
+      "from": "map_telemetry",
+      "to": "audio_haptics",
+      "label": "SOS Siren",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "map-to-routing",
+      "from": "map_telemetry",
+      "to": "routing_api",
+      "label": "OSRM Route",
+      "labelDy": -35,
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "garage-to-storage",
+      "from": "garage_soat",
+      "to": "local_storage",
+      "label": "Save Docs",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "auth-to-storage",
+      "from": "auth_gate",
+      "to": "local_storage",
+      "fromSide": "right",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Edge & Delivery",
+      "items": [
+        "Despliegue global continuo en Vercel Edge con soporte SSL y compresión gzip",
+        "Soporte PWA para instalación como app nativa en dispositivos móviles"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Núcleo de Aplicación & Telemetría",
+      "items": [
+        "Arquitectura SPA con React 18, Vite y TypeScript bajo un AppContext unificado",
+        "Simulación y visualización de convoy en tiempo real con Leaflet y routing OSRM",
+        "Tablero de control (Cockpit) con velocímetro reactivo y radar de proximidad"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Seguridad & Persistencia Aislada",
+      "items": [
+        "Sistema de alertas SOS con sirena Web Audio y feedback háptico (Vibration API)",
+        "Persistencia local multi-cuenta con aislamiento por correo electrónico",
+        "Monitoreo de vigencia legal y semáforo de vencimiento para SOAT y Tecnomecánica"
+      ]
+    }
+  ]
+}

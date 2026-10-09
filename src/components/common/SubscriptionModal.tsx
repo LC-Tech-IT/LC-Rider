@@ -1,0 +1,537 @@
+import { useEffect, useState } from 'react'
+import { useApp } from '../../context/AppContext'
+import { formatLongDate } from '../../utils/formatDate'
+import { buildPaymentReference, getPlanAmountCOP, isPaymentGatewayConfigured, openWompiCheckout } from '../../services/paymentService'
+import type { SubscriptionTier } from '../../types'
+
+type PaymentMethod = 'nequi' | 'pse' | 'card'
+type CheckoutView = 'plans' | 'checkout' | 'processing' | 'success'
+
+const PSE_BANKS = ['Bancolombia', 'Davivienda', 'BBVA Colombia', 'Banco de Bogotá', 'Nequi', 'Banco Popular']
+
+const PLAN_PRICE: Record<'pro' | 'club', { monthly: string; yearly: string }> = {
+  pro: { monthly: '$9.900 COP', yearly: '$79.900 COP' },
+  club: { monthly: '$39.900 COP', yearly: '$39.900 COP' },
+}
+
+export default function SubscriptionModal() {
+  const {
+    subscriptionModalOpen,
+    setSubscriptionModalOpen,
+    subscriptionCheckoutTarget,
+    user,
+    upgradeTier,
+    redeemClubCode,
+    supabaseSignUp,
+    checkDemoRestriction,
+    lang,
+    t,
+  } = useApp()
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+  const [clubCode, setClubCode] = useState('')
+  const [clubError, setClubError] = useState('')
+  const [clubSuccess, setClubSuccess] = useState('')
+
+  const [view, setView] = useState<CheckoutView>('plans')
+  const [checkoutTier, setCheckoutTier] = useState<'pro' | 'club'>('pro')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('nequi')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [pseBank, setPseBank] = useState(PSE_BANKS[0])
+  const [psePersonType, setPsePersonType] = useState<'natural' | 'juridica'>('natural')
+  const [cardNumber, setCardNumber] = useState('')
+  const [cardExpiry, setCardExpiry] = useState('')
+  const [cardCvc, setCardCvc] = useState('')
+  const [checkoutError, setCheckoutError] = useState('')
+  const [guestName, setGuestName] = useState('')
+  const [guestEmail, setGuestEmail] = useState('')
+  const [guestPassword, setGuestPassword] = useState('')
+  const isGuest = !user?.isLoggedIn
+
+  useEffect(() => {
+    if (!subscriptionModalOpen) return
+    setClubError('')
+    setClubSuccess('')
+    setCheckoutError('')
+    setGuestName('')
+    setGuestEmail('')
+    setGuestPassword('')
+    if (subscriptionCheckoutTarget === 'pro' || subscriptionCheckoutTarget === 'club') {
+      setCheckoutTier(subscriptionCheckoutTarget)
+      setView('checkout')
+    } else {
+      setView('plans')
+    }
+  }, [subscriptionModalOpen, subscriptionCheckoutTarget])
+
+  if (!subscriptionModalOpen) return null
+
+  const currentTier = user?.tier ?? 'free'
+
+  function handleRedeemCode() {
+    setClubError('')
+    setClubSuccess('')
+    if (!clubCode.trim()) return
+    if (checkDemoRestriction(t('subscription.clubCodeTitle'))) return
+    const clubName = redeemClubCode(clubCode)
+    if (clubName) {
+      setClubSuccess(t('subscription.clubCodeSuccess', { club: clubName }))
+      setClubCode('')
+    } else {
+      setClubError(t('subscription.clubCodeInvalid'))
+    }
+  }
+
+  function startCheckout(tier: 'pro' | 'club') {
+    if (checkDemoRestriction(t(tier === 'pro' ? 'subscription.proName' : 'subscription.clubName'))) return
+    setCheckoutTier(tier)
+    setCheckoutError('')
+    setView('checkout')
+  }
+
+  async function handlePay() {
+    setCheckoutError('')
+    if (isGuest && (!guestName.trim() || !guestEmail.trim() || guestPassword.trim().length < 6)) {
+      setCheckoutError(t('subscription.errorGuestFields'))
+      return
+    }
+
+    const gatewayConfigured = isPaymentGatewayConfigured()
+    // Las validaciones del formulario local (teléfono Nequi, datos de tarjeta) solo aplican al checkout
+    // simulado: con la pasarela real configurada, esos datos se capturan dentro del widget oficial de Wompi.
+    if (!gatewayConfigured) {
+      if (paymentMethod === 'nequi' && phoneNumber.trim().length < 10) {
+        setCheckoutError(t('subscription.errorPhone'))
+        return
+      }
+      if (paymentMethod === 'card' && (cardNumber.trim().length < 12 || cardExpiry.trim().length < 4 || cardCvc.trim().length < 3)) {
+        setCheckoutError(t('subscription.errorCard'))
+        return
+      }
+    }
+
+    setView('processing')
+    try {
+      // Checkout de invitado: crea la cuenta en el mismo paso, antes de activar el plan de pago.
+      if (isGuest) {
+        await supabaseSignUp({
+          name: guestName.trim(),
+          lastName: '',
+          gender: undefined,
+          phone: '',
+          email: guestEmail.trim(),
+          password: guestPassword,
+          remember: true,
+        })
+      }
+
+      if (gatewayConfigured) {
+        const amount = getPlanAmountCOP(checkoutTier, billingCycle)
+        const reference = buildPaymentReference(user?.id ?? guestEmail.trim() ?? 'guest')
+        const result = await openWompiCheckout({
+          amountInCOP: amount,
+          reference,
+          customerEmail: (user?.email || guestEmail).trim(),
+          customerFullName: (user?.name || guestName).trim(),
+        })
+        if (result.status === 'APPROVED') {
+          upgradeTier(checkoutTier, checkoutTier === 'club' ? 'monthly' : billingCycle)
+          setView('success')
+        } else {
+          setCheckoutError(t('subscription.errorPaymentDeclined'))
+          setView('checkout')
+        }
+      } else {
+        // Sin pasarela real configurada (VITE_WOMPI_PUBLIC_KEY), se conserva el checkout simulado para no
+        // bloquear la demostración del producto.
+        window.setTimeout(() => {
+          upgradeTier(checkoutTier, checkoutTier === 'club' ? 'monthly' : billingCycle)
+          setView('success')
+        }, 1000)
+      }
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : t('auth.errorGeneric'))
+      setView('checkout')
+    }
+  }
+
+  function handleClose() {
+    setSubscriptionModalOpen(false)
+  }
+
+  const price = checkoutTier === 'club' ? PLAN_PRICE.club.monthly : PLAN_PRICE.pro[billingCycle]
+
+  return (
+    <div className="absolute inset-0 z-[100] flex items-end justify-center bg-slate-900/50 sm:items-center" onClick={handleClose}>
+      <div
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl border-t border-bike-border bg-white p-5 shadow-2xl sm:rounded-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {view === 'plans' && (
+          <>
+            <div className="mb-1 flex items-center justify-between">
+              <h2 className="font-display text-lg font-bold text-bike-ink">{t('subscription.title')}</h2>
+              <button onClick={handleClose} className="text-2xl leading-none text-slate-400" aria-label={t('auth.close')}>
+                ×
+              </button>
+            </div>
+            <p className="mb-4 text-sm text-slate-500">{t('subscription.subtitle')}</p>
+
+            <div className="mb-4 flex overflow-hidden rounded-xl border border-bike-border">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`flex-1 py-2 text-sm font-semibold transition ${billingCycle === 'monthly' ? 'bg-bike-orange text-white' : 'bg-slate-50 text-slate-500'}`}
+              >
+                {t('subscription.billingMonthly')}
+              </button>
+              <button
+                onClick={() => setBillingCycle('yearly')}
+                className={`flex-1 py-2 text-sm font-semibold transition ${billingCycle === 'yearly' ? 'bg-bike-orange text-white' : 'bg-slate-50 text-slate-500'}`}
+              >
+                {t('subscription.billingYearly')}
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <PlanCard
+                tier="free"
+                currentTier={currentTier}
+                badge={t('tier.free')}
+                name={t('subscription.freeName')}
+                tagline={t('subscription.freeTagline')}
+                features={[t('subscription.freeFeature1'), t('subscription.freeFeature2'), t('subscription.freeFeature3')]}
+                accent="border-bike-border"
+                onActivate={() => {
+                  if (checkDemoRestriction(t('subscription.freeName'))) return
+                  upgradeTier('free')
+                }}
+                t={t}
+              />
+
+              <PlanCard
+                tier="pro"
+                currentTier={currentTier}
+                badge={t('tier.pro')}
+                name={t('subscription.proName')}
+                tagline={t('subscription.proTagline')}
+                price={billingCycle === 'monthly' ? PLAN_PRICE.pro.monthly : PLAN_PRICE.pro.yearly}
+                priceSuffix={billingCycle === 'monthly' ? t('subscription.perMonth') : t('subscription.perYear')}
+                features={[
+                  t('subscription.proFeature1'),
+                  t('subscription.proFeature2'),
+                  t('subscription.proFeature3'),
+                  t('subscription.proFeature4'),
+                ]}
+                accent="border-bike-orange/50 bg-gradient-to-b from-orange-50 to-white"
+                activateLabel={t('subscription.getPro')}
+                onActivate={() => startCheckout('pro')}
+                t={t}
+              />
+
+              <PlanCard
+                tier="club"
+                currentTier={currentTier}
+                badge={t('tier.club')}
+                name={t('subscription.clubName')}
+                tagline={t('subscription.clubTagline')}
+                price={PLAN_PRICE.club.monthly}
+                priceSuffix={t('subscription.perMonth')}
+                features={[t('subscription.clubFeature1'), t('subscription.clubFeature2'), t('subscription.clubFeature3')]}
+                accent="border-bike-gold/50 bg-gradient-to-b from-amber-50 to-white"
+                activateLabel={t('subscription.activateClub')}
+                onActivate={() => startCheckout('club')}
+                t={t}
+              />
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-bike-border bg-slate-50 p-4">
+              <p className="mb-2 text-sm font-bold text-bike-ink">{t('subscription.clubCodeTitle')}</p>
+              <div className="flex gap-2">
+                <input
+                  value={clubCode}
+                  onChange={(e) => setClubCode(e.target.value)}
+                  placeholder={t('subscription.clubCodePlaceholder')}
+                  className="flex-1 rounded-xl border border-bike-border bg-white px-3 py-2.5 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
+                />
+                <button onClick={handleRedeemCode} className="rounded-xl bg-bike-ink px-4 py-2.5 text-xs font-bold text-white active:scale-95">
+                  {t('subscription.redeemCode')}
+                </button>
+              </div>
+              {clubError && <p className="mt-2 text-xs text-status-danger">{clubError}</p>}
+              {clubSuccess && <p className="mt-2 text-xs text-status-ok">{clubSuccess}</p>}
+            </div>
+          </>
+        )}
+
+        {view === 'checkout' && (
+          <>
+            <div className="mb-1 flex items-center justify-between">
+              <button onClick={() => setView('plans')} className="text-xs font-semibold text-slate-500">
+                {t('convoy.back')}
+              </button>
+              <button onClick={handleClose} className="text-2xl leading-none text-slate-400" aria-label={t('auth.close')}>
+                ×
+              </button>
+            </div>
+            <h2 className="font-display text-lg font-bold text-bike-ink">
+              {t(checkoutTier === 'pro' ? 'subscription.proName' : 'subscription.clubName')}
+            </h2>
+            <p className="mb-4 text-sm text-slate-500">{isGuest ? t('subscription.checkoutSubtitleGuest') : t('subscription.checkoutSubtitle')}</p>
+
+            {isGuest && (
+              <div className="mb-4 space-y-3 rounded-2xl border border-bike-border bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{t('subscription.riderDataTitle')}</p>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">{t('auth.name')}</label>
+                  <input
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    placeholder={t('auth.namePlaceholder')}
+                    className="w-full rounded-xl border border-bike-border bg-white px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">{t('auth.email')}</label>
+                  <input
+                    value={guestEmail}
+                    onChange={(e) => setGuestEmail(e.target.value)}
+                    placeholder={t('auth.emailPlaceholder')}
+                    type="email"
+                    className="w-full rounded-xl border border-bike-border bg-white px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">{t('auth.password')}</label>
+                  <input
+                    value={guestPassword}
+                    onChange={(e) => setGuestPassword(e.target.value)}
+                    placeholder={t('auth.passwordPlaceholder')}
+                    type="password"
+                    className="w-full rounded-xl border border-bike-border bg-white px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            {checkoutTier === 'pro' && (
+              <div className="mb-4 flex overflow-hidden rounded-xl border border-bike-border">
+                <button
+                  onClick={() => setBillingCycle('monthly')}
+                  className={`flex-1 py-2 text-sm font-semibold transition ${billingCycle === 'monthly' ? 'bg-bike-orange text-white' : 'bg-slate-50 text-slate-500'}`}
+                >
+                  {t('subscription.billingMonthly')}
+                </button>
+                <button
+                  onClick={() => setBillingCycle('yearly')}
+                  className={`flex-1 py-2 text-sm font-semibold transition ${billingCycle === 'yearly' ? 'bg-bike-orange text-white' : 'bg-slate-50 text-slate-500'}`}
+                >
+                  {t('subscription.billingYearly')}
+                </button>
+              </div>
+            )}
+
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">{t('subscription.paymentMethod')}</p>
+            <div className="mb-4 grid grid-cols-3 gap-2">
+              <MethodButton active={paymentMethod === 'nequi'} onClick={() => setPaymentMethod('nequi')} icon="📱" label={t('subscription.methodNequi')} />
+              <MethodButton active={paymentMethod === 'pse'} onClick={() => setPaymentMethod('pse')} icon="🏦" label="PSE" />
+              <MethodButton active={paymentMethod === 'card'} onClick={() => setPaymentMethod('card')} icon="💳" label={t('subscription.methodCard')} />
+            </div>
+
+            {paymentMethod === 'nequi' && (
+              <div className="mb-4">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                  {t('subscription.phoneLabel')}
+                </label>
+                <input
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="300 123 4567"
+                  inputMode="numeric"
+                  className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
+                />
+              </div>
+            )}
+
+            {paymentMethod === 'pse' && (
+              <div className="mb-4 space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">{t('subscription.bankLabel')}</label>
+                  <select
+                    value={pseBank}
+                    onChange={(e) => setPseBank(e.target.value)}
+                    className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink focus:border-bike-blue focus:outline-none"
+                  >
+                    {PSE_BANKS.map((bank) => (
+                      <option key={bank} value={bank}>
+                        {bank}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400">{t('subscription.personType')}</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPsePersonType('natural')}
+                      className={`flex-1 rounded-xl border py-2 text-xs font-semibold transition ${psePersonType === 'natural' ? 'border-bike-orange bg-orange-50 text-bike-ink' : 'border-bike-border bg-white text-slate-600'}`}
+                    >
+                      {t('subscription.personNatural')}
+                    </button>
+                    <button
+                      onClick={() => setPsePersonType('juridica')}
+                      className={`flex-1 rounded-xl border py-2 text-xs font-semibold transition ${psePersonType === 'juridica' ? 'border-bike-orange bg-orange-50 text-bike-ink' : 'border-bike-border bg-white text-slate-600'}`}
+                    >
+                      {t('subscription.personJuridica')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {paymentMethod === 'card' && (
+              <div className="mb-4 space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    {t('subscription.cardNumberLabel')}
+                  </label>
+                  <input
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
+                    placeholder="4111 1111 1111 1111"
+                    inputMode="numeric"
+                    className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">MM/AA</label>
+                    <input
+                      value={cardExpiry}
+                      onChange={(e) => setCardExpiry(e.target.value.replace(/[^\d/]/g, '').slice(0, 5))}
+                      placeholder="12/28"
+                      className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">CVC</label>
+                    <input
+                      value={cardCvc}
+                      onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      placeholder="123"
+                      inputMode="numeric"
+                      className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {checkoutError && <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-status-danger">{checkoutError}</p>}
+
+            <button
+              onClick={handlePay}
+              className="w-full rounded-xl bg-bike-orange py-3.5 text-sm font-bold text-white shadow-glow-orange transition active:scale-[0.98]"
+            >
+              {t('subscription.payAndActivate', { price })}
+            </button>
+            <p className="mt-2 text-center text-[10px] text-slate-400">{t('subscription.checkoutDisclaimer')}</p>
+          </>
+        )}
+
+        {view === 'processing' && (
+          <div className="flex flex-col items-center gap-4 py-14 text-center">
+            <span className="h-10 w-10 animate-spin rounded-full border-4 border-bike-border border-t-bike-orange" />
+            <p className="text-sm font-semibold text-slate-600">{t('subscription.processing')}</p>
+          </div>
+        )}
+
+        {view === 'success' && (
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-4xl">✅</span>
+            <h2 className="font-display text-lg font-bold text-bike-ink">
+              {t('subscription.successTitle', { plan: t(checkoutTier === 'pro' ? 'subscription.proName' : 'subscription.clubName') })}
+            </h2>
+            <p className="max-w-xs text-sm text-slate-500">
+              {t('subscription.successBody', { date: user?.subscriptionExpiresAt ? formatLongDate(user.subscriptionExpiresAt, lang) : '' })}
+            </p>
+            <button onClick={handleClose} className="mt-3 w-full rounded-xl bg-bike-orange py-3 text-sm font-bold text-white shadow-glow-orange">
+              {t('subscription.done')}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function MethodButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: string; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex flex-col items-center gap-1 rounded-xl border py-3 text-[11px] font-semibold transition ${
+        active ? 'border-bike-orange bg-orange-50 text-bike-ink' : 'border-bike-border bg-white text-slate-600'
+      }`}
+    >
+      <span className="text-xl">{icon}</span>
+      {label}
+    </button>
+  )
+}
+
+function PlanCard({
+  tier,
+  currentTier,
+  badge,
+  name,
+  tagline,
+  price,
+  priceSuffix,
+  features,
+  accent,
+  activateLabel,
+  onActivate,
+  t,
+}: {
+  tier: SubscriptionTier
+  currentTier: SubscriptionTier
+  badge: string
+  name: string
+  tagline: string
+  price?: string
+  priceSuffix?: string
+  features: string[]
+  accent: string
+  activateLabel?: string
+  onActivate: () => void
+  t: (key: string, vars?: Record<string, string | number>) => string
+}) {
+  const isCurrent = tier === currentTier
+  return (
+    <div className={`rounded-2xl border p-4 ${accent}`}>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{badge}</p>
+        {isCurrent && <span className="text-[10px] font-bold uppercase tracking-wide text-status-ok">{t('subscription.currentPlan')}</span>}
+      </div>
+      <p className="mt-1 font-display text-lg font-black text-bike-ink">{name}</p>
+      {price ? (
+        <p className="text-sm text-slate-600">
+          <span className="font-display text-xl font-black text-bike-ink">{price}</span> {priceSuffix}
+        </p>
+      ) : (
+        <p className="text-sm text-slate-500">{tagline}</p>
+      )}
+      {price && <p className="mt-0.5 text-[11px] text-slate-400">{tagline}</p>}
+      <ul className="mt-3 space-y-1.5 text-xs text-slate-600">
+        {features.map((f) => (
+          <li key={f}>✓ {f}</li>
+        ))}
+      </ul>
+      <button
+        onClick={onActivate}
+        disabled={isCurrent}
+        className="mt-3 w-full rounded-xl bg-bike-orange py-2.5 text-xs font-bold text-white shadow-glow-orange transition active:scale-[0.98] disabled:cursor-default disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
+      >
+        {isCurrent ? t('subscription.activePlan') : activateLabel ?? t('subscription.activate')}
+      </button>
+    </div>
+  )
+}
