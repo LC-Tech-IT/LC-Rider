@@ -95,9 +95,9 @@ export default function LandingPricing() {
           <p className="mt-2 font-display text-3xl font-black text-bike-ink">
             $299.000 COP<span className="text-sm font-semibold text-slate-400"> / año</span>
           </p>
-          <p className="mt-1 text-xs text-slate-500">Hasta 6 motos en convoy, administración grupal</p>
+          <p className="mt-1 text-xs text-slate-500">Administración grupal para tu club motero</p>
           <ul className="mt-6 space-y-3 text-sm text-slate-600">
-            <li>🏆 Hasta 6 motos en convoy</li>
+            <li>👥 Convoy de hasta 25 pilotos simultáneos</li>
             <li>🔑 Cuenta de club o Código de Club</li>
             <li>🎙️ Todo lo incluido en Convoy Pro</li>
           </ul>

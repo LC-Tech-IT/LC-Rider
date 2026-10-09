@@ -24,6 +24,11 @@ export default function LandingContact() {
       showToast('Completa tu nombre, correo y mensaje antes de enviar.')
       return
     }
+
+    const subjectLabel = SUBJECT_OPTIONS.find((opt) => opt.value === subject)?.label ?? 'Consulta Bike Tracker'
+    const body = `Nombre: ${name}\nCorreo: ${email}\n\n${message}`
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subjectLabel)}&body=${encodeURIComponent(body)}`
+
     showToast('¡Mensaje enviado! Nuestro equipo te contactará muy pronto.')
     setName('')
     setEmail('')
@@ -106,12 +111,15 @@ export default function LandingContact() {
               </svg>
             </span>
             <div>
-              <p className="font-display text-sm font-bold text-bike-ink">WhatsApp Oficial · +57 350 520 8592</p>
+              <p className="font-display text-sm font-bold text-bike-ink">WhatsApp Oficial</p>
               <p className="text-xs text-slate-500">Chatea con nuestro equipo de soporte y ventas en tiempo real.</p>
             </div>
           </a>
 
-          <div className="flex items-center gap-4 rounded-3xl border border-bike-border bg-white p-5 shadow-soft">
+          <a
+            href={`mailto:${CONTACT_EMAIL}?subject=Consulta%20Bike%20Tracker`}
+            className="flex items-center gap-4 rounded-3xl border border-bike-border bg-white p-5 shadow-soft transition hover:shadow-card"
+          >
             <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-sky-50">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0284C7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -122,7 +130,7 @@ export default function LandingContact() {
               <p className="font-display text-sm font-bold text-bike-ink">Correo Electrónico</p>
               <p className="text-xs text-slate-500">{CONTACT_EMAIL}</p>
             </div>
-          </div>
+          </a>
 
           <div className="flex items-center gap-4 rounded-3xl border border-bike-border bg-white p-5 shadow-soft">
             <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-2xl">📍</span>

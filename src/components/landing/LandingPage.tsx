@@ -37,19 +37,16 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-3">
           <div className="flex items-center gap-3">
             <img
-              src="/images/lc-tech-logo.jpeg"
-              alt="LC Tech"
-              className="h-10 w-10 rounded-xl border border-bike-gold/50 object-cover object-top shadow-card"
+              src="/images/app-icon.jpg"
+              alt="Bike Tracker"
+              className="h-11 w-11 rounded-2xl border-2 border-bike-orange object-cover shadow-glow-orange"
             />
             <div className="leading-tight">
-              <p className="font-display text-xs font-black tracking-wide text-bike-ink">
-                LC TECH{' '}
-                <span className="hidden font-body font-medium text-slate-500 sm:inline">· Tecnología inteligente que te respalda.</span>
+              <p className="font-display text-base font-black tracking-tight text-bike-ink">Bike Tracker</p>
+              <p className="font-body text-xs font-semibold text-slate-500">
+                por <span className="font-bold text-bike-orange">LC TECH</span>{' '}
+                <span className="hidden sm:inline">· Tecnología inteligente que te respalda.</span>
               </p>
-              <div className="mt-0.5 flex items-center gap-1.5">
-                <span className="h-3 w-px bg-bike-border" />
-                <p className="font-display text-sm font-black text-bike-orange">Bike Tracker</p>
-              </div>
             </div>
           </div>
 
@@ -147,7 +144,20 @@ export default function LandingPage() {
       <footer className="border-t border-bike-border px-6 py-10 text-center">
         <p className="text-xs font-semibold text-slate-500">🏍️ Bike Tracker — LC Tech</p>
         <p className="mt-1 text-[11px] text-slate-400">Tecnología inteligente que te respalda. · {new Date().getFullYear()}</p>
-        <p className="mt-1 text-[11px] text-slate-400">📧 leecastro.tech@gmail.com · 📲 +57 350 520 8592</p>
+        <p className="mt-1 text-[11px] text-slate-400">
+          <a href="mailto:leecastro.tech@gmail.com?subject=Consulta%20Bike%20Tracker" className="hover:text-bike-ink hover:underline">
+            📧 leecastro.tech@gmail.com
+          </a>{' '}
+          ·{' '}
+          <a
+            href="https://wa.me/573505208592?text=Hola%20Bike%20Tracker%2C%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20la%20app%20y%20los%20planes%20Pro"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-bike-ink hover:underline"
+          >
+            📲 WhatsApp Oficial
+          </a>
+        </p>
       </footer>
 
       <LandingChatbot open={chatOpen} onOpenChange={setChatOpen} />

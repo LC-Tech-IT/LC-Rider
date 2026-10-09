@@ -33,7 +33,7 @@ interface BeforeInstallPromptEvent extends Event {
 const DEFAULT_POSITION: LatLng = { lat: 4.711, lng: -74.0721 }
 
 /** Matriz oficial de monetización: cupos de convoy y garaje por nivel de suscripción. */
-const TIER_CONVOY_LIMIT: Record<SubscriptionTier, number> = { free: 3, pro: 999, club: 6 }
+const TIER_CONVOY_LIMIT: Record<SubscriptionTier, number> = { free: 3, pro: 999, club: 25 }
 const TIER_VEHICLE_LIMIT: Record<SubscriptionTier, number> = { free: 1, pro: 5, club: 5 }
 
 /** Códigos de canje de Biker Club (demo): activan el tier 'club' con el nombre del club asociado. */
@@ -171,7 +171,7 @@ interface AppContextValue {
   subscriptionCheckoutTarget: SubscriptionTier | null
   subscriptionCheckoutBillingCycle: 'monthly' | 'yearly'
   openSubscriptionCheckout: (tier?: SubscriptionTier, billingCycle?: 'monthly' | 'yearly') => void
-  upgradeTier: (tier: SubscriptionTier, billingCycle?: 'monthly' | 'yearly') => void
+  upgradeTier: (tier: SubscriptionTier, billingCycle?: 'monthly' | 'yearly', paidViaQr?: boolean) => void
   redeemClubCode: (code: string) => string | null
   vehicleLimit: number
   convoyMemberLimit: number
@@ -255,6 +255,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     userRef.current = user
   }, [user])
   const isDemoUser = user?.email === 'demo@biketracker.app'
+
+  // --- Expiración automática de suscripciones: al cargar/cambiar la sesión, si el plan de pago (Pro/Club)
+  // ya venció, se degrada a 'free' de inmediato en vez de dejar al usuario disfrutando de beneficios vencidos.
+  // El Modo Demo nunca tiene subscriptionExpiresAt, así que esta guarda lo deja intacto. ---
+  useEffect(() => {
+    if (!user || user.tier === 'free' || !user.subscriptionExpiresAt) return
+    if (Date.now() > new Date(user.subscriptionExpiresAt).getTime()) {
+      setUser((prev) =>
+        prev ? { ...prev, tier: 'free', subscriptionExpiresAt: undefined, clubName: undefined, clubCode: undefined } : prev,
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
+
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [editProfileModalOpen, setEditProfileModalOpen] = useState(false)
   const [addVehicleModalOpen, setAddVehicleModalOpen] = useState(false)
@@ -658,10 +672,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // --- Suscripciones (Free / Pro / Club) ---
-  /** Simula la activación de una suscripción de pago (Pro o Club) para pruebas y producción. El modal
-   *  permanece abierto para que el usuario vea la confirmación ("Plan activo") antes de cerrarlo. */
-  const upgradeTier = useCallback((tier: SubscriptionTier, billingCycle: 'monthly' | 'yearly' = 'monthly') => {
-    const days = billingCycle === 'yearly' ? 365 : 30
+  /** Activa una suscripción de pago (Pro o Club), calculando su fecha de vencimiento: +30 días si es mensual,
+   *  +365 si es anual, y +30 días adicionales de regalo (395 en total para el plan anual) cuando el pago se
+   *  hizo por QR Bancolombia/Nequi, tal como se promete en la Landing y el checkout. El modal permanece abierto
+   *  para que el usuario vea la confirmación ("Plan activo") antes de cerrarlo. */
+  const upgradeTier = useCallback((tier: SubscriptionTier, billingCycle: 'monthly' | 'yearly' = 'monthly', paidViaQr: boolean = false) => {
+    const baseDays = billingCycle === 'yearly' ? 365 : 30
+    const days = paidViaQr ? baseDays + 30 : baseDays
     setUser((prev) =>
       prev
         ? {
@@ -674,7 +691,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     )
   }, [])
 
-  /** Canjea un Código de Club válido, activando el tier 'club' con cupo de hasta 6 motos.
+  /** Canjea un Código de Club válido, activando el tier 'club' con cupo de hasta 25 pilotos.
    *  Devuelve el nombre del club si el código es válido, o null si no existe. El modal permanece abierto
    *  para que el usuario vea el mensaje de bienvenida al club antes de cerrarlo. */
   const redeemClubCode = useCallback((code: string): string | null => {

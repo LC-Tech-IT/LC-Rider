@@ -67,6 +67,15 @@ export default function SubscriptionModal() {
     }
   }, [subscriptionModalOpen, subscriptionCheckoutTarget, subscriptionCheckoutBillingCycle])
 
+  // Referencia estable mientras dure este checkout: se regenera solo si cambia el plan, no en cada render.
+  // Nota: useMemo es un Hook y por eso debe llamarse aquí, antes del "return null" de abajo — nunca después,
+  // o React pierde la cuenta del orden de Hooks entre un render con el modal cerrado y uno con el modal abierto.
+  const qrReference = useMemo(
+    () => buildPaymentReference(user?.id ?? (guestEmail.trim() || 'invitado')),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [checkoutTier, subscriptionModalOpen],
+  )
+
   if (!subscriptionModalOpen) return null
 
   const currentTier = user?.tier ?? 'free'
@@ -158,18 +167,40 @@ export default function SubscriptionModal() {
     }
   }
 
+  /** Pago por QR: al enviar el comprobante por WhatsApp (sin pasarela automática que lo confirme), se activa
+   *  el plan de inmediato en confianza —incluyendo el mes de regalo— y el equipo verifica el comprobante del
+   *  lado humano; si el usuario llegó como invitado, primero se crea su cuenta real con sus datos. */
+  async function handleQrReceiptClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (isGuest && (!guestName.trim() || !guestEmail.trim() || guestPassword.trim().length < 6)) {
+      e.preventDefault()
+      setCheckoutError(t('subscription.errorGuestFields'))
+      return
+    }
+    setCheckoutError('')
+    try {
+      if (isGuest) {
+        await supabaseSignUp({
+          name: guestName.trim(),
+          lastName: '',
+          gender: undefined,
+          phone: '',
+          email: guestEmail.trim(),
+          password: guestPassword,
+          remember: true,
+        })
+      }
+      upgradeTier(checkoutTier, billingCycle, true)
+      setView('success')
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : t('auth.errorGeneric'))
+    }
+  }
+
   function handleClose() {
     setSubscriptionModalOpen(false)
   }
 
   const price = checkoutTier === 'club' ? PLAN_PRICE.club.monthly : PLAN_PRICE.pro[billingCycle]
-
-  // Referencia estable mientras dure este checkout: se regenera solo si cambia el plan, no en cada render.
-  const qrReference = useMemo(
-    () => buildPaymentReference(user?.id ?? (guestEmail.trim() || 'invitado')),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [checkoutTier, subscriptionModalOpen],
-  )
   const qrPlanName = t(checkoutTier === 'pro' ? 'subscription.proName' : 'subscription.clubName')
   const qrWhatsappUrl = `https://wa.me/${WHATSAPP_SALES_NUMBER}?text=${encodeURIComponent(
     t('subscription.qrWhatsappMessage', { plan: qrPlanName, price, reference: qrReference }),
@@ -249,7 +280,7 @@ export default function SubscriptionModal() {
                 name={t('subscription.clubName')}
                 tagline={t('subscription.clubTagline')}
                 price={PLAN_PRICE.club.monthly}
-                priceSuffix={t('subscription.perMonth')}
+                priceSuffix={t('subscription.perYear')}
                 features={[t('subscription.clubFeature1'), t('subscription.clubFeature2'), t('subscription.clubFeature3')]}
                 accent="border-bike-gold/50 bg-gradient-to-b from-amber-50 to-white"
                 activateLabel={t('subscription.activateClub')}
@@ -392,6 +423,7 @@ export default function SubscriptionModal() {
                   href={qrWhatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={handleQrReceiptClick}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg transition active:scale-[0.98]"
                 >
                   📲 {t('subscription.qrSendReceipt')}
