@@ -147,6 +147,7 @@ export default function LandingPage() {
       <footer className="border-t border-bike-border px-6 py-10 text-center">
         <p className="text-xs font-semibold text-slate-500">🏍️ Bike Tracker — LC Tech</p>
         <p className="mt-1 text-[11px] text-slate-400">Tecnología inteligente que te respalda. · {new Date().getFullYear()}</p>
+        <p className="mt-1 text-[11px] text-slate-400">📧 leecastro.tech@gmail.com · 📲 +57 350 520 8592</p>
       </footer>
 
       <LandingChatbot open={chatOpen} onOpenChange={setChatOpen} />

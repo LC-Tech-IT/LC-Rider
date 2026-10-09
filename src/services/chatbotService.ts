@@ -46,6 +46,8 @@ const OUT_OF_SCOPE_KEYWORDS = [
   'chiste',
 ]
 
+/** Tono motero colombiano cercano y cálido ("parcero", "hermano de ruta") en cada respuesta, siempre
+ *  natural y nunca forzado — las cifras y datos de contacto se mantienen exactos y verificables. */
 const PRODUCT_INTENTS: ChatbotIntent[] = [
   {
     keywords: [
@@ -54,75 +56,75 @@ const PRODUCT_INTENTS: ChatbotIntent[] = [
       'que es esta app', 'qué es esta app', 'que es la app', 'qué es la app', 'que es bike', 'de que trata',
     ],
     response:
-      'Bike Tracker es la plataforma de LC Tech para moteros que ruedan en grupo: conecta a todo el convoy en un mapa en tiempo real (quién es el Líder, quién el Piloto Guardián, quién se rezaga), te guía con navegación turn-by-turn con voz estilo Waze, difunde un botón SOS con tu ubicación GPS exacta ante cualquier emergencia, y lleva el control digital de tus vehículos (SOAT, tecnomecánica, garaje). Funciona desde tu celular o instalada como app (PWA/APK), y también se ve en pantallas tipo CarPlay/Android Auto. Tiene un plan gratuito para empezar y planes Pro/Club para convoyes sin límite de pilotos. ¿Quieres que te cuente sobre el modo Convoy, el botón SOS o los planes?',
+      '¡Quiubo, parcero! Bike Tracker es la plataforma de LC Tech hecha por y para moteros que ruedan en parche: conecta a todo el convoy en un mapa en tiempo real (quién va de Líder, quién de Piloto Guardián y quién se nos queda rezagado), te guía con navegación turn-by-turn con voz estilo Waze, dispara un botón SOS con tu ubicación GPS exacta ante cualquier eventualidad, y te lleva el control digital de tus motos (SOAT, tecnomecánica, garaje). Funciona desde el celular o instalada como app (PWA/APK), y hasta se ve en pantallas tipo CarPlay/Android Auto. Tiene un plan gratis pa\' arrancar y planes Pro/Club pa\' rodar sin límites. ¿Le sigo contando del modo Convoy, el botón SOS o los planes, hermano?',
   },
   {
     keywords: ['precio', 'costo', 'cuanto cuesta', 'cuánto cuesta', 'plan', 'suscripcion', 'suscripción'],
     response:
-      'Tenemos tres planes: 🆓 **Piloto Libre** ($0, convoy de hasta 3 pilotos, 1 vehículo y SOS básico), ⚡ **Convoy Pro** a $9.900 COP/mes (~$2.49 USD) o $79.900 COP/año (~$19.99 USD), con pilotos ilimitados, hasta 5 vehículos, telemetría avanzada, GPX y alertas por voz en intercomunicador; y 🏆 **Biker Club** a $39.900 COP/mes (~$9.99 USD), pensado para clubes moteros con hasta 25 pilotos por sala mediante una cuenta de club o un Código de Club. Puedes activarlos desde la sección "Ver Planes" dentro de la app o desde "Obtener Convoy Pro" en esta misma página.',
+      '¡De una, parce! Así están los planes pa\' que elijas con toda la info: 🆓 **Piloto Libre** ($0 COP, pa\' siempre — convoy de hasta 3 pilotos, 1 moto en el garaje y SOS básico). ⚡ **Convoy Pro**: el más popular es el **Anual a $99.000 COP** (te sale como a $8.250 COP al mes — ¡ahorras un 45%!), o si prefieres ir mes a mes, el **Mensual a $14.900 COP**. 🏆 **Biker Club** a $299.000 COP al año, pensado pa\' tu club — hasta 6 motos en convoy con administración grupal. Y ojo, hermano: si pagas por **QR de Bancolombia o Nequi** te ahorras las comisiones Y te regalamos **1 mes adicional gratis** 🎁. Actívalo desde "Ver Planes" en la app, o escríbenos directo al WhatsApp 📲 +57 350 520 8592 y te ayudamos personalmente.',
   },
   {
     keywords: [
       'como pago', 'cómo pago', 'metodo de pago', 'método de pago', 'medios de pago', 'nequi', 'daviplata', 'pse',
-      'tarjeta de credito', 'tarjeta de crédito', 'tarjeta de debito', 'tarjeta de débito', 'pagar',
+      'tarjeta de credito', 'tarjeta de crédito', 'tarjeta de debito', 'tarjeta de débito', 'pagar', 'qr', 'codigo qr', 'código qr',
     ],
     response:
-      'Puedes pagar tu suscripción con 📱 Nequi o Daviplata, 🏦 PSE (con los bancos principales de Colombia) o 💳 tarjeta de crédito/débito. El checkout está dentro de la app, en "Ver Planes" → elige Convoy Pro o Biker Club → selecciona tu método de pago y confirma: tu plan se activa al instante.',
+      'Tienes varias formas de pagar, parce: ⚡ la más recomendada es el **QR de Bancolombia/Nequi** (sin comisiones + 1 mes adicional gratis de regalo — solo escaneas, transfieres el valor exacto de tu plan y nos mandas el comprobante por WhatsApp al 📲 +57 350 520 8592), o si prefieres, también aceptamos 📱 Nequi/Daviplata, 🏦 PSE (con los bancos principales de Colombia) y 💳 tarjeta de crédito/débito, todo desde el checkout dentro de la app en "Ver Planes".',
   },
   {
     keywords: ['renovar', 'renovacion', 'renovación', 'vencimiento', 'vence mi plan', 'cuando vence', 'cuándo vence', 'cambiar de plan', 'actualizar plan'],
     response:
-      'Puedes ver la fecha de vigencia de tu plan y renovarlo o cambiarlo en cualquier momento desde tu Perfil o el menú lateral, con el botón "🔄 Renovar Suscripción / Cambiar Plan". Ahí eliges el método de pago y tu plan queda activo de inmediato por 30 días (o 365 si eliges el plan anual de Convoy Pro).',
+      'Tranquilo, hermano, eso lo ves fácil: la fecha de vigencia de tu plan está en tu Perfil o el menú lateral, con el botón "🔄 Renovar Suscripción / Cambiar Plan". Ahí eliges el método de pago (QR, Nequi, PSE o tarjeta) y tu plan queda activo de inmediato — 30 días si es mensual, o 365 si eliges el Convoy Pro Anual.',
   },
   {
     keywords: ['codigo de club', 'código de club', 'canjear codigo', 'canjear código', 'club yamaha', 'biker crew', 'club bmw'],
     response:
-      'Si tu club motero tiene un Código de Club (por ejemplo entregado por tu organización), puedes canjearlo en "Ver Planes" → "¿Tienes un Código de Club?". Esto activa el plan Biker Club al instante, con cupo de hasta 25 pilotos por sala de convoy.',
+      'Si tu club motero tiene un Código de Club (el que te entrega tu organización), lo canjeas en "Ver Planes" → "¿Tienes un Código de Club?". Eso activa el plan Biker Club al instante, con cupo de hasta 6 motos en convoy y administración grupal — ideal pa\' rodar con todo el parche.',
   },
   {
     keywords: ['convoy', 'grupo', 'rodada', 'lider', 'líder', 'guardian', 'guardián', 'rezagad'],
     response:
-      'El modo Convoy conecta a todo el grupo en tiempo real sobre el mapa: ves quién va Líder, quién es el Piloto Guardián y si alguien se rezaga o se desvía de la ruta, con alertas visuales al instante para que nunca se pierdan en una curva.',
+      'El modo Convoy conecta a todo el parche en tiempo real sobre el mapa: ves quién va de Líder, quién es el Piloto Guardián y si alguien se rezaga o se desvía de la ruta, con alertas visuales al toque pa\' que nadie se pierda en una curva.',
   },
   {
     keywords: ['guante', 'guantes'],
     response:
-      'Sí — el Modo Guantes (In-Ride Glove Mode) usa botones gigantes de al menos 70px, pensados para activarse de un solo toque con guantes de protección puestos y con miradas de medio segundo al manillar.',
+      'Sí señor — el Modo Guantes (In-Ride Glove Mode) usa botones gigantes de al menos 48-70px, pensados pa\' activarse de un solo toque con los guantes puestos y con miradas de medio segundo al manillar. Pura ergonomía pa\' la carretera.',
   },
   {
     keywords: ['carplay', 'android auto', 'pantalla del carro', 'moto pantalla'],
     response:
-      'Bike Tracker incluye una vista optimizada estilo CarPlay/Android Auto dentro del showcase de la app, con velocímetro y estado del convoy en alto contraste para tableros y pantallas montadas en el manillar.',
+      'Bike Tracker tiene una vista optimizada estilo CarPlay/Android Auto dentro del showcase de la app, con velocímetro y estado del convoy en alto contraste pa\' tableros y pantallas montadas en el manillar.',
   },
   {
     keywords: ['bateria', 'batería', 'consumo', 'gps'],
     response:
-      'La app está optimizada para bajo consumo de batería en rutas largas: usa actualizaciones de posición eficientes y puedes activar el modo de alto contraste solo cuando lo necesites.',
+      'La app está optimizada pa\' gastar poca batería en rodadas largas: usa actualizaciones de posición eficientes, reduce la transmisión del GPS cuando estás detenido, y mantiene la pantalla activa durante la rodada pa\' que nunca se te apague el velocímetro a mitad de curva.',
   },
   {
     keywords: ['sin señal', 'sin senal', 'sin internet', 'offline', 'mesh', 'zona sin cobertura'],
     response:
-      'Estamos trabajando en un modo offline/mesh para zonas sin cobertura celular, que permitirá mantener el convoy sincronizado incluso en tramos sin señal. Por ahora, la telemetría en vivo requiere datos móviles.',
+      'Tu velocímetro, el mapa y la navegación turn-by-turn siguen trabajando aunque te quedes sin señal en un túnel o una zona alejada — verás un avisito de "GPS Satelital Activo" y la app no se te cuelga. Lo único que sí necesita datos móviles es sincronizar tu posición en vivo con el resto del convoy.',
   },
   {
     keywords: ['sos', 'emergencia', 'accidente', 'auxilio'],
     response:
-      'El botón SOS difunde tu ubicación GPS exacta a todo el convoy con una sola pulsación mantenida (para evitar falsos positivos), acompañado de sirena y vibración, tanto en la app como en el Modo Guantes.',
+      'El botón SOS difunde tu ubicación GPS exacta a todo el convoy con una sola pulsación sostenida (pa\' evitar falsas alarmas), con sirena y vibración incluidas, tanto en la app como en el Modo Guantes. Tu parche se entera al instante si necesitas una mano.',
   },
   {
     keywords: ['registro', 'registrarme', 'crear cuenta', 'iniciar sesion', 'iniciar sesión', 'google'],
     response:
-      'Puedes registrarte gratis con tu cuenta de Google o con tu correo desde el botón "Iniciar Rodada Gratis" — el proceso toma menos de un minuto y luego te pedimos registrar tu primera moto.',
+      'Te registras gratis con tu cuenta de Google o con tu correo desde el botón "Iniciar Rodada Gratis" — el proceso toma menos de un minuto y luego te pedimos registrar tu primera moto. Así de fácil, parce.',
   },
   {
     keywords: ['contacto', 'lc tech', 'soporte', 'ayuda tecnica', 'ayuda técnica', 'whatsapp', 'correo', 'club motero', 'registrar mi club'],
     response:
-      'LC Tech — Tecnología inteligente que te respalda. Puedes escribirnos por WhatsApp o correo (soporte@biketracker.app) desde la sección "Contacto" al final de esta página — ahí también puedes registrar a tu club motero para el plan Biker Club, o escribirnos desde la sección de Soporte dentro de la app una vez inicies sesión.',
+      '¡Claro que sí, parce! Somos LC Tech — Tecnología inteligente que te respalda 🏍️. Escríbenos directo por WhatsApp al 📲 +57 350 520 8592 o al correo 📧 leecastro.tech@gmail.com. Ahí también puedes registrar tu club motero pa\' activar el plan Biker Club.',
   },
 ]
 
 const FALLBACK_RESPONSE =
-  'Puedo ayudarte con información sobre precios y planes, métodos de pago, renovación de tu suscripción, códigos de club, el modo Convoy, compatibilidad con guantes y CarPlay/Android Auto, batería, el modo sin señal, el botón SOS o cómo registrarte. ¿Sobre cuál te gustaría saber más?'
+  'Te puedo ayudar con info sobre precios y planes (incluyendo el pago por QR Bancolombia/Nequi), métodos de pago, renovación de tu suscripción, códigos de club, el modo Convoy, compatibilidad con guantes y CarPlay/Android Auto, batería, zonas sin señal, el botón SOS o cómo registrarte. ¿Sobre cuál te gustaría que te cuente, parce?'
 
 const DIACRITICS_REGEX = new RegExp('[\\u0300-\\u036f]', 'g')
 
@@ -158,6 +160,6 @@ export function getChatbotResponse(message: string): string {
 export const SUGGESTED_PROMPTS = [
   '¿Qué es Bike Tracker?',
   '¿Qué incluye Convoy Pro?',
-  '¿Cómo pago mi suscripción?',
+  '¿Cómo pago con QR Bancolombia/Nequi?',
   '¿Tiene alerta SOS?',
 ]

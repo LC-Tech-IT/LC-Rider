@@ -7,8 +7,9 @@ const SUBJECT_OPTIONS = [
   { value: 'plans', label: 'Información de Planes' },
 ]
 
-const WHATSAPP_NUMBER = '573000000000'
-const WHATSAPP_MESSAGE = 'Hola, quiero más información sobre Bike Tracker'
+const WHATSAPP_NUMBER = '573505208592'
+const WHATSAPP_MESSAGE = 'Hola Bike Tracker, quisiera más información sobre la app y los planes Pro'
+const CONTACT_EMAIL = 'leecastro.tech@gmail.com'
 
 export default function LandingContact() {
   const { showToast } = useApp()
@@ -105,8 +106,8 @@ export default function LandingContact() {
               </svg>
             </span>
             <div>
-              <p className="font-display text-sm font-bold text-bike-ink">WhatsApp Oficial</p>
-              <p className="text-xs text-slate-500">Chatea con nuestro equipo de soporte en tiempo real.</p>
+              <p className="font-display text-sm font-bold text-bike-ink">WhatsApp Oficial · +57 350 520 8592</p>
+              <p className="text-xs text-slate-500">Chatea con nuestro equipo de soporte y ventas en tiempo real.</p>
             </div>
           </a>
 
@@ -119,7 +120,7 @@ export default function LandingContact() {
             </span>
             <div>
               <p className="font-display text-sm font-bold text-bike-ink">Correo Electrónico</p>
-              <p className="text-xs text-slate-500">soporte@biketracker.app · lctech@biketracker.app</p>
+              <p className="text-xs text-slate-500">{CONTACT_EMAIL}</p>
             </div>
           </div>
 

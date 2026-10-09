@@ -1,17 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { formatLongDate } from '../../utils/formatDate'
 import { buildPaymentReference, getPlanAmountCOP, isPaymentGatewayConfigured, openWompiCheckout } from '../../services/paymentService'
 import type { SubscriptionTier } from '../../types'
 
-type PaymentMethod = 'nequi' | 'pse' | 'card'
+type PaymentMethod = 'nequi' | 'pse' | 'card' | 'qr'
 type CheckoutView = 'plans' | 'checkout' | 'processing' | 'success'
 
 const PSE_BANKS = ['Bancolombia', 'Davivienda', 'BBVA Colombia', 'Banco de Bogotá', 'Nequi', 'Banco Popular']
 
+const WHATSAPP_SALES_NUMBER = '573505208592'
+
 const PLAN_PRICE: Record<'pro' | 'club', { monthly: string; yearly: string }> = {
-  pro: { monthly: '$9.900 COP', yearly: '$79.900 COP' },
-  club: { monthly: '$39.900 COP', yearly: '$39.900 COP' },
+  pro: { monthly: '$14.900 COP', yearly: '$99.000 COP' },
+  club: { monthly: '$299.000 COP', yearly: '$299.000 COP' },
 }
 
 export default function SubscriptionModal() {
@@ -19,6 +21,7 @@ export default function SubscriptionModal() {
     subscriptionModalOpen,
     setSubscriptionModalOpen,
     subscriptionCheckoutTarget,
+    subscriptionCheckoutBillingCycle,
     user,
     upgradeTier,
     redeemClubCode,
@@ -57,11 +60,12 @@ export default function SubscriptionModal() {
     setGuestPassword('')
     if (subscriptionCheckoutTarget === 'pro' || subscriptionCheckoutTarget === 'club') {
       setCheckoutTier(subscriptionCheckoutTarget)
+      setBillingCycle(subscriptionCheckoutBillingCycle)
       setView('checkout')
     } else {
       setView('plans')
     }
-  }, [subscriptionModalOpen, subscriptionCheckoutTarget])
+  }, [subscriptionModalOpen, subscriptionCheckoutTarget, subscriptionCheckoutBillingCycle])
 
   if (!subscriptionModalOpen) return null
 
@@ -159,6 +163,17 @@ export default function SubscriptionModal() {
   }
 
   const price = checkoutTier === 'club' ? PLAN_PRICE.club.monthly : PLAN_PRICE.pro[billingCycle]
+
+  // Referencia estable mientras dure este checkout: se regenera solo si cambia el plan, no en cada render.
+  const qrReference = useMemo(
+    () => buildPaymentReference(user?.id ?? (guestEmail.trim() || 'invitado')),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [checkoutTier, subscriptionModalOpen],
+  )
+  const qrPlanName = t(checkoutTier === 'pro' ? 'subscription.proName' : 'subscription.clubName')
+  const qrWhatsappUrl = `https://wa.me/${WHATSAPP_SALES_NUMBER}?text=${encodeURIComponent(
+    t('subscription.qrWhatsappMessage', { plan: qrPlanName, price, reference: qrReference }),
+  )}`
 
   return (
     <div className="absolute inset-0 z-[100] flex items-end justify-center bg-slate-900/50 sm:items-center" onClick={handleClose}>
@@ -330,11 +345,59 @@ export default function SubscriptionModal() {
             )}
 
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">{t('subscription.paymentMethod')}</p>
+
+            <button
+              onClick={() => setPaymentMethod('qr')}
+              className={`mb-3 flex w-full items-center gap-3 rounded-2xl border-2 p-3.5 text-left transition ${
+                paymentMethod === 'qr' ? 'border-emerald-500 bg-emerald-50' : 'border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50'
+              }`}
+            >
+              <span className="text-2xl">⚡</span>
+              <div>
+                <p className="text-sm font-bold text-emerald-700">{t('subscription.qrOptionTitle')}</p>
+                <p className="text-[11px] font-semibold text-emerald-600">{t('subscription.qrOptionSubtitle')}</p>
+              </div>
+            </button>
+
+            <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-widest text-slate-400">{t('subscription.otherMethods')}</p>
             <div className="mb-4 grid grid-cols-3 gap-2">
               <MethodButton active={paymentMethod === 'nequi'} onClick={() => setPaymentMethod('nequi')} icon="📱" label={t('subscription.methodNequi')} />
               <MethodButton active={paymentMethod === 'pse'} onClick={() => setPaymentMethod('pse')} icon="🏦" label="PSE" />
               <MethodButton active={paymentMethod === 'card'} onClick={() => setPaymentMethod('card')} icon="💳" label={t('subscription.methodCard')} />
             </div>
+
+            {paymentMethod === 'qr' && (
+              <div className="mb-4 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 text-center">
+                <img
+                  src="/images/qr-bancolombia.png"
+                  alt={t('subscription.qrImageAlt')}
+                  className="mx-auto h-48 w-48 rounded-2xl border-4 border-white object-cover shadow-xl"
+                />
+                <div className="flex items-center justify-center gap-3 text-xs font-bold text-emerald-700">
+                  <a href="/images/qr-bancolombia.png" download className="underline underline-offset-2">
+                    {t('subscription.qrDownload')}
+                  </a>
+                  <span className="text-emerald-300">·</span>
+                  <a href="/images/qr-bancolombia.png" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                    {t('subscription.qrEnlarge')}
+                  </a>
+                </div>
+                <p className="font-display text-sm font-bold text-bike-ink">{t('subscription.qrAmountLabel', { price })}</p>
+                <ol className="space-y-2 text-left text-xs text-slate-600">
+                  <li>1. {t('subscription.qrStep1')}</li>
+                  <li>2. {t('subscription.qrStep2', { price })}</li>
+                  <li>3. {t('subscription.qrStep3')}</li>
+                </ol>
+                <a
+                  href={qrWhatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg transition active:scale-[0.98]"
+                >
+                  📲 {t('subscription.qrSendReceipt')}
+                </a>
+              </div>
+            )}
 
             {paymentMethod === 'nequi' && (
               <div className="mb-4">
@@ -427,13 +490,19 @@ export default function SubscriptionModal() {
 
             {checkoutError && <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-status-danger">{checkoutError}</p>}
 
-            <button
-              onClick={handlePay}
-              className="w-full rounded-xl bg-bike-orange py-3.5 text-sm font-bold text-white shadow-glow-orange transition active:scale-[0.98]"
-            >
-              {t('subscription.payAndActivate', { price })}
-            </button>
-            <p className="mt-2 text-center text-[10px] text-slate-400">{t('subscription.checkoutDisclaimer')}</p>
+            {paymentMethod === 'qr' ? (
+              <p className="text-center text-[11px] text-slate-400">{t('subscription.qrActivationNote')}</p>
+            ) : (
+              <>
+                <button
+                  onClick={handlePay}
+                  className="w-full rounded-xl bg-bike-orange py-3.5 text-sm font-bold text-white shadow-glow-orange transition active:scale-[0.98]"
+                >
+                  {t('subscription.payAndActivate', { price })}
+                </button>
+                <p className="mt-2 text-center text-[10px] text-slate-400">{t('subscription.checkoutDisclaimer')}</p>
+              </>
+            )}
           </>
         )}
 

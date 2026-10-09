@@ -33,7 +33,7 @@ interface BeforeInstallPromptEvent extends Event {
 const DEFAULT_POSITION: LatLng = { lat: 4.711, lng: -74.0721 }
 
 /** Matriz oficial de monetización: cupos de convoy y garaje por nivel de suscripción. */
-const TIER_CONVOY_LIMIT: Record<SubscriptionTier, number> = { free: 3, pro: 999, club: 25 }
+const TIER_CONVOY_LIMIT: Record<SubscriptionTier, number> = { free: 3, pro: 999, club: 6 }
 const TIER_VEHICLE_LIMIT: Record<SubscriptionTier, number> = { free: 1, pro: 5, club: 5 }
 
 /** Códigos de canje de Biker Club (demo): activan el tier 'club' con el nombre del club asociado. */
@@ -169,7 +169,8 @@ interface AppContextValue {
   subscriptionModalOpen: boolean
   setSubscriptionModalOpen: (open: boolean) => void
   subscriptionCheckoutTarget: SubscriptionTier | null
-  openSubscriptionCheckout: (tier?: SubscriptionTier) => void
+  subscriptionCheckoutBillingCycle: 'monthly' | 'yearly'
+  openSubscriptionCheckout: (tier?: SubscriptionTier, billingCycle?: 'monthly' | 'yearly') => void
   upgradeTier: (tier: SubscriptionTier, billingCycle?: 'monthly' | 'yearly') => void
   redeemClubCode: (code: string) => string | null
   vehicleLimit: number
@@ -259,11 +260,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [addVehicleModalOpen, setAddVehicleModalOpen] = useState(false)
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false)
   const [subscriptionCheckoutTarget, setSubscriptionCheckoutTarget] = useState<SubscriptionTier | null>(null)
+  const [subscriptionCheckoutBillingCycle, setSubscriptionCheckoutBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
 
   /** Abre el modal de suscripción; si se indica un tier de pago, salta directo al checkout de ese plan
-   *  (usado por "Obtener Convoy Pro" / "Activar Biker Club" en la Landing y por "Renovar Suscripción"). */
-  const openSubscriptionCheckout = useCallback((tier?: SubscriptionTier) => {
+   *  (usado por "Obtener Convoy Pro" / "Activar Biker Club" en la Landing y por "Renovar Suscripción"). El
+   *  ciclo de facturación es opcional: permite que, por ejemplo, la tarjeta "Convoy Pro Anual" de la Landing
+   *  abra el checkout ya posicionado en el ciclo anual, en vez de forzar al usuario a cambiarlo manualmente. */
+  const openSubscriptionCheckout = useCallback((tier?: SubscriptionTier, billingCycle?: 'monthly' | 'yearly') => {
     setSubscriptionCheckoutTarget(tier ?? null)
+    if (billingCycle) setSubscriptionCheckoutBillingCycle(billingCycle)
     setSubscriptionModalOpen(true)
   }, [])
 
@@ -669,7 +674,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     )
   }, [])
 
-  /** Canjea un Código de Club válido, activando el tier 'club' con cupo de hasta 25 pilotos.
+  /** Canjea un Código de Club válido, activando el tier 'club' con cupo de hasta 6 motos.
    *  Devuelve el nombre del club si el código es válido, o null si no existe. El modal permanece abierto
    *  para que el usuario vea el mensaje de bienvenida al club antes de cerrarlo. */
   const redeemClubCode = useCallback((code: string): string | null => {
@@ -1147,6 +1152,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     subscriptionModalOpen,
     setSubscriptionModalOpen,
     subscriptionCheckoutTarget,
+    subscriptionCheckoutBillingCycle,
     openSubscriptionCheckout,
     upgradeTier,
     redeemClubCode,
