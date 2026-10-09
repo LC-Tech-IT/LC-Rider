@@ -26,6 +26,7 @@ UsersleecaAppDataLocalTemp*
 .DS_Store
 Thumbs.db
 *.local
+*.tsbuildinfo
 
 # Capacitor / Android
 android/app/build
