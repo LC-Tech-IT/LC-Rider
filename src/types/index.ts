@@ -26,6 +26,9 @@ export interface Vehicle {
   tecnomecanica: VehicleDocument
   planActive: boolean
   planExpiresAt?: string
+  /** true mientras el vehículo solo existe en la caché local (p. ej. registrado sin señal) y aún no se ha
+   *  confirmado en Supabase; se reintenta en la siguiente sincronización con la nube. */
+  pendingSync?: boolean
 }
 
 export type GenderOption = 'male' | 'female' | 'unspecified'

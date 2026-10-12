@@ -341,41 +341,32 @@ export const translations: Record<Lang, Record<string, string>> = {
     'update.available': '🚀 Nueva actualización disponible.',
     'update.action': 'Actualizar Ahora',
 
-    // Modal de instalación / acceso a la app (PWA + APK)
-    'install.title': 'Accede a tu Tablero de Control — Bike Tracker',
-    'install.subtitle': 'Acceso directo, a pantalla completa, sin navegador',
+    // Modal de instalación (PWA pura)
+    'install.title': 'Instala Bike Tracker en tu Celular',
+    'install.subtitle': 'Acceso instantáneo sin descargas pesadas ni tiendas de aplicaciones',
     'install.close': 'Cerrar',
     'install.closeButton': 'Cerrar',
     'install.alreadyInstalled': '✓ Ya tienes Bike Tracker instalada en este dispositivo.',
-    'install.valueMessage':
-      'La telemetría en vivo, el GPS de convoy en segundo plano y las alertas por voz funcionan mejor (y siguen activas aunque bloquees el celular) con la app instalada en tu dispositivo.',
-    'install.openAppOption': '🚀 Ya tengo la App / Abrir en la App',
-    'install.installPwaOption': '📲 Instalar App Web (PWA)',
-    'install.downloadApkOption': '🤖 Descargar APK para Android',
-    'install.continueWebOption': '🌐 O continuar en versión web (modo navegador)',
-    'install.backToOptions': 'Volver a las opciones',
-    'install.tabPwa': '⚡ Instalación PWA',
-    'install.tabApk': '🤖 Descargar APK',
-    'install.pwaRecommended': 'Sin descargas / Recomendada',
-    'install.pwaNativeText':
-      'Instala Bike Tracker como una app nativa: quedará en tu pantalla de inicio, abrirá a pantalla completa y funcionará incluso con conexión inestable.',
-    'install.pwaInstallNow': '📲 Instalar Ahora',
-    'install.pwaIosIntro': 'En iPhone/iPad, instala Bike Tracker desde Safari en 3 pasos:',
-    'install.pwaIosStep1': 'Toca el botón Compartir (el cuadrado con la flecha hacia arriba) en la barra de Safari.',
-    'install.pwaIosStep2': 'Desplázate y selecciona "Agregar a pantalla de inicio".',
-    'install.pwaIosStep3': 'Confirma tocando "Agregar" — el ícono de Bike Tracker aparecerá en tu pantalla de inicio.',
-    'install.pwaFallbackText':
-      'Abre este sitio desde Chrome en tu celular Android para instalarlo con un solo toque, o desde Safari en tu iPhone/iPad para agregarlo a tu pantalla de inicio.',
-    'install.pwaFallbackHint': 'Si ya estás en un navegador compatible, espera unos segundos: el botón de instalación aparecerá automáticamente.',
-    'install.apkTitle': 'Bike Tracker Android',
-    'install.apkVersion': 'Versión {{version}}',
-    'install.apkSize': 'Tamaño aprox. {{size}}',
-    'install.apkDownloadButton': '⬇️ Descargar APK',
-    'install.apkGuideTitle': 'Cómo instalar el APK en Android:',
-    'install.apkGuideStep1': 'Descarga el archivo bike-tracker.apk con el botón de arriba.',
-    'install.apkGuideStep2': 'Ve a Ajustes → Seguridad y activa "Instalar apps de fuentes desconocidas" para tu navegador.',
-    'install.apkGuideStep3': 'Abre el archivo descargado desde tus Notificaciones o el Gestor de archivos y confirma la instalación.',
-    'install.apkWarning': '⚠️ Android puede advertirte que el archivo no viene de Google Play. Esto es normal para apps instaladas por APK: puedes continuar de forma segura.',
+    'install.nativeCta': '⚡ Instalar en tu Pantalla de Inicio',
+    'install.nativeSupport': 'Pesa menos de 1 MB, abre a pantalla completa y sigue funcionando sin conexión en carretera.',
+    'install.iosIntro': 'En iPhone/iPad, instálala desde Safari en 3 pasos:',
+    'install.iosStep1': 'Toca el botón "Compartir" (el cuadro con la flecha hacia arriba) en la barra inferior de Safari.',
+    'install.iosStep2': 'Desliza hacia abajo y presiona "Agregar al inicio".',
+    'install.iosStep3': 'Confirma tocando "Agregar" en la esquina superior derecha.',
+    'install.desktopText':
+      'Abre el menú de opciones de tu navegador (⋮ o ⋯) y elige "Instalar Bike Tracker" o "Instalar app" para anclarla como una aplicación más. En tu celular, ábrela desde Chrome (Android) o Safari (iPhone).',
+    'install.desktopHint': 'Si estás en Chrome o Edge, espera unos segundos: el botón de instalación con un solo toque aparecerá automáticamente.',
+    'install.continueWeb': 'Continuar usando en la web',
+
+    // Sesión única activa y sincronización con la nube
+    'session.concurrentTitle': 'Sesión iniciada en otro dispositivo',
+    'session.concurrentMessage':
+      'Tu cuenta de Bike Tracker ha iniciado sesión en otro celular o navegador. Para proteger tus datos y garantizar la equidad en el convoy, solo se permite un dispositivo activo a la vez.',
+    'session.reclaimAction': 'Retomar control en este dispositivo',
+    'session.reclaiming': 'Retomando control…',
+    'session.reclaimError': 'No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.',
+    'session.logoutAction': 'Cerrar sesión',
+    'cloud.syncPending': '📶 Guardado en este dispositivo. Se sincronizará con la nube cuando vuelva la señal.',
   },
   en: {
     // Navigation & Header
@@ -708,7 +699,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     'sos.holdToActivateAria': 'Hold for 2 seconds to activate SOS',
     'sos.holdToDeactivateAria': 'Hold for 2 seconds to deactivate SOS',
 
-    // Install modal (PWA + APK)
     // Demo Mode (read-only interactive showcase)
     'demo.restrictedAction': "You're in Demo Mode (Read-Only). Sign up for free to create your own garage and ride in real time.",
     'demo.convoyBanner': "You're viewing a simulated convoy in Demo Mode — no real rooms are created. Sign up for free to build your own convoy.",
@@ -718,40 +708,32 @@ export const translations: Record<Lang, Record<string, string>> = {
     'update.available': '🚀 New update available.',
     'update.action': 'Update Now',
 
-    'install.title': 'Access Your Dashboard — Bike Tracker',
-    'install.subtitle': 'Direct access, full screen, no browser',
+    // Install modal (pure PWA)
+    'install.title': 'Install Bike Tracker on your Phone',
+    'install.subtitle': 'Instant access with no heavy downloads or app stores',
     'install.close': 'Close',
     'install.closeButton': 'Close',
     'install.alreadyInstalled': '✓ Bike Tracker is already installed on this device.',
-    'install.valueMessage':
-      "Live telemetry, background convoy GPS and voice alerts work best (and keep running even with your phone locked) with the app installed on your device.",
-    'install.openAppOption': '🚀 I already have the App / Open in App',
-    'install.installPwaOption': '📲 Install Web App (PWA)',
-    'install.downloadApkOption': '🤖 Download APK for Android',
-    'install.continueWebOption': '🌐 Or continue in web version (browser mode)',
-    'install.backToOptions': 'Back to options',
-    'install.tabPwa': '⚡ PWA Install',
-    'install.tabApk': '🤖 Download APK',
-    'install.pwaRecommended': 'No downloads / Recommended',
-    'install.pwaNativeText':
-      'Install Bike Tracker as a native app: it will sit on your home screen, open full screen and keep working even with an unstable connection.',
-    'install.pwaInstallNow': '📲 Install Now',
-    'install.pwaIosIntro': 'On iPhone/iPad, install Bike Tracker from Safari in 3 steps:',
-    'install.pwaIosStep1': 'Tap the Share button (the square with the upward arrow) in the Safari toolbar.',
-    'install.pwaIosStep2': 'Scroll down and select "Add to Home Screen".',
-    'install.pwaIosStep3': 'Confirm by tapping "Add" — the Bike Tracker icon will appear on your home screen.',
-    'install.pwaFallbackText':
-      'Open this site from Chrome on your Android phone to install it in one tap, or from Safari on your iPhone/iPad to add it to your home screen.',
-    'install.pwaFallbackHint': "If you're already on a supported browser, wait a few seconds: the install button will appear automatically.",
-    'install.apkTitle': 'Bike Tracker for Android',
-    'install.apkVersion': 'Version {{version}}',
-    'install.apkSize': 'Approx. size {{size}}',
-    'install.apkDownloadButton': '⬇️ Download APK',
-    'install.apkGuideTitle': 'How to install the APK on Android:',
-    'install.apkGuideStep1': 'Download the bike-tracker.apk file with the button above.',
-    'install.apkGuideStep2': 'Go to Settings → Security and enable "Install unknown apps" for your browser.',
-    'install.apkGuideStep3': 'Open the downloaded file from your Notifications or File Manager and confirm the install.',
-    'install.apkWarning': "⚠️ Android may warn you that the file isn't from Google Play. That's normal for apps installed via APK — you can safely continue.",
+    'install.nativeCta': '⚡ Install on your Home Screen',
+    'install.nativeSupport': 'Under 1 MB, opens full screen and keeps working offline on the road.',
+    'install.iosIntro': 'On iPhone/iPad, install it from Safari in 3 steps:',
+    'install.iosStep1': 'Tap the "Share" button (the square with the upward arrow) in Safari\'s bottom bar.',
+    'install.iosStep2': 'Scroll down and tap "Add to Home Screen".',
+    'install.iosStep3': 'Confirm by tapping "Add" in the top-right corner.',
+    'install.desktopText':
+      'Open your browser\'s options menu (⋮ or ⋯) and choose "Install Bike Tracker" or "Install app" to pin it like any other application. On your phone, open it from Chrome (Android) or Safari (iPhone).',
+    'install.desktopHint': "If you're on Chrome or Edge, wait a few seconds: the one-tap install button will appear automatically.",
+    'install.continueWeb': 'Continue using the web version',
+
+    // Single active session & cloud sync
+    'session.concurrentTitle': 'Session opened on another device',
+    'session.concurrentMessage':
+      'Your Bike Tracker account has logged in on another phone or browser. To protect your data and keep the convoy fair, only one active device is allowed at a time.',
+    'session.reclaimAction': 'Take control on this device',
+    'session.reclaiming': 'Taking control…',
+    'session.reclaimError': "We couldn't reach the server. Check your connection and try again.",
+    'session.logoutAction': 'Log out',
+    'cloud.syncPending': '📶 Saved on this device. It will sync to the cloud once you have signal again.',
   },
 }
 

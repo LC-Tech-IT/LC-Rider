@@ -147,7 +147,8 @@ export default function SubscriptionModal() {
           customerFullName: (user?.name || guestName).trim(),
         })
         if (result.status === 'APPROVED') {
-          upgradeTier(checkoutTier, billingCycle)
+          // Se espera a que el plan quede persistido en Supabase antes de mostrar la confirmación.
+          await upgradeTier(checkoutTier, billingCycle)
           setView('success')
         } else {
           setCheckoutError(t('subscription.errorPaymentDeclined'))
@@ -156,8 +157,8 @@ export default function SubscriptionModal() {
       } else {
         // Sin pasarela real configurada (VITE_WOMPI_PUBLIC_KEY), se conserva el checkout simulado para no
         // bloquear la demostración del producto.
-        window.setTimeout(() => {
-          upgradeTier(checkoutTier, billingCycle)
+        window.setTimeout(async () => {
+          await upgradeTier(checkoutTier, billingCycle)
           setView('success')
         }, 1000)
       }
@@ -189,7 +190,7 @@ export default function SubscriptionModal() {
           remember: true,
         })
       }
-      upgradeTier(checkoutTier, billingCycle, true)
+      await upgradeTier(checkoutTier, billingCycle, true)
       setView('success')
     } catch (err) {
       setCheckoutError(err instanceof Error ? err.message : t('auth.errorGeneric'))
@@ -248,7 +249,7 @@ export default function SubscriptionModal() {
                 accent="border-bike-border"
                 onActivate={() => {
                   if (checkDemoRestriction(t('subscription.freeName'))) return
-                  upgradeTier('free')
+                  void upgradeTier('free')
                 }}
                 t={t}
               />

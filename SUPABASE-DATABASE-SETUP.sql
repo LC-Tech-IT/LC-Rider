@@ -133,3 +133,48 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- =====================================================================
+-- 10. SPRINT 33 — GARAJE CLOUD, SUSCRIPCIONES Y SESIÓN ÚNICA ACTIVA
+-- Bloque idempotente: puede ejecutarse por separado sobre una base ya creada con las secciones 1-9.
+-- =====================================================================
+
+-- Suscripción (tier, vencimiento, club) y control de sesión única por dispositivo
+alter table public.profiles
+  add column if not exists tier text default 'free',
+  add column if not exists subscription_expires_at timestamp with time zone,
+  add column if not exists club_name text,
+  add column if not exists club_code text,
+  add column if not exists active_session_id text,
+  add column if not exists last_active_at timestamp with time zone default timezone('utc'::text, now());
+
+-- Documentos del vehículo (nombre del archivo y Data URL en base64)
+alter table public.vehicles
+  add column if not exists soat_file_name text,
+  add column if not exists soat_file_data text,
+  add column if not exists tecno_file_name text,
+  add column if not exists tecno_file_data text;
+
+-- Políticas RLS: cada piloto lee/inserta/actualiza solo su propio perfil y gestiona solo sus vehículos
+drop policy if exists "Usuarios gestionan su propio perfil" on public.profiles;
+create policy "Usuarios gestionan su propio perfil"
+  on public.profiles for all
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
+drop policy if exists "Usuarios gestionan sus propios vehículos" on public.vehicles;
+create policy "Usuarios gestionan sus propios vehículos"
+  on public.vehicles for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Realtime sobre profiles: permite detectar al instante que la cuenta se abrió en otro dispositivo
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'profiles'
+  ) then
+    alter publication supabase_realtime add table public.profiles;
+  end if;
+end $$;

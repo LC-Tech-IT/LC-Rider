@@ -19,6 +19,7 @@ import OnboardingWizard from './components/auth/OnboardingWizard'
 import EditProfileModal from './components/auth/EditProfileModal'
 import NotificationModal from './components/common/NotificationModal'
 import SubscriptionModal from './components/common/SubscriptionModal'
+import ConcurrentSessionModal from './components/common/ConcurrentSessionModal'
 import LandingPage from './components/landing/LandingPage'
 
 function PhoneFrame({ children }: { children: ReactNode }) {
@@ -58,6 +59,7 @@ export default function App() {
       <PhoneFrame>
         <OnboardingWizard />
         <SubscriptionModal />
+        <ConcurrentSessionModal />
         <Toast />
       </PhoneFrame>
     )
@@ -83,6 +85,7 @@ export default function App() {
       <AddVehicleModal />
       <NotificationModal />
       <SubscriptionModal />
+      <ConcurrentSessionModal />
       <Toast />
       <UpdateBanner />
     </PhoneFrame>

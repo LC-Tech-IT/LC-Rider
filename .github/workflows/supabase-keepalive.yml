@@ -1,0 +1,27 @@
+name: Supabase Free Tier Keep-Alive
+
+on:
+  schedule:
+    # Se ejecuta automáticamente todos los martes y viernes a las 12:00 UTC (cada ~3 días)
+    # garantizando que Supabase registre actividad continua y NUNCA pause el proyecto por inactividad.
+    - cron: '0 12 * * 2,5'
+  workflow_dispatch: # Permite dispararlo manualmente desde GitHub Actions
+
+jobs:
+  ping-supabase:
+    name: Ping Supabase Database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Keep-Alive Ping
+        run: |
+          echo "Sending keep-alive ping to Supabase..."
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: sb_publishable_p1V_z8CJIJxaATXmdWRMAg_c5X0Fzku" \
+            -H "Authorization: Bearer sb_publishable_p1V_z8CJIJxaATXmdWRMAg_c5X0Fzku" \
+            "https://bzltbdqwbizvhlrnghmq.supabase.co/rest/v1/profiles?select=count")
+          echo "Supabase HTTP status response: $RESPONSE"
+          if [ "$RESPONSE" -ge 200 ] && [ "$RESPONSE" -lt 500 ]; then
+            echo "✅ Supabase está activo y registrando actividad con éxito."
+          else
+            echo "⚠️ Advertencia: Código de respuesta $RESPONSE recibido."
+          fi

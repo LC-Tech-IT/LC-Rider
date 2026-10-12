@@ -9,7 +9,7 @@ export function isStandaloneApp(): boolean {
 }
 
 /** Navegación a "Inicio": en navegador web es un simple cambio de estado reactivo hacia la Landing. En la
- *  app instalada (PWA standalone o APK) la Landing se abre en el navegador del sistema en vez de reemplazar
+ *  app instalada (PWA standalone) la Landing se abre en el navegador del sistema en vez de reemplazar
  *  la app, para mantener ambos entornos totalmente independientes. */
 export function goToLanding(setTopLevelMode?: (mode: 'landing' | 'app') => void) {
   if (isStandaloneApp()) {

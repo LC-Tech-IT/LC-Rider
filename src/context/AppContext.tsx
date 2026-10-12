@@ -103,6 +103,157 @@ function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`
 }
 
+const DEMO_EMAIL = 'demo@biketracker.app'
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isUuid(id: string): boolean {
+  return UUID_RE.test(id)
+}
+
+/** public.vehicles.id es uuid: los vehículos creados localmente (`veh-<timestamp>`) reciben uno nuevo al subir. */
+function newUuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.floor(Math.random() * 16)
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
+
+/** Solo las cuentas reales de Supabase Auth (id uuid) se sincronizan con la nube; el Modo Demo vive solo en memoria. */
+function isCloudUser(u: UserProfile | null): u is UserProfile {
+  return !!u && u.isLoggedIn && u.email !== DEMO_EMAIL && isUuid(u.id)
+}
+
+// --- Sesión única activa: un identificador estable por dispositivo (compartido entre pestañas del mismo
+// navegador), de modo que solo otro celular/navegador —no una segunda pestaña— desplace a este dispositivo. ---
+const DEVICE_SESSION_KEY = 'biketracker.session_id'
+let fallbackDeviceSessionId: string | null = null
+
+function getDeviceSessionId(): string {
+  try {
+    const stored = window.localStorage.getItem(DEVICE_SESSION_KEY)
+    if (stored) return stored
+    const created = `sess-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+    window.localStorage.setItem(DEVICE_SESSION_KEY, created)
+    return created
+  } catch {
+    fallbackDeviceSessionId ??= `sess-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+    return fallbackDeviceSessionId
+  }
+}
+
+type SubscriptionFields = Pick<UserProfile, 'tier' | 'subscriptionExpiresAt' | 'clubName' | 'clubCode'>
+
+const FREE_SUBSCRIPTION: SubscriptionFields = { tier: 'free', subscriptionExpiresAt: undefined, clubName: undefined, clubCode: undefined }
+
+/** Un plan de pago ya vencido equivale a 'free', venga de la caché local o de Supabase. */
+function normalizeSubscription(s: SubscriptionFields): SubscriptionFields {
+  if (s.tier !== 'free' && s.subscriptionExpiresAt && Date.now() > new Date(s.subscriptionExpiresAt).getTime()) {
+    return FREE_SUBSCRIPTION
+  }
+  return s
+}
+
+function subscriptionToRow(u: UserProfile) {
+  return {
+    tier: u.tier,
+    subscription_expires_at: u.subscriptionExpiresAt ?? null,
+    club_name: u.clubName ?? null,
+    club_code: u.clubCode ?? null,
+  }
+}
+
+/** Upsert (no update) para que también funcione con cuentas creadas antes del trigger de perfiles. Nunca lanza:
+ *  sin red o sin sesión válida devuelve false y la app sigue operando con la caché local. */
+async function pushProfileToCloud(u: UserProfile, fields: Record<string, unknown>): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: u.id, email: u.email, name: u.name, ...fields, updated_at: new Date().toISOString() })
+    return !error
+  } catch {
+    return false
+  }
+}
+
+interface VehicleRow {
+  id: string
+  user_id: string
+  plate: string
+  brand: string
+  model: string
+  category: string | null
+  type: string | null
+  color: string | null
+  avatar_emoji: string | null
+  soat_expires_at: string | null
+  tecnomecanica_expires_at: string | null
+  plan_active: boolean | null
+  plan_expires_at: string | null
+  soat_file_name: string | null
+  soat_file_data: string | null
+  tecno_file_name: string | null
+  tecno_file_data: string | null
+}
+
+function vehicleToRow(v: Vehicle, userId: string): VehicleRow {
+  return {
+    id: v.id,
+    user_id: userId,
+    plate: v.plate,
+    brand: v.brand,
+    model: v.model,
+    category: v.category,
+    type: v.type,
+    color: v.color,
+    avatar_emoji: v.avatarEmoji,
+    soat_expires_at: v.soat.expiresAt || null,
+    tecnomecanica_expires_at: v.tecnomecanica.expiresAt || null,
+    plan_active: v.planActive,
+    plan_expires_at: v.planExpiresAt ?? null,
+    soat_file_name: v.soat.fileName ?? null,
+    soat_file_data: v.soat.fileDataUrl ?? null,
+    tecno_file_name: v.tecnomecanica.fileName ?? null,
+    tecno_file_data: v.tecnomecanica.fileDataUrl ?? null,
+  }
+}
+
+function rowToDocument(expiresAt: string | null, fileName: string | null, fileData: string | null): Vehicle['soat'] {
+  return {
+    expiresAt: expiresAt ?? '',
+    ...(fileName ? { fileName } : {}),
+    // El tamaño no se guarda en la nube: se estima a partir de la longitud del base64.
+    ...(fileData ? { fileDataUrl: fileData, fileSizeKb: Math.round((fileData.length * 3) / 4 / 1024) } : {}),
+  }
+}
+
+function rowToVehicle(row: VehicleRow): Vehicle {
+  const category: Vehicle['category'] = row.category === 'car' || row.category === 'trail' ? row.category : 'sport'
+  return {
+    id: row.id,
+    plate: row.plate,
+    brand: row.brand,
+    model: row.model,
+    category,
+    type: row.type === 'carro' ? 'carro' : 'moto',
+    color: row.color ?? '#FF5500',
+    avatarEmoji: row.avatar_emoji ?? '🏍️',
+    soat: rowToDocument(row.soat_expires_at, row.soat_file_name, row.soat_file_data),
+    tecnomecanica: rowToDocument(row.tecnomecanica_expires_at, row.tecno_file_name, row.tecno_file_data),
+    planActive: row.plan_active ?? false,
+    ...(row.plan_expires_at ? { planExpiresAt: row.plan_expires_at } : {}),
+  }
+}
+
+async function upsertVehiclesToCloud(vehicles: Vehicle[], userId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('vehicles').upsert(vehicles.map((v) => vehicleToRow(v, userId)))
+    return !error
+  } catch {
+    return false
+  }
+}
+
 function buildProfile(
   name: string,
   email: string,
@@ -166,12 +317,16 @@ interface AppContextValue {
   updateProfile: (partial: Partial<Pick<UserProfile, 'name' | 'avatarUrl' | 'gender' | 'age'>>) => void
   logout: () => void
 
+  concurrentSessionModalOpen: boolean
+  reclaimSession: () => Promise<boolean>
+
   subscriptionModalOpen: boolean
   setSubscriptionModalOpen: (open: boolean) => void
   subscriptionCheckoutTarget: SubscriptionTier | null
   subscriptionCheckoutBillingCycle: 'monthly' | 'yearly'
   openSubscriptionCheckout: (tier?: SubscriptionTier, billingCycle?: 'monthly' | 'yearly') => void
-  upgradeTier: (tier: SubscriptionTier, billingCycle?: 'monthly' | 'yearly', paidViaQr?: boolean) => void
+  /** Resuelve cuando el plan quedó guardado en Supabase (o, sin conexión, solo en la caché local). */
+  upgradeTier: (tier: SubscriptionTier, billingCycle?: 'monthly' | 'yearly', paidViaQr?: boolean) => Promise<void>
   redeemClubCode: (code: string) => string | null
   vehicleLimit: number
   convoyMemberLimit: number
@@ -254,20 +409,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     userRef.current = user
   }, [user])
-  const isDemoUser = user?.email === 'demo@biketracker.app'
+  /** Actualiza el usuario en estado y en userRef a la vez, para que una operación encadenada en el mismo
+   *  tick (p. ej. registro de invitado seguido de upgradeTier tras pagar) lea ya el perfil nuevo. */
+  const commitUser = useCallback((next: UserProfile | null) => {
+    userRef.current = next
+    setUser(next)
+  }, [])
+  const isDemoUser = user?.email === DEMO_EMAIL
 
   // --- Expiración automática de suscripciones: al cargar/cambiar la sesión, si el plan de pago (Pro/Club)
-  // ya venció, se degrada a 'free' de inmediato en vez de dejar al usuario disfrutando de beneficios vencidos.
-  // El Modo Demo nunca tiene subscriptionExpiresAt, así que esta guarda lo deja intacto. ---
+  // ya venció, se degrada a 'free' de inmediato (también en Supabase) en vez de dejar al usuario disfrutando de
+  // beneficios vencidos. El Modo Demo nunca tiene subscriptionExpiresAt, así que esta guarda lo deja intacto. ---
   useEffect(() => {
     if (!user || user.tier === 'free' || !user.subscriptionExpiresAt) return
     if (Date.now() > new Date(user.subscriptionExpiresAt).getTime()) {
-      setUser((prev) =>
-        prev ? { ...prev, tier: 'free', subscriptionExpiresAt: undefined, clubName: undefined, clubCode: undefined } : prev,
-      )
+      const next = { ...user, ...FREE_SUBSCRIPTION }
+      commitUser(next)
+      if (isCloudUser(next)) void pushProfileToCloud(next, subscriptionToRow(next))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
+
+  const [concurrentSessionModalOpen, setConcurrentSessionModalOpen] = useState(false)
 
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [editProfileModalOpen, setEditProfileModalOpen] = useState(false)
@@ -288,6 +451,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [vehicleDocs, setVehicleDocs] = useState<Vehicle[]>(() => loadInitialSession().vehicles)
   const [activeVehicleId, setActiveVehicleId] = useState<string>(() => loadInitialSession().activeVehicleId)
+  const vehiclesRef = useRef<Vehicle[]>(vehicleDocs)
+  useEffect(() => {
+    vehiclesRef.current = vehicleDocs
+  }, [vehicleDocs])
 
   const [navigation, setNavigation] = useState<NavigationState>({
     status: 'idle',
@@ -383,7 +550,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // --- Separación Landing / App: todo CTA de la Landing que intenta entrar al tablero pasa por aquí. En
   // navegador web (no instalada), la acción queda en espera y se abre el modal de acceso/descarga en vez de
-  // saltar directo a la app; en la app ya instalada (PWA standalone o APK), entra de inmediato. ---
+  // saltar directo a la app; en la app ya instalada (PWA standalone), entra de inmediato. ---
   const pendingAppActionRef = useRef<(() => void) | null>(null)
 
   const requestAppAccess = useCallback((action: () => void) => {
@@ -397,7 +564,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   /** Ejecuta la acción de entrada a la app que quedó pendiente (o, si el modal se abrió sin una, entra
    *  directo al tablero) y cierra el modal. La usan tanto "Ya tengo la App" como "Continuar en versión web",
-   *  ya que ninguna puede forzar el lanzamiento real de una PWA/APK instalada desde el navegador. */
+   *  ya que ninguna puede forzar el lanzamiento real de una PWA instalada desde el navegador. */
   const continueToApp = useCallback(() => {
     const action = pendingAppActionRef.current
     pendingAppActionRef.current = null
@@ -441,16 +608,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [user, vehicleDocs, activeVehicleId, rememberMe])
 
   // --- Autenticación ---
-  /** Aplica un perfil ya autenticado (Google OAuth, Supabase) fusionándolo con el garaje local guardado para ese
-   *  correo; si es la primera vez que se ve ese correo, arranca con el garaje vacío para disparar el Onboarding.
+  /** Aplica un perfil ya autenticado (Google OAuth, Supabase) fusionándolo con la caché local guardada para ese
+   *  correo; si es la primera vez que se ve ese correo, arranca con el garaje vacío. Justo después, el efecto de
+   *  sincronización cloud (más abajo) reemplaza plan y garaje por lo que haya en Supabase.
    *  El convoy real siempre arranca solo con el piloto actual: nunca se mezclan miembros ficticios del Modo Demo. */
   const applyAuthenticatedProfile = useCallback((profile: UserProfile, remember: boolean = true) => {
     setRememberMe(remember)
     const existing = getAccount(profile.email)
     if (existing) {
-      // El nivel de suscripción vive únicamente en el almacenamiento local de la cuenta (igual que el garaje),
-      // nunca en Supabase: se conserva el ya guardado en vez del 'free' por defecto del perfil recién construido.
-      setUser({
+      // Se conserva el plan de la caché local (en vez del 'free' por defecto del perfil recién construido)
+      // hasta que llegue el de Supabase, para que la app funcione igual sin conexión.
+      commitUser({
         ...existing.user,
         ...profile,
         isLoggedIn: true,
@@ -462,12 +630,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setVehicleDocs(existing.vehicles)
       setActiveVehicleId(existing.activeVehicleId)
     } else {
-      setUser(profile)
+      commitUser(profile)
       setVehicleDocs([])
       setActiveVehicleId('')
     }
     setConvoyMembers(createSoloMember(DEFAULT_POSITION))
-  }, [])
+  }, [commitUser])
 
   /** Redirige a Google para autenticarse vía Supabase Auth (OAuth real). Al volver, onAuthStateChange aplica la sesión. */
   const signInWithGoogle = useCallback(async () => {
@@ -657,7 +825,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = useCallback(() => {
-    supabase.auth.signOut().catch(() => {
+    // scope 'local': cierra solo este dispositivo. El 'global' por defecto revocaría también la sesión del otro
+    // dispositivo, justo el que acaba de tomar el control en el flujo de sesión única.
+    setConcurrentSessionModalOpen(false)
+    supabase.auth.signOut({ scope: 'local' }).catch(() => {
       /* Sesión ya inválida o sin conexión — el logout local continúa igualmente. */
     })
     if (convoyChannelRef.current) {
@@ -676,44 +847,70 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
    *  +365 si es anual, y +30 días adicionales de regalo (395 en total para el plan anual) cuando el pago se
    *  hizo por QR Bancolombia/Nequi, tal como se promete en la Landing y el checkout. El modal permanece abierto
    *  para que el usuario vea la confirmación ("Plan activo") antes de cerrarlo. */
-  const upgradeTier = useCallback((tier: SubscriptionTier, billingCycle: 'monthly' | 'yearly' = 'monthly', paidViaQr: boolean = false) => {
-    const baseDays = billingCycle === 'yearly' ? 365 : 30
-    const days = paidViaQr ? baseDays + 30 : baseDays
-    setUser((prev) =>
-      prev
-        ? {
-            ...prev,
-            tier,
-            subscriptionExpiresAt: futureDate(days),
-            ...(tier !== 'club' ? { clubName: undefined, clubCode: undefined } : {}),
-          }
-        : prev,
-    )
-  }, [])
+  const upgradeTier = useCallback(
+    async (tier: SubscriptionTier, billingCycle: 'monthly' | 'yearly' = 'monthly', paidViaQr: boolean = false) => {
+      const prev = userRef.current
+      if (!prev) return
+      const baseDays = billingCycle === 'yearly' ? 365 : 30
+      const days = paidViaQr ? baseDays + 30 : baseDays
+      const next: UserProfile = {
+        ...prev,
+        tier,
+        subscriptionExpiresAt: futureDate(days),
+        ...(tier !== 'club' ? { clubName: undefined, clubCode: undefined } : {}),
+      }
+      commitUser(next)
+      // Si Supabase no responde, el plan queda en la caché local y la próxima sincronización lo sube
+      // (la nube en 'free' nunca pisa un plan de pago local vigente).
+      if (isCloudUser(next) && !(await pushProfileToCloud(next, subscriptionToRow(next)))) {
+        showToast(t('cloud.syncPending'))
+      }
+    },
+    [commitUser, showToast, t],
+  )
 
   /** Canjea un Código de Club válido, activando el tier 'club' con cupo de hasta 25 pilotos.
    *  Devuelve el nombre del club si el código es válido, o null si no existe. El modal permanece abierto
    *  para que el usuario vea el mensaje de bienvenida al club antes de cerrarlo. */
-  const redeemClubCode = useCallback((code: string): string | null => {
-    const normalized = code.trim().toUpperCase()
-    const clubName = CLUB_CODES[normalized]
-    if (!clubName) return null
-    setUser((prev) =>
-      prev
-        ? { ...prev, tier: 'club', clubName, clubCode: normalized, subscriptionExpiresAt: futureDate(30) }
-        : prev,
-    )
-    return clubName
+  const redeemClubCode = useCallback(
+    (code: string): string | null => {
+      const normalized = code.trim().toUpperCase()
+      const clubName = CLUB_CODES[normalized]
+      const prev = userRef.current
+      if (!clubName || !prev) return null
+      const next: UserProfile = { ...prev, tier: 'club', clubName, clubCode: normalized, subscriptionExpiresAt: futureDate(30) }
+      commitUser(next)
+      if (isCloudUser(next)) void pushProfileToCloud(next, subscriptionToRow(next))
+      return clubName
+    },
+    [commitUser],
+  )
+
+  // --- Vehículos: el estado de React + localStorage responde al instante (y sin señal); Supabase se actualiza
+  // en segundo plano. Un vehículo que no logra subirse queda con pendingSync y se reintenta al sincronizar. ---
+  const markVehicleSynced = useCallback((vehicleId: string) => {
+    setVehicleDocs((prev) => prev.map((v) => (v.id === vehicleId ? { ...v, pendingSync: false } : v)))
   }, [])
 
-  // --- Vehículos ---
-  const addVehicle = useCallback((vehicle: Vehicle, setActive: boolean) => {
-    setVehicleDocs((prev) => [...prev, vehicle])
-    if (setActive) {
-      setActiveVehicleId(vehicle.id)
-    }
-    setAddVehicleModalOpen(false)
-  }, [])
+  const addVehicle = useCallback(
+    (vehicle: Vehicle, setActive: boolean) => {
+      const owner = userRef.current
+      const cloud = isCloudUser(owner)
+      const prepared: Vehicle = cloud ? { ...vehicle, id: isUuid(vehicle.id) ? vehicle.id : newUuid(), pendingSync: true } : vehicle
+      setVehicleDocs((prev) => [...prev, prepared])
+      if (setActive) {
+        setActiveVehicleId(prepared.id)
+      }
+      setAddVehicleModalOpen(false)
+      if (cloud) {
+        void upsertVehiclesToCloud([prepared], owner.id).then((ok) => {
+          if (ok) markVehicleSynced(prepared.id)
+          else showToast(t('cloud.syncPending'))
+        })
+      }
+    },
+    [markVehicleSynced, showToast, t],
+  )
 
   const deleteVehicle = useCallback((vehicleId: string) => {
     setVehicleDocs((prev) => {
@@ -723,6 +920,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       return next
     })
+    const owner = userRef.current
+    if (isCloudUser(owner) && isUuid(vehicleId)) {
+      void Promise.resolve(supabase.from('vehicles').delete().eq('id', vehicleId).eq('user_id', owner.id)).catch(() => {
+        /* Sin conexión: el vehículo reaparecerá desde la nube en la próxima sincronización. */
+      })
+    }
   }, [activeVehicleId])
 
   const planRoute = useCallback(
@@ -868,6 +1071,129 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // los 4 miembros simulados son permanentes y no deben desaparecer al salir de la sala.
     if (!isDemoUser) setConvoyMembers((prev) => prev.filter((m) => m.isCurrentUser))
   }, [isDemoUser])
+
+  // --- Sesión única activa: si la cuenta se abre en otro dispositivo, este deja de transmitir de inmediato
+  // (convoy Realtime + ruta/rodada, que a su vez apagan los watchPosition del GPS) y queda bloqueado por el modal. ---
+  const handleConcurrentSessionDetected = useCallback(() => {
+    if (convoyChannelRef.current) {
+      supabase.removeChannel(convoyChannelRef.current)
+      convoyChannelRef.current = null
+    }
+    setConvoyRoom(null)
+    setConvoyMembers((prev) => prev.filter((m) => m.isCurrentUser))
+    clearRoute()
+    setConcurrentSessionModalOpen(true)
+  }, [clearRoute])
+
+  /** "Retomar control": vuelve a registrar este dispositivo como el activo; el otro recibe el cambio por Realtime.
+   *  Devuelve false si Supabase no respondió (el modal sigue abierto y muestra el error). */
+  const reclaimSession = useCallback(async (): Promise<boolean> => {
+    const current = userRef.current
+    const ok =
+      !isCloudUser(current) ||
+      (await pushProfileToCloud(current, { active_session_id: getDeviceSessionId(), last_active_at: new Date().toISOString() }))
+    if (ok) setConcurrentSessionModalOpen(false)
+    return ok
+  }, [])
+
+  // --- Sincronización cloud al iniciar sesión o al recuperar una sesión guardada (incluye recargas de la PWA):
+  // 1) plan de suscripción desde public.profiles, 2) registro de este dispositivo como sesión activa,
+  // 3) garaje desde public.vehicles (subiendo lo que solo exista en la caché local), y 4) escucha Realtime de
+  // public.profiles para detectar que la cuenta se abrió en otro dispositivo. Sin red, cada paso falla en
+  // silencio y la app sigue con la caché de localStorage. ---
+  const cloudUserId = isCloudUser(user) ? user.id : null
+  useEffect(() => {
+    if (!cloudUserId) return
+    const userId = cloudUserId
+    let cancelled = false
+
+    const sessionChannel = supabase
+      .channel(`session-watch:${userId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` }, (payload) => {
+        const remoteSessionId = (payload.new as { active_session_id?: string | null } | undefined)?.active_session_id
+        if (remoteSessionId && remoteSessionId !== getDeviceSessionId()) {
+          handleConcurrentSessionDetected()
+        }
+      })
+      .subscribe()
+
+    async function syncFromCloud() {
+      // 1) Plan de suscripción
+      try {
+        const { data: row, error } = await supabase
+          .from('profiles')
+          .select('tier, subscription_expires_at, club_name, club_code')
+          .eq('id', userId)
+          .maybeSingle()
+        const current = userRef.current
+        if (cancelled || !isCloudUser(current) || current.id !== userId) return
+        if (!error) {
+          const cloudTier: SubscriptionTier = row?.tier === 'pro' || row?.tier === 'club' ? row.tier : 'free'
+          const cloudSub = normalizeSubscription({
+            tier: cloudTier,
+            subscriptionExpiresAt: row?.subscription_expires_at ? String(row.subscription_expires_at).slice(0, 10) : undefined,
+            clubName: row?.club_name ?? undefined,
+            clubCode: row?.club_code ?? undefined,
+          })
+          const localSub = normalizeSubscription(current)
+          if (cloudSub.tier === 'free' && localSub.tier !== 'free') {
+            // Migración transparente: plan pagado antes de existir la sincronización (o sin red al pagar).
+            await pushProfileToCloud(current, subscriptionToRow(current))
+          } else {
+            commitUser({ ...current, ...cloudSub })
+          }
+        }
+      } catch {
+        /* Sin conexión: se conserva el plan de la caché local. */
+      }
+      if (cancelled) return
+
+      // 2) Este dispositivo pasa a ser la sesión activa de la cuenta
+      const current = userRef.current
+      if (isCloudUser(current)) {
+        await pushProfileToCloud(current, { active_session_id: getDeviceSessionId(), last_active_at: new Date().toISOString() })
+      }
+      if (cancelled) return
+
+      // 3) Garaje
+      try {
+        const { data: rows, error } = await supabase.from('vehicles').select('*').eq('user_id', userId)
+        if (cancelled || error || !rows) return
+        const cloudVehicles = (rows as VehicleRow[]).map(rowToVehicle)
+        const cloudIds = new Set(cloudVehicles.map((v) => v.id))
+        const localSnapshot = vehiclesRef.current
+        const localIds = new Set(localSnapshot.map((v) => v.id))
+        // Nube vacía → primer inicio con sincronización: se sube todo el garaje local. Si no, solo lo pendiente.
+        const toUpload = cloudVehicles.length === 0 ? localSnapshot : localSnapshot.filter((v) => v.pendingSync && !cloudIds.has(v.id))
+        const idMap = new Map<string, string>()
+        const prepared = toUpload.map((v) => {
+          if (isUuid(v.id)) return v
+          const id = newUuid()
+          idMap.set(v.id, id)
+          return { ...v, id }
+        })
+        const uploadedOk = prepared.length === 0 || (await upsertVehiclesToCloud(prepared, userId))
+        if (cancelled) return
+        const merged = [...cloudVehicles, ...prepared.map((v) => ({ ...v, pendingSync: !uploadedOk }))]
+        const mergedIds = new Set(merged.map((v) => v.id))
+        // Se respeta cualquier vehículo agregado mientras la consulta estaba en vuelo.
+        setVehicleDocs((prev) => [...merged, ...prev.filter((v) => !localIds.has(v.id) && !mergedIds.has(v.id))])
+        setActiveVehicleId((prev) => {
+          const mapped = idMap.get(prev) ?? prev
+          return mergedIds.has(mapped) ? mapped : merged[0]?.id ?? prev
+        })
+      } catch {
+        /* Sin conexión: el garaje sigue leyéndose de localStorage. */
+      }
+    }
+
+    void syncFromCloud()
+
+    return () => {
+      cancelled = true
+      supabase.removeChannel(sessionChannel)
+    }
+  }, [cloudUserId, commitUser, handleConcurrentSessionDetected])
 
   const startRide = useCallback(() => {
     setRideActive(true)
@@ -1079,13 +1405,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [distanceTraveledKm, rideActive, navigation.route, lang])
 
   const renewPlan = useCallback((vehicleId: string) => {
+    const planExpiresAt = futureDate(365)
     setVehicleDocs((prev) =>
       prev.map((v) =>
         v.id === vehicleId
-          ? { ...v, planActive: true, planExpiresAt: futureDate(365) }
+          ? { ...v, planActive: true, planExpiresAt }
           : v,
       ),
     )
+    const owner = userRef.current
+    if (isCloudUser(owner) && isUuid(vehicleId)) {
+      void Promise.resolve(
+        supabase.from('vehicles').update({ plan_active: true, plan_expires_at: planExpiresAt }).eq('id', vehicleId).eq('user_id', owner.id),
+      ).catch(() => {
+        /* Sin conexión: la renovación queda en la caché local. */
+      })
+    }
   }, [])
 
   const vehicleDocStatus = useCallback((dateIso: string) => {
@@ -1166,6 +1501,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     supabaseSignUp,
     updateProfile,
     logout,
+    concurrentSessionModalOpen,
+    reclaimSession,
     subscriptionModalOpen,
     setSubscriptionModalOpen,
     subscriptionCheckoutTarget,

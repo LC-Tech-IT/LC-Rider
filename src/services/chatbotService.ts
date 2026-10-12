@@ -56,7 +56,7 @@ const PRODUCT_INTENTS: ChatbotIntent[] = [
       'que es esta app', 'qué es esta app', 'que es la app', 'qué es la app', 'que es bike', 'de que trata',
     ],
     response:
-      '¡Quiubo, parcero! Bike Tracker es la plataforma de LC Tech hecha por y para moteros que ruedan en parche: conecta a todo el convoy en un mapa en tiempo real (quién va de Líder, quién de Piloto Guardián y quién se nos queda rezagado), te guía con navegación turn-by-turn con voz estilo Waze, dispara un botón SOS con tu ubicación GPS exacta ante cualquier eventualidad, y te lleva el control digital de tus motos (SOAT, tecnomecánica, garaje). Funciona desde el celular o instalada como app (PWA/APK), y hasta se ve en pantallas tipo CarPlay/Android Auto. Tiene un plan gratis pa\' arrancar y planes Pro/Club pa\' rodar sin límites. ¿Le sigo contando del modo Convoy, el botón SOS o los planes, hermano?',
+      '¡Quiubo, parcero! Bike Tracker es la plataforma de LC Tech hecha por y para moteros que ruedan en parche: conecta a todo el convoy en un mapa en tiempo real (quién va de Líder, quién de Piloto Guardián y quién se nos queda rezagado), te guía con navegación turn-by-turn con voz estilo Waze, dispara un botón SOS con tu ubicación GPS exacta ante cualquier eventualidad, y te lleva el control digital de tus motos (SOAT, tecnomecánica, garaje). Funciona desde el celular o instalada como app en tu pantalla de inicio (PWA, sin tiendas ni descargas pesadas), y hasta se ve en pantallas tipo CarPlay/Android Auto. Tiene un plan gratis pa\' arrancar y planes Pro/Club pa\' rodar sin límites. ¿Le sigo contando del modo Convoy, el botón SOS o los planes, hermano?',
   },
   {
     keywords: ['precio', 'costo', 'cuanto cuesta', 'cuánto cuesta', 'plan', 'suscripcion', 'suscripción'],
