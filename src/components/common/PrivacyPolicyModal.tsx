@@ -1,7 +1,7 @@
 import { useApp } from '../../context/AppContext'
 import type { Lang } from '../../types'
 
-const CONTACT_EMAIL = 'contacto@biketracker.app'
+const CONTACT_EMAIL = 'leecastro.tech@gmail.com'
 const CONTACT_WHATSAPP = '+57 350 520 8592'
 
 interface PolicySection {
