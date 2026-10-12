@@ -27,6 +27,7 @@ export default function SubscriptionModal() {
     redeemClubCode,
     supabaseSignUp,
     checkDemoRestriction,
+    setPrivacyModalOpen,
     lang,
     t,
   } = useApp()
@@ -48,6 +49,7 @@ export default function SubscriptionModal() {
   const [guestName, setGuestName] = useState('')
   const [guestEmail, setGuestEmail] = useState('')
   const [guestPassword, setGuestPassword] = useState('')
+  const [guestAcceptTerms, setGuestAcceptTerms] = useState(false)
   const isGuest = !user?.isLoggedIn
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export default function SubscriptionModal() {
     setGuestName('')
     setGuestEmail('')
     setGuestPassword('')
+    setGuestAcceptTerms(false)
     if (subscriptionCheckoutTarget === 'pro' || subscriptionCheckoutTarget === 'club') {
       setCheckoutTier(subscriptionCheckoutTarget)
       setBillingCycle(subscriptionCheckoutBillingCycle)
@@ -105,6 +108,10 @@ export default function SubscriptionModal() {
     setCheckoutError('')
     if (isGuest && (!guestName.trim() || !guestEmail.trim() || guestPassword.trim().length < 6)) {
       setCheckoutError(t('subscription.errorGuestFields'))
+      return
+    }
+    if (isGuest && !guestAcceptTerms) {
+      setCheckoutError(t('auth.errorAcceptTerms'))
       return
     }
 
@@ -175,6 +182,11 @@ export default function SubscriptionModal() {
     if (isGuest && (!guestName.trim() || !guestEmail.trim() || guestPassword.trim().length < 6)) {
       e.preventDefault()
       setCheckoutError(t('subscription.errorGuestFields'))
+      return
+    }
+    if (isGuest && !guestAcceptTerms) {
+      e.preventDefault()
+      setCheckoutError(t('auth.errorAcceptTerms'))
       return
     }
     setCheckoutError('')
@@ -356,6 +368,25 @@ export default function SubscriptionModal() {
                     className="w-full rounded-xl border border-bike-border bg-white px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
                   />
                 </div>
+                <label className="flex cursor-pointer select-none items-start gap-2.5 text-xs text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={guestAcceptTerms}
+                    onChange={(e) => setGuestAcceptTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-bike-border text-bike-orange focus:ring-bike-orange"
+                  />
+                  <span>
+                    {t('auth.acceptPrefix')}{' '}
+                    <button
+                      type="button"
+                      onClick={() => setPrivacyModalOpen(true)}
+                      className="font-bold text-bike-orange underline hover:text-orange-600"
+                    >
+                      {t('auth.privacyPolicyLink')}
+                    </button>{' '}
+                    {t('auth.acceptSuffix')}
+                  </span>
+                </label>
               </div>
             )}
 

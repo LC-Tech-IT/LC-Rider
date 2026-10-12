@@ -178,3 +178,30 @@ begin
     alter publication supabase_realtime add table public.profiles;
   end if;
 end $$;
+
+-- =====================================================================
+-- 11. SPRINT 34 — DERECHO DE SUPRESIÓN (LEY 1581 DE 2012)
+-- Borra la cuenta completa del usuario autenticado: auth.users (credenciales de acceso) y, por las FK
+-- "on delete cascade", su perfil, vehículos, alertas SOS y registros de convoy. Se ejecuta con
+-- "security definer" porque el cliente (llave anon) no tiene permiso para borrar en auth.users; la
+-- función solo puede borrar la cuenta de quien la invoca (auth.uid()).
+-- =====================================================================
+create or replace function public.delete_own_account()
+returns void
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then
+    raise exception 'No autenticado';
+  end if;
+  delete from public.profiles where id = uid;
+  delete from auth.users where id = uid;
+end;
+$$;
+
+revoke all on function public.delete_own_account() from public, anon;
+grant execute on function public.delete_own_account() to authenticated;

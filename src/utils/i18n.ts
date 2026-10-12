@@ -367,6 +367,27 @@ export const translations: Record<Lang, Record<string, string>> = {
     'session.reclaimError': 'No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.',
     'session.logoutAction': 'Cerrar sesión',
     'cloud.syncPending': '📶 Guardado en este dispositivo. Se sincronizará con la nube cuando vuelva la señal.',
+
+    // Privacidad (Ley 1581 de 2012), consentimiento y derecho de supresión
+    'privacy.title': 'Política de Privacidad y Tratamiento de Datos Personales',
+    'privacy.close': 'Entendido, volver',
+    'auth.acceptPrefix': 'Acepto la',
+    'auth.privacyPolicyLink': 'Política de Privacidad y Tratamiento de Datos (Ley 1581)',
+    'auth.acceptSuffix': 'de Bike Tracker.',
+    'auth.errorAcceptTerms': 'Debes aceptar la Política de Tratamiento de Datos para continuar.',
+    'auth.googleConsentPrefix': 'Al continuar con Google aceptas la',
+    'profile.dangerZoneTitle': 'Zona de Peligro',
+    'profile.dangerZoneText': 'Puedes ejercer tu derecho de supresión en cualquier momento. Consulta la',
+    'profile.deleteAccountBtn': 'Eliminar mi cuenta y mis datos',
+    'profile.deleteConfirmTitle': '¿Eliminar tu cuenta permanentemente?',
+    'profile.deleteConfirmMessage':
+      'Esta acción no se puede deshacer. Se eliminarán de inmediato tu perfil, todos tus vehículos registrados en el garaje, tu historial de convoy, tus alertas de seguridad y tu suscripción activa.',
+    'profile.cancelDelete': 'Conservar mi cuenta',
+    'profile.confirmDelete': 'Sí, eliminar mi cuenta definitivamente',
+    'profile.deleting': 'Eliminando tu cuenta…',
+    'profile.deleteError': 'No pudimos eliminar tu cuenta en el servidor. Revisa tu conexión e intenta de nuevo; tus datos siguen intactos.',
+    'profile.accountDeletedSuccess': 'Tu cuenta y datos han sido eliminados con éxito.',
+    'profile.accountDeletedDemo': 'Saliste del Modo Demo. No había datos reales que eliminar.',
   },
   en: {
     // Navigation & Header
@@ -734,6 +755,27 @@ export const translations: Record<Lang, Record<string, string>> = {
     'session.reclaimError': "We couldn't reach the server. Check your connection and try again.",
     'session.logoutAction': 'Log out',
     'cloud.syncPending': '📶 Saved on this device. It will sync to the cloud once you have signal again.',
+
+    // Privacy (Law 1581 of 2012), consent and right to erasure
+    'privacy.title': 'Privacy & Personal Data Processing Policy',
+    'privacy.close': 'Got it, go back',
+    'auth.acceptPrefix': 'I accept the',
+    'auth.privacyPolicyLink': 'Privacy & Data Processing Policy (Law 1581)',
+    'auth.acceptSuffix': 'of Bike Tracker.',
+    'auth.errorAcceptTerms': 'You must accept the Data Processing Policy to continue.',
+    'auth.googleConsentPrefix': 'By continuing with Google you accept the',
+    'profile.dangerZoneTitle': 'Danger Zone',
+    'profile.dangerZoneText': 'You can exercise your right to erasure at any time. See the',
+    'profile.deleteAccountBtn': 'Delete my account and my data',
+    'profile.deleteConfirmTitle': 'Permanently delete your account?',
+    'profile.deleteConfirmMessage':
+      "This can't be undone. Your profile, every vehicle in your garage, your convoy history, your safety alerts and your active subscription will be deleted immediately.",
+    'profile.cancelDelete': 'Keep my account',
+    'profile.confirmDelete': 'Yes, permanently delete my account',
+    'profile.deleting': 'Deleting your account…',
+    'profile.deleteError': "We couldn't delete your account on the server. Check your connection and try again; your data is untouched.",
+    'profile.accountDeletedSuccess': 'Your account and data have been successfully deleted.',
+    'profile.accountDeletedDemo': 'You left Demo Mode. There was no real data to delete.',
   },
 }
 

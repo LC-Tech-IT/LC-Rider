@@ -8,6 +8,7 @@ import LandingContact from './LandingContact'
 import LandingChatbot from './LandingChatbot'
 import InstallAppModal from '../common/InstallAppModal'
 import SubscriptionModal from '../common/SubscriptionModal'
+import PrivacyPolicyModal from '../common/PrivacyPolicyModal'
 import Toast from '../common/Toast'
 import { useScrollReveal, scrollRevealClass } from '../../hooks/useScrollReveal'
 
@@ -16,7 +17,7 @@ function scrollToId(id: string) {
 }
 
 export default function LandingPage() {
-  const { setTopLevelMode, setInstallModalOpen, setAuthModalOpen, requestAppAccess, user } = useApp()
+  const { setTopLevelMode, setInstallModalOpen, setAuthModalOpen, setPrivacyModalOpen, requestAppAccess, user } = useApp()
   const [chatOpen, setChatOpen] = useState(false)
   const heroImage = useScrollReveal<HTMLDivElement>()
 
@@ -158,11 +159,17 @@ export default function LandingPage() {
             📲 WhatsApp Oficial
           </a>
         </p>
+        <p className="mt-3 text-[11px]">
+          <button onClick={() => setPrivacyModalOpen(true)} className="font-semibold text-slate-500 hover:text-bike-ink hover:underline">
+            🔒 Política de Privacidad &amp; Datos (Ley 1581)
+          </button>
+        </p>
       </footer>
 
       <LandingChatbot open={chatOpen} onOpenChange={setChatOpen} />
       <InstallAppModal />
       <SubscriptionModal />
+      <PrivacyPolicyModal />
       <Toast />
     </div>
   )

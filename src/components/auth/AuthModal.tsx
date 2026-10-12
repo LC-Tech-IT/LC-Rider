@@ -9,7 +9,7 @@ const GENDER_OPTIONS: Array<{ value: GenderOption; icon: string; labelKey: strin
 ]
 
 export default function AuthModal() {
-  const { authModalOpen, setAuthModalOpen, signInWithGoogle, supabaseSignIn, supabaseSignUp, t } = useApp()
+  const { authModalOpen, setAuthModalOpen, signInWithGoogle, supabaseSignIn, supabaseSignUp, setPrivacyModalOpen, t } = useApp()
 
   const [tab, setTab] = useState<'signin' | 'signup'>('signin')
   const [name, setName] = useState('')
@@ -20,6 +20,7 @@ export default function AuthModal() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
+  const [acceptTerms, setAcceptTerms] = useState(false)
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -37,6 +38,7 @@ export default function AuthModal() {
       setPassword('')
       setConfirmPassword('')
       setRememberMe(true)
+      setAcceptTerms(false)
       setTab('signin')
     }
   }, [authModalOpen])
@@ -75,6 +77,10 @@ export default function AuthModal() {
     }
     if (password !== confirmPassword) {
       setError(t('auth.errorPasswordMismatch'))
+      return
+    }
+    if (!acceptTerms) {
+      setError(t('auth.errorAcceptTerms'))
       return
     }
     setSubmitting(true)
@@ -142,6 +148,13 @@ export default function AuthModal() {
           </svg>
           {t('auth.continueWithGoogle')}
         </button>
+        {/* Google puede crear la cuenta en el mismo paso: la autorización se otorga por conducta inequívoca. */}
+        <p className="-mt-2 mb-4 text-center text-[11px] text-slate-400">
+          {t('auth.googleConsentPrefix')}{' '}
+          <button type="button" onClick={() => setPrivacyModalOpen(true)} className="font-semibold text-bike-orange underline">
+            {t('auth.privacyPolicyLink')}
+          </button>
+        </p>
         <div className="mb-4 flex items-center gap-3 text-xs text-slate-400">
           <span className="h-px flex-1 bg-bike-border" />
           {t('auth.or')}
@@ -283,6 +296,26 @@ export default function AuthModal() {
                 className="h-4 w-4 rounded border-bike-border text-bike-orange focus:ring-bike-orange"
               />
               <span>{t('auth.rememberMe')}</span>
+            </label>
+
+            <label className="flex cursor-pointer select-none items-start gap-2.5 text-xs text-slate-600">
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-bike-border text-bike-orange focus:ring-bike-orange"
+              />
+              <span>
+                {t('auth.acceptPrefix')}{' '}
+                <button
+                  type="button"
+                  onClick={() => setPrivacyModalOpen(true)}
+                  className="font-bold text-bike-orange underline hover:text-orange-600"
+                >
+                  {t('auth.privacyPolicyLink')}
+                </button>{' '}
+                {t('auth.acceptSuffix')}
+              </span>
             </label>
 
             {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-status-danger">{error}</p>}

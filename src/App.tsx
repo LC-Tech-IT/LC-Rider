@@ -20,6 +20,7 @@ import EditProfileModal from './components/auth/EditProfileModal'
 import NotificationModal from './components/common/NotificationModal'
 import SubscriptionModal from './components/common/SubscriptionModal'
 import ConcurrentSessionModal from './components/common/ConcurrentSessionModal'
+import PrivacyPolicyModal from './components/common/PrivacyPolicyModal'
 import LandingPage from './components/landing/LandingPage'
 
 function PhoneFrame({ children }: { children: ReactNode }) {
@@ -49,6 +50,7 @@ export default function App() {
         <WelcomeAuthScreen />
         <AuthModal />
         <SubscriptionModal />
+        <PrivacyPolicyModal />
         <Toast />
       </PhoneFrame>
     )
@@ -60,6 +62,7 @@ export default function App() {
         <OnboardingWizard />
         <SubscriptionModal />
         <ConcurrentSessionModal />
+        <PrivacyPolicyModal />
         <Toast />
       </PhoneFrame>
     )
@@ -86,6 +89,7 @@ export default function App() {
       <NotificationModal />
       <SubscriptionModal />
       <ConcurrentSessionModal />
+      <PrivacyPolicyModal />
       <Toast />
       <UpdateBanner />
     </PhoneFrame>

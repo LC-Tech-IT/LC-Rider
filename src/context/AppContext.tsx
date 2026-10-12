@@ -23,7 +23,10 @@ import { playConfirmBeep, startSiren, stopSiren, vibrateAlert, vibrateStop } fro
 import { translateAuthError } from '../utils/authErrorTranslator'
 import { translate } from '../utils/i18n'
 import { isStandaloneApp } from '../utils/navigationHelper'
-import { getAccount, getCurrentUserEmail, loadStorage, saveAccount, saveStorage, setCurrentUserEmail } from '../utils/storage'
+import { getAccount, getCurrentUserEmail, loadStorage, removeAccount, saveAccount, saveStorage, setCurrentUserEmail } from '../utils/storage'
+
+/** Versión vigente de la Política de Tratamiento de Datos; se guarda junto a la autorización del titular. */
+export const PRIVACY_POLICY_VERSION = '2026-10-11'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -320,6 +323,12 @@ interface AppContextValue {
   concurrentSessionModalOpen: boolean
   reclaimSession: () => Promise<boolean>
 
+  privacyModalOpen: boolean
+  setPrivacyModalOpen: (open: boolean) => void
+  /** Derecho de supresión (Ley 1581): borra la cuenta en Supabase y la caché local. Devuelve false si el
+   *  servidor no confirmó el borrado (la sesión se conserva para que el usuario pueda reintentar). */
+  deleteAccount: () => Promise<boolean>
+
   subscriptionModalOpen: boolean
   setSubscriptionModalOpen: (open: boolean) => void
   subscriptionCheckoutTarget: SubscriptionTier | null
@@ -431,6 +440,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id])
 
   const [concurrentSessionModalOpen, setConcurrentSessionModalOpen] = useState(false)
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
 
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [editProfileModalOpen, setEditProfileModalOpen] = useState(false)
@@ -722,6 +732,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             lastName: payload.lastName.trim(),
             gender: payload.gender,
             phone: payload.phone.trim(),
+            // Prueba de la autorización previa y expresa del titular (Ley 1581, art. 9; Decreto 1377, art. 8).
+            privacyAcceptedAt: new Date().toISOString(),
+            privacyPolicyVersion: PRIVACY_POLICY_VERSION,
           },
         },
       })
@@ -841,6 +854,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setVehicleDocs([])
     setActiveVehicleId('')
   }, [])
+
+  /** Derecho de supresión (Ley 1581 de 2012). En la nube usa la función SQL delete_own_account(), que borra
+   *  también las credenciales en auth.users; si aún no está desplegada, al menos borra public.profiles (y en
+   *  cascada vehículos, alertas SOS y convoy). Solo si el servidor confirma, se purga la caché local de esta
+   *  cuenta —sin tocar otras cuentas del mismo dispositivo— y se vuelve a la Landing como anónimo. */
+  const deleteAccount = useCallback(async (): Promise<boolean> => {
+    const current = userRef.current
+    if (!current) return true
+
+    if (current.email === DEMO_EMAIL) {
+      logout()
+      setEditProfileModalOpen(false)
+      setTopLevelMode('landing')
+      showToast(t('profile.accountDeletedDemo'))
+      return true
+    }
+
+    if (isCloudUser(current)) {
+      let deleted = false
+      try {
+        const { error } = await supabase.rpc('delete_own_account')
+        deleted = !error
+        if (error) {
+          console.warn('delete_own_account no disponible; se suprime solo public.profiles:', error.message)
+          const { error: profileError } = await supabase.from('profiles').delete().eq('id', current.id)
+          deleted = !profileError
+        }
+      } catch {
+        deleted = false
+      }
+      if (!deleted) return false
+    }
+
+    logout()
+    removeAccount(current.email)
+    try {
+      window.localStorage.removeItem(DEVICE_SESSION_KEY)
+      window.sessionStorage.clear()
+    } catch {
+      /* Almacenamiento no disponible: no hay nada que purgar. */
+    }
+    setEditProfileModalOpen(false)
+    setTopLevelMode('landing')
+    showToast(t('profile.accountDeletedSuccess'))
+    return true
+  }, [logout, showToast, t])
 
   // --- Suscripciones (Free / Pro / Club) ---
   /** Activa una suscripción de pago (Pro o Club), calculando su fecha de vencimiento: +30 días si es mensual,
@@ -1503,6 +1562,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     logout,
     concurrentSessionModalOpen,
     reclaimSession,
+    privacyModalOpen,
+    setPrivacyModalOpen,
+    deleteAccount,
     subscriptionModalOpen,
     setSubscriptionModalOpen,
     subscriptionCheckoutTarget,

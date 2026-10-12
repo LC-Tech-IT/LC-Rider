@@ -39,6 +39,14 @@ export function saveAccount(account: UserAccountData): void {
   saveStorage(ACCOUNTS_KEY, accounts)
 }
 
+/** Elimina por completo la caché local de una cuenta (derecho de supresión), sin tocar las demás cuentas
+ *  que hayan iniciado sesión en este mismo dispositivo. */
+export function removeAccount(email: string): void {
+  const accounts = loadAccounts()
+  delete accounts[email.toLowerCase()]
+  saveStorage(ACCOUNTS_KEY, accounts)
+}
+
 /** La sesión "recordada" vive en localStorage (sobrevive a cerrar el navegador); la sesión temporal
  *  (Remember Me desactivado) vive solo en sessionStorage, que el navegador borra al cerrar la app/pestaña. */
 export function getCurrentUserEmail(): string | null {

@@ -23,12 +23,26 @@ function readFileAsDataUrl(file: File): Promise<string> {
 }
 
 export default function EditProfileModal() {
-  const { editProfileModalOpen, setEditProfileModalOpen, user, updateProfile, openSubscriptionCheckout, checkDemoRestriction, lang, t } = useApp()
+  const {
+    editProfileModalOpen,
+    setEditProfileModalOpen,
+    user,
+    updateProfile,
+    openSubscriptionCheckout,
+    checkDemoRestriction,
+    deleteAccount,
+    setPrivacyModalOpen,
+    lang,
+    t,
+  } = useApp()
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState('')
   const [gender, setGender] = useState<GenderOption | undefined>(undefined)
   const [age, setAge] = useState('')
   const [error, setError] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     if (editProfileModalOpen && user) {
@@ -37,6 +51,8 @@ export default function EditProfileModal() {
       setGender(user.gender)
       setAge(user.age != null ? String(user.age) : '')
       setError('')
+      setShowDeleteConfirm(false)
+      setDeleteError('')
     }
   }, [editProfileModalOpen, user])
 
@@ -67,6 +83,17 @@ export default function EditProfileModal() {
       gender,
       age: parsedAge,
     })
+  }
+
+  async function handleConfirmDelete() {
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      const ok = await deleteAccount()
+      if (!ok) setDeleteError(t('profile.deleteError'))
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -198,8 +225,51 @@ export default function EditProfileModal() {
               {t('profile.saveChanges')}
             </button>
           </div>
+
+          <div className="mt-2 rounded-2xl border border-red-100 bg-red-50/50 p-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-red-600">{t('profile.dangerZoneTitle')}</p>
+            <p className="mt-1 text-xs text-slate-500">
+              {t('profile.dangerZoneText')}{' '}
+              <button type="button" onClick={() => setPrivacyModalOpen(true)} className="font-semibold text-bike-orange underline">
+                {t('auth.privacyPolicyLink')}
+              </button>
+            </p>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="mt-3 text-xs font-bold text-red-600 underline hover:text-red-700"
+            >
+              🗑️ {t('profile.deleteAccountBtn')}
+            </button>
+          </div>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-slate-900/60 p-5" role="alertdialog" aria-modal="true">
+          <div className="w-full max-w-sm rounded-3xl border border-red-100 bg-white p-6 text-center shadow-2xl">
+            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-4xl">⚠️</span>
+            <h3 className="mt-4 font-display text-lg font-bold text-bike-ink">{t('profile.deleteConfirmTitle')}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">{t('profile.deleteConfirmMessage')}</p>
+            {deleteError && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-status-danger">{deleteError}</p>}
+            <div className="mt-6 space-y-2.5">
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                className="w-full rounded-xl bg-red-600 py-3.5 text-sm font-bold text-white transition hover:bg-red-700 active:scale-[0.98] disabled:opacity-70"
+              >
+                {deleting ? t('profile.deleting') : t('profile.confirmDelete')}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="w-full rounded-xl border border-bike-border bg-white py-3.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+              >
+                {t('profile.cancelDelete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
