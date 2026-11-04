@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import LandingHeroTachometer from './LandingHeroTachometer'
+import HeroHeadlightBeam from './HeroHeadlightBeam'
 import LandingStory from './LandingStory'
 import LandingShowcase from './LandingShowcase'
 import LandingPricing from './LandingPricing'
@@ -114,12 +115,10 @@ export default function LandingPage() {
       <main>
         {/* HERO */}
         <section className="relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-950/20 via-[#070A10] to-[#070A10]">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]"
-            aria-hidden="true"
-          />
+          <HeroHeadlightBeam />
 
-          <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-16 text-center sm:px-6 sm:pt-24">
+          {/* pt reserva la franja superior para la firma lumínica del faro (HeroHeadlightBeam, ~130 px). */}
+          <div className="relative z-10 mx-auto max-w-6xl px-4 pb-20 pt-36 text-center sm:px-6 sm:pt-40">
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-widest text-orange-400">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-500" />
               Sistema de Telemetría &amp; Navegación Grupal

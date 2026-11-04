@@ -37,19 +37,22 @@ export default function CockpitView() {
   const route = navigation.route
   const userMember = route ? { position: route.coordinates[0] } : null
 
+  // Todos los bloques directos llevan flex-shrink-0: el contenedor es flex-col con overflow-y-auto y altura fija,
+  // así que cuando el contenido supera la pantalla Flexbox encoge a los hijos. El radar (overflow-hidden ⇒
+  // min-height efectivo 0) era el único que podía colapsar del todo, dejando la etiqueta RADAR cortada.
   // Modo Instrumentación Diurna: fondos claros y tinta slate-900 (contraste ~17:1 sobre blanco) para anular el
   // efecto espejo del vidrio a pleno sol; biseles de 2px y hitboxes de 52px+ para operar con guantes.
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-slate-100 px-4 pb-6 pt-4">
-      <h1 className="mb-3 text-lg font-extrabold tracking-tight text-slate-900">{t('cockpit.title')}</h1>
+      <h1 className="mb-3 flex-shrink-0 text-lg font-extrabold tracking-tight text-slate-900">{t('cockpit.title')}</h1>
 
       {!isOnline && (
-        <div className="mb-3 flex min-h-[48px] items-center justify-center gap-2 rounded-xl border-2 border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-bold text-amber-900">
+        <div className="mb-3 flex min-h-[48px] flex-shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-bold text-amber-900">
           {t('connectivity.offlineBanner')}
         </div>
       )}
 
-      <div className="mb-4 flex items-center justify-between rounded-2xl border-2 border-slate-200/80 bg-white p-3 shadow-sm">
+      <div className="mb-4 flex flex-shrink-0 items-center justify-between rounded-2xl border-2 border-slate-200/80 bg-white p-3 shadow-sm">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">{t('cockpit.activeVehicle')}</p>
           <p className="text-base font-extrabold text-slate-900">
@@ -59,8 +62,8 @@ export default function CockpitView() {
         <ColombianPlate plate={activeVehicle.plate} subtitle={activeVehicle.brand} size="md" />
       </div>
 
-      <div className="relative mb-4 overflow-hidden rounded-2xl border-2 border-slate-200/80 shadow-sm">
-        <div className="h-32 w-full">
+      <div className="relative mb-4 h-36 min-h-[144px] w-full flex-shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200/80 bg-slate-100 shadow-sm">
+        <div className="h-full w-full">
           {route ? (
             <MapContainer
               center={[route.coordinates[0].lat, route.coordinates[0].lng]}
@@ -96,16 +99,16 @@ export default function CockpitView() {
         </div>
       </div>
 
-      <div className="rounded-2xl border-2 border-slate-200/80 bg-white p-4 shadow-sm">
+      <div className="flex-shrink-0 rounded-2xl border-2 border-slate-200/80 bg-white p-4 shadow-sm">
         <Speedometer speed={currentSpeedKmh} />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="mt-4 grid flex-shrink-0 grid-cols-2 gap-3">
         <MetricCard icon={IconClock} label={t('cockpit.time')} value={formatElapsed(elapsedSeconds)} />
         <MetricCard icon={IconRoute} label={t('cockpit.distance')} value={`${distanceTraveledKm.toFixed(1)} km`} />
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 flex-shrink-0">
         <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-600">{t('cockpit.quickActions')}</p>
         <div className="grid grid-cols-2 gap-3">
           {QUICK_ACTIONS.map((action) => (
@@ -122,7 +125,7 @@ export default function CockpitView() {
       </div>
 
       {route && (
-        <div className="mt-3 flex items-center justify-between rounded-xl border-2 border-slate-200/80 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">
+        <div className="mt-3 flex flex-shrink-0 items-center justify-between rounded-xl border-2 border-slate-200/80 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">
           <span>
             {route.originLabel} → {route.destinationLabel}
           </span>
