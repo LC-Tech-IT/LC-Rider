@@ -10,7 +10,7 @@ interface ChatMessage {
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'bot',
-  text: '¡Hola! Soy el Asistente Biker de LC Tech 🏍️. Puedo ayudarte a elegir tu plan, armar tu convoy, renovar tu suscripción o resolver cualquier duda técnica de la app. Por cierto, con Convoy Pro tu convoy queda ilimitado y desbloqueas alertas por voz — ¿quieres que te cuente más?',
+  text: '¡Hola! Soy el Asistente Biker de LC SyncTech 🏍️. Puedo ayudarte a elegir tu plan, armar tu convoy, renovar tu suscripción o resolver cualquier duda técnica de la app. Por cierto, con Convoy Pro tu convoy queda ilimitado y desbloqueas alertas por voz — ¿quieres que te cuente más?',
 }
 
 interface LandingChatbotProps {
@@ -55,7 +55,7 @@ export default function LandingChatbot({ open: openProp, onOpenChange }: Landing
           <div className="flex items-center justify-between border-b border-bike-border bg-bike-surface px-4 py-3">
             <div>
               <p className="font-display text-sm font-bold text-bike-ink">💬 Asistente Biker</p>
-              <p className="text-[10px] text-slate-500">Bike Tracker · LC Tech</p>
+              <p className="text-[10px] text-slate-500">Bike Tracker · LC SyncTech</p>
             </div>
             <button onClick={() => setOpen(false)} className="text-xl leading-none text-slate-400" aria-label="Cerrar chat">
               ×

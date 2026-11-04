@@ -9,7 +9,7 @@ const SUBJECT_OPTIONS = [
 
 const WHATSAPP_NUMBER = '573505208592'
 const WHATSAPP_MESSAGE = 'Hola Bike Tracker, quisiera más información sobre la app y los planes Pro'
-const CONTACT_EMAIL = 'leecastro.tech@gmail.com'
+const CONTACT_EMAIL = 'contacto@lcsynctech.com'
 
 export default function LandingContact() {
   const { showToast } = useApp()

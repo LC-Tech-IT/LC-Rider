@@ -45,7 +45,7 @@ export default function LandingPage() {
             <div className="leading-tight">
               <p className="font-display text-base font-black tracking-tight text-bike-ink">Bike Tracker</p>
               <p className="font-body text-xs font-semibold text-slate-500">
-                por <span className="font-bold text-bike-orange">LC TECH</span>{' '}
+                por <span className="font-bold text-bike-orange">LC SyncTech</span>{' '}
                 <span className="hidden sm:inline">· Tecnología inteligente que te respalda.</span>
               </p>
             </div>
@@ -143,11 +143,11 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t border-bike-border px-6 py-10 text-center">
-        <p className="text-xs font-semibold text-slate-500">🏍️ Bike Tracker — LC Tech</p>
+        <p className="text-xs font-semibold text-slate-500">🏍️ Bike Tracker — LC SyncTech</p>
         <p className="mt-1 text-[11px] text-slate-400">Tecnología inteligente que te respalda. · {new Date().getFullYear()}</p>
         <p className="mt-1 text-[11px] text-slate-400">
-          <a href="mailto:leecastro.tech@gmail.com?subject=Consulta%20Bike%20Tracker" className="hover:text-bike-ink hover:underline">
-            📧 leecastro.tech@gmail.com
+          <a href="mailto:contacto@lcsynctech.com?subject=Consulta%20Bike%20Tracker" className="hover:text-bike-ink hover:underline">
+            📧 contacto@lcsynctech.com
           </a>{' '}
           ·{' '}
           <a

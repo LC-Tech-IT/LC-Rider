@@ -1,7 +1,7 @@
 import { useApp } from '../../context/AppContext'
 import type { Lang } from '../../types'
 
-const CONTACT_EMAIL = 'leecastro.tech@gmail.com'
+const CONTACT_EMAIL = 'contacto@lcsynctech.com'
 const CONTACT_WHATSAPP = '+57 350 520 8592'
 
 interface PolicySection {
@@ -21,7 +21,7 @@ const POLICY: Record<Lang, { updated: string; intro: string; sections: PolicySec
       {
         title: '1. Responsable del Tratamiento',
         paragraphs: [
-          `LC Tech, operador de la plataforma Bike Tracker, con domicilio en Colombia. Canales de atención: correo ${CONTACT_EMAIL} y WhatsApp ${CONTACT_WHATSAPP}.`,
+          `LC SyncTech, operador de la plataforma Bike Tracker, con domicilio en Colombia. Canales de atención: correo ${CONTACT_EMAIL} y WhatsApp ${CONTACT_WHATSAPP}.`,
         ],
       },
       {
@@ -94,7 +94,7 @@ const POLICY: Record<Lang, { updated: string; intro: string; sections: PolicySec
       {
         title: '1. Data Controller',
         paragraphs: [
-          `LC Tech, operator of the Bike Tracker platform, based in Colombia. Support channels: email ${CONTACT_EMAIL} and WhatsApp ${CONTACT_WHATSAPP}.`,
+          `LC SyncTech, operator of the Bike Tracker platform, based in Colombia. Support channels: email ${CONTACT_EMAIL} and WhatsApp ${CONTACT_WHATSAPP}.`,
         ],
       },
       {
