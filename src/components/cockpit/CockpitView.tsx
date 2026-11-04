@@ -2,6 +2,7 @@ import { MapContainer, Marker, Polyline, TileLayer } from 'react-leaflet'
 import L from 'leaflet'
 import { useApp } from '../../context/AppContext'
 import Speedometer from './Speedometer'
+import ColombianPlate from '../common/ColombianPlate'
 import { QUICK_ACTIONS } from '../common/quickActions'
 import { IconClock, IconRoute, IconSignal, QuickActionIcon } from '../common/Icons'
 import type { ComponentType, SVGProps } from 'react'
@@ -55,9 +56,7 @@ export default function CockpitView() {
             {activeVehicle.brand} {activeVehicle.model}
           </p>
         </div>
-        <div className="rounded-md border-2 border-slate-900 bg-[#FDFBF3] px-2.5 py-1 font-mono text-sm font-bold tracking-widest text-slate-900">
-          {activeVehicle.plate}
-        </div>
+        <ColombianPlate plate={activeVehicle.plate} subtitle={activeVehicle.brand} size="md" />
       </div>
 
       <div className="relative mb-4 overflow-hidden rounded-2xl border-2 border-slate-200/80 shadow-sm">

@@ -322,6 +322,243 @@ export const IconStar = (p: IconProps) => (
   </Icon>
 )
 
+export const IconPlus = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 5v14" />
+    <path d="M5 12h14" />
+  </Icon>
+)
+
+export const IconX = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M6 6l12 12" />
+    <path d="M18 6 6 18" />
+  </Icon>
+)
+
+export const IconTarget = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="7.5" />
+    <circle cx="12" cy="12" r="2.5" />
+    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+  </Icon>
+)
+
+export const IconLayers = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m12 3 9 5-9 5-9-5 9-5Z" />
+    <path d="m3 12.5 9 5 9-5" />
+    <path d="m3 16.5 9 5 9-5" />
+  </Icon>
+)
+
+/** Silueta lateral de motocicleta (ruedas, chasis, tanque y manillar). */
+export const IconMotorcycle = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="5.5" cy="16.5" r="3.5" />
+    <circle cx="18.5" cy="16.5" r="3.5" />
+    <path d="M5.5 16.5 9 10h5l2.5 6.5" />
+    <path d="M9 10 8 7.5H5.5" />
+    <path d="M14 10l1.5-3H18l.5 1.5" />
+    <path d="M10.5 16.5h4" />
+  </Icon>
+)
+
+export const IconCar = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3.5 16.5V12l2-5A2 2 0 0 1 7.4 5.7h9.2a2 2 0 0 1 1.9 1.3l2 5v4.5" />
+    <path d="M3.5 12h17" />
+    <rect x="2.5" y="12" width="19" height="5" rx="1.5" />
+    <path d="M5.5 17v2M18.5 17v2" />
+    <path d="M6.5 14.5h1.5M16 14.5h1.5" />
+  </Icon>
+)
+
+export const IconCrown = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m3 7.5 4.5 4L12 5l4.5 6.5L21 7.5l-2 10H5l-2-10Z" />
+    <path d="M5 20.5h14" />
+  </Icon>
+)
+
+export const IconPause = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M9 5v14" />
+    <path d="M15 5v14" />
+  </Icon>
+)
+
+export const IconPlay = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M7 4.5v15l12-7.5-12-7.5Z" />
+  </Icon>
+)
+
+export const IconSquare = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="5.5" y="5.5" width="13" height="13" rx="1.5" />
+  </Icon>
+)
+
+/** Bandera de meta a cuadros (fin de ruta). */
+export const IconFlagCheckered = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5 21V4" />
+    <path d="M5 4h14v10H5" />
+    <path d="M8.5 4v3.3M15.5 4v3.3M12 7.3v3.4M8.5 10.7V14M15.5 10.7V14" />
+    <path d="M5 7.3h14M5 10.7h14" />
+  </Icon>
+)
+
+export const IconTrafficLight = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="7.5" y="2.5" width="9" height="16" rx="3" />
+    <circle cx="12" cy="6.5" r="1.4" />
+    <circle cx="12" cy="10.5" r="1.4" />
+    <circle cx="12" cy="14.5" r="1.4" />
+    <path d="M12 18.5v3" />
+  </Icon>
+)
+
+export const IconLifeBuoy = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="3.8" />
+    <path d="m5.6 5.6 3.7 3.7M14.7 14.7l3.7 3.7M18.4 5.6l-3.7 3.7M9.3 14.7l-3.7 3.7" />
+  </Icon>
+)
+
+export const IconRotateCw = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M20 12a8 8 0 1 1-2.3-5.6" />
+    <path d="M20 4v5h-5" />
+  </Icon>
+)
+
+export const IconSearch = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="m16 16 4.5 4.5" />
+  </Icon>
+)
+
+export const IconBuilding = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="5" y="3" width="14" height="18" rx="1.5" />
+    <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" />
+    <path d="M10.5 21v-3h3v3" />
+  </Icon>
+)
+
+export const IconCity = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 21h18" />
+    <path d="M4.5 21V10h5v11" />
+    <path d="M9.5 21V4h7v17" />
+    <path d="M16.5 21v-8h3.5v8" />
+    <path d="M12 7.5h2M12 11h2M12 14.5h2" />
+  </Icon>
+)
+
+export const IconBed = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 19V6" />
+    <path d="M3 15h18v4" />
+    <path d="M21 15v-3a3 3 0 0 0-3-3h-7v6" />
+    <circle cx="7" cy="11.5" r="2" />
+  </Icon>
+)
+
+export const IconMountain = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m2.5 20 7-12 4 6.5 2.5-3.5 5.5 9h-19Z" />
+    <path d="m7.5 11.5 2-1 2 1" />
+  </Icon>
+)
+
+export const IconBank = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m3 9 9-5 9 5" />
+    <path d="M4 9h16" />
+    <path d="M6 9v8M10 9v8M14 9v8M18 9v8" />
+    <path d="M3.5 20.5h17M4.5 17h15" />
+  </Icon>
+)
+
+export const IconCard = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="2.5" y="5" width="19" height="14" rx="2" />
+    <path d="M2.5 9.5h19" />
+    <path d="M6 15h4" />
+  </Icon>
+)
+
+export const IconCheckCircle = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8 12.5 2.8 2.8L16.5 9.5" />
+  </Icon>
+)
+
+export const IconZap = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M13 2.5 4.5 13.5H12l-1 8 8.5-11H12l1-8Z" />
+  </Icon>
+)
+
+/* ─────────────── Maniobras de navegación paso a paso ─────────────── */
+
+export const IconNavStraight = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 21V4" />
+    <path d="m6 10 6-6 6 6" />
+  </Icon>
+)
+
+export const IconNavTurnLeft = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M16 21v-8a4 4 0 0 0-4-4H5" />
+    <path d="m9 5-4 4 4 4" />
+  </Icon>
+)
+
+export const IconNavTurnRight = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M8 21v-8a4 4 0 0 1 4-4h7" />
+    <path d="m15 5 4 4-4 4" />
+  </Icon>
+)
+
+export const IconNavUturn = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M7 21V9a5 5 0 0 1 10 0v5" />
+    <path d="m13 10.5 4 4 4-4" />
+  </Icon>
+)
+
+export const IconNavRoundabout = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="10" r="4" />
+    <path d="M12 14v7" />
+    <path d="M15 7l3.5-3.5" />
+    <path d="M14.5 3.5h4v4" />
+  </Icon>
+)
+
+export const IconNavMerge = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 21v-7L6 7.5V3" />
+    <path d="M12 14l6-6.5V3" />
+  </Icon>
+)
+
+export const IconNavArrive = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 21s-6.5-5.8-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.2 12 21 12 21Z" />
+    <path d="m9.5 10 1.8 1.8 3.4-3.6" />
+  </Icon>
+)
+
 /** Icono de cada acción rápida en ruta (ver quickActions.ts). Trazo grueso para lectura bajo sol directo. */
 export type QuickActionIconId = 'fuel' | 'hazard' | 'regroup' | 'police'
 

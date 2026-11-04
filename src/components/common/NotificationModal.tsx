@@ -1,4 +1,5 @@
 import { useApp } from '../../context/AppContext'
+import { IconBell } from './Icons'
 
 function formatTimestamp(timestamp: number, lang: 'es' | 'en'): string {
   return new Date(timestamp).toLocaleString(lang === 'es' ? 'es-CO' : 'en-US', {
@@ -66,8 +67,10 @@ export default function NotificationModal() {
 
         {!hasAnything ? (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <span className="text-4xl">🔔</span>
-            <p className="max-w-xs text-sm text-slate-500">{t('notifications.empty')}</p>
+            <span className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-slate-200 bg-slate-50 text-slate-700">
+              <IconBell className="h-8 w-8" strokeWidth={2} />
+            </span>
+            <p className="max-w-xs text-sm font-medium text-slate-700">{t('notifications.empty')}</p>
           </div>
         ) : (
           <div className="space-y-5">

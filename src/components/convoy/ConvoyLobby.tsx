@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
+import type { ComponentType, SVGProps } from 'react'
 import type { ConvoyRole } from '../../types'
+import Avatar from '../common/Avatar'
+import { IconCrown, IconMotorcycle, IconShield, IconUsers } from '../common/Icons'
 
-const ROLES: Array<{ value: ConvoyRole; icon: string; labelKey: string; descKey: string }> = [
-  { value: 'lider', icon: '👑', labelKey: 'convoy.leader', descKey: 'convoy.leaderDesc' },
-  { value: 'piloto', icon: '🏍️', labelKey: 'convoy.rider', descKey: 'convoy.riderDesc' },
-  { value: 'guardian', icon: '🛡️', labelKey: 'convoy.guardian', descKey: 'convoy.guardianDesc' },
+const ROLES: Array<{ value: ConvoyRole; icon: ComponentType<SVGProps<SVGSVGElement>>; labelKey: string; descKey: string }> = [
+  { value: 'lider', icon: IconCrown, labelKey: 'convoy.leader', descKey: 'convoy.leaderDesc' },
+  { value: 'piloto', icon: IconMotorcycle, labelKey: 'convoy.rider', descKey: 'convoy.riderDesc' },
+  { value: 'guardian', icon: IconShield, labelKey: 'convoy.guardian', descKey: 'convoy.guardianDesc' },
 ]
+
+const ROLE_LABEL_KEY: Record<ConvoyRole, string> = { lider: 'convoy.leader', piloto: 'convoy.rider', guardian: 'convoy.guardian' }
 
 export default function ConvoyLobby() {
   const {
@@ -66,13 +71,14 @@ export default function ConvoyLobby() {
         </div>
         <div className="space-y-2">
           {convoyMembers.map((m) => (
-            <div key={m.id} className="flex items-center gap-3 rounded-xl border border-bike-border bg-white px-3 py-2.5 shadow-card">
-              <span className="text-xl">{m.avatarEmoji}</span>
+            <div key={m.id} className="flex items-center gap-3 rounded-xl border-2 border-slate-200 bg-white px-3 py-2.5">
+              <Avatar value={m.avatarEmoji} className="h-9 w-9 flex-shrink-0 rounded-full" />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-bike-ink">
-                  {m.name} {m.isCurrentUser && <span className="text-bike-blue">{t('map.you')}</span>}
+                <p className="text-sm font-bold text-slate-950">
+                  {m.name}{' '}
+                  {m.isCurrentUser && m.name !== t('rideSummary.you') && <span className="text-sky-800">{t('map.you')}</span>}
                 </p>
-                <p className="text-[11px] capitalize text-slate-500">{m.role}</p>
+                <p className="text-[11px] font-semibold text-slate-600">{t(ROLE_LABEL_KEY[m.role])}</p>
               </div>
             </div>
           ))}
@@ -95,8 +101,10 @@ export default function ConvoyLobby() {
           {isDemoUser && (
             <p className="rounded-xl bg-orange-50 px-3 py-2 text-xs text-bike-orange">{t('demo.convoyBanner')}</p>
           )}
-          <span className="text-4xl">👥</span>
-          <h1 className="font-display text-lg font-bold text-bike-ink">{t('convoy.title')}</h1>
+          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-slate-200 bg-white text-slate-800">
+            <IconUsers className="h-8 w-8" strokeWidth={2} />
+          </span>
+          <h1 className="text-lg font-extrabold tracking-tight text-slate-950">{t('convoy.title')}</h1>
           <p className="mb-4 text-sm text-slate-500">{t('convoy.subtitle')}</p>
           <button
             onClick={() => setMode('create')}
@@ -155,14 +163,20 @@ export default function ConvoyLobby() {
                 <button
                   key={r.value}
                   onClick={() => setRole(r.value)}
-                  className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
-                    role === r.value ? 'border-bike-orange bg-orange-50' : 'border-bike-border bg-white'
+                  className={`flex min-h-[56px] w-full items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-left transition ${
+                    role === r.value ? 'border-orange-600 bg-orange-50' : 'border-slate-200 bg-white'
                   }`}
                 >
-                  <span className="text-lg">{r.icon}</span>
+                  <span
+                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
+                      role === r.value ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-800'
+                    }`}
+                  >
+                    <r.icon className="h-5 w-5" strokeWidth={2} />
+                  </span>
                   <div>
-                    <p className="text-sm font-semibold text-bike-ink">{t(r.labelKey)}</p>
-                    <p className="text-[11px] text-slate-500">{t(r.descKey)}</p>
+                    <p className="text-sm font-bold text-slate-950">{t(r.labelKey)}</p>
+                    <p className="text-[11px] font-medium text-slate-600">{t(r.descKey)}</p>
                   </div>
                 </button>
               ))}

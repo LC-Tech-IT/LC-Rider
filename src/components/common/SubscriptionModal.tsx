@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { formatLongDate } from '../../utils/formatDate'
 import { buildPaymentReference, getPlanAmountCOP, isPaymentGatewayConfigured, openWompiCheckout } from '../../services/paymentService'
+import type { ComponentType, SVGProps } from 'react'
 import type { SubscriptionTier } from '../../types'
+import { IconBank, IconCard, IconCheck, IconCheckCircle, IconPhone, IconSend, IconZap } from './Icons'
 
 type PaymentMethod = 'nequi' | 'pse' | 'card' | 'qr'
 type CheckoutView = 'plans' | 'checkout' | 'processing' | 'success'
@@ -413,18 +415,20 @@ export default function SubscriptionModal() {
                 paymentMethod === 'qr' ? 'border-emerald-500 bg-emerald-50' : 'border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50'
               }`}
             >
-              <span className="text-2xl">⚡</span>
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                <IconZap className="h-5 w-5" strokeWidth={2.25} />
+              </span>
               <div>
-                <p className="text-sm font-bold text-emerald-700">{t('subscription.qrOptionTitle')}</p>
+                <p className="text-sm font-bold text-emerald-800">{t('subscription.qrOptionTitle')}</p>
                 <p className="text-[11px] font-semibold text-emerald-600">{t('subscription.qrOptionSubtitle')}</p>
               </div>
             </button>
 
             <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-widest text-slate-400">{t('subscription.otherMethods')}</p>
             <div className="mb-4 grid grid-cols-3 gap-2">
-              <MethodButton active={paymentMethod === 'nequi'} onClick={() => setPaymentMethod('nequi')} icon="📱" label={t('subscription.methodNequi')} />
-              <MethodButton active={paymentMethod === 'pse'} onClick={() => setPaymentMethod('pse')} icon="🏦" label="PSE" />
-              <MethodButton active={paymentMethod === 'card'} onClick={() => setPaymentMethod('card')} icon="💳" label={t('subscription.methodCard')} />
+              <MethodButton active={paymentMethod === 'nequi'} onClick={() => setPaymentMethod('nequi')} icon={IconPhone} label={t('subscription.methodNequi')} />
+              <MethodButton active={paymentMethod === 'pse'} onClick={() => setPaymentMethod('pse')} icon={IconBank} label="PSE" />
+              <MethodButton active={paymentMethod === 'card'} onClick={() => setPaymentMethod('card')} icon={IconCard} label={t('subscription.methodCard')} />
             </div>
 
             {paymentMethod === 'qr' && (
@@ -456,7 +460,8 @@ export default function SubscriptionModal() {
                   onClick={handleQrReceiptClick}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg transition active:scale-[0.98]"
                 >
-                  📲 {t('subscription.qrSendReceipt')}
+                  <IconSend className="h-4 w-4" strokeWidth={2.25} />
+                  {t('subscription.qrSendReceipt')}
                 </a>
               </div>
             )}
@@ -577,14 +582,16 @@ export default function SubscriptionModal() {
 
         {view === 'success' && (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-4xl">✅</span>
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+              <IconCheckCircle className="h-9 w-9" strokeWidth={2} />
+            </span>
             <h2 className="font-display text-lg font-bold text-bike-ink">
               {t('subscription.successTitle', { plan: t(checkoutTier === 'pro' ? 'subscription.proName' : 'subscription.clubName') })}
             </h2>
             <p className="max-w-xs text-sm text-slate-500">
               {t('subscription.successBody', { date: user?.subscriptionExpiresAt ? formatLongDate(user.subscriptionExpiresAt, lang) : '' })}
             </p>
-            <button onClick={handleClose} className="mt-3 w-full rounded-xl bg-bike-orange py-3 text-sm font-bold text-white shadow-glow-orange">
+            <button onClick={handleClose} className="mt-3 min-h-[52px] w-full rounded-xl bg-orange-600 text-sm font-bold text-white">
               {t('subscription.done')}
             </button>
           </div>
@@ -594,15 +601,25 @@ export default function SubscriptionModal() {
   )
 }
 
-function MethodButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: string; label: string }) {
+function MethodButton({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active: boolean
+  onClick: () => void
+  icon: ComponentType<SVGProps<SVGSVGElement>>
+  label: string
+}) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center gap-1 rounded-xl border py-3 text-[11px] font-semibold transition ${
-        active ? 'border-bike-orange bg-orange-50 text-bike-ink' : 'border-bike-border bg-white text-slate-600'
+      className={`flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border-2 py-3 text-[11px] font-bold transition ${
+        active ? 'border-orange-600 bg-orange-50 text-slate-950' : 'border-slate-200 bg-white text-slate-700'
       }`}
     >
-      <span className="text-xl">{icon}</span>
+      <Icon className="h-5 w-5" strokeWidth={2} />
       {label}
     </button>
   )
@@ -653,13 +670,16 @@ function PlanCard({
       {price && <p className="mt-0.5 text-[11px] text-slate-400">{tagline}</p>}
       <ul className="mt-3 space-y-1.5 text-xs text-slate-600">
         {features.map((f) => (
-          <li key={f}>✓ {f}</li>
+          <li key={f} className="flex items-start gap-1.5">
+            <IconCheck className="mt-px h-3.5 w-3.5 flex-shrink-0 text-emerald-600" strokeWidth={3} />
+            {f}
+          </li>
         ))}
       </ul>
       <button
         onClick={onActivate}
         disabled={isCurrent}
-        className="mt-3 w-full rounded-xl bg-bike-orange py-2.5 text-xs font-bold text-white shadow-glow-orange transition active:scale-[0.98] disabled:cursor-default disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
+        className="mt-3 min-h-[48px] w-full rounded-xl bg-orange-600 text-xs font-bold text-white transition hover:bg-orange-700 active:scale-[0.98] disabled:cursor-default disabled:bg-slate-200 disabled:text-slate-600"
       >
         {isCurrent ? t('subscription.activePlan') : activateLabel ?? t('subscription.activate')}
       </button>

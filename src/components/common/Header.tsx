@@ -2,13 +2,9 @@ import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { goToLanding } from '../../utils/navigationHelper'
 import Avatar, { isPhotoAvatar } from './Avatar'
+import ColombianPlate from './ColombianPlate'
 import { IconBell, IconChevronDown, IconHome, IconMenu, IconStar, IconUser, IconUsers } from './Icons'
 
-/** Formatea la placa al estilo troquelado colombiano: 'RTX880' → 'RTX · 880' (3 letras + resto). */
-function formatPlate(plate: string): string {
-  const clean = plate.replace(/[\s·-]/g, '').toUpperCase()
-  return /^[A-Z]{3}[0-9]/.test(clean) ? `${clean.slice(0, 3)} · ${clean.slice(3)}` : clean
-}
 
 export default function Header() {
   const {
@@ -48,15 +44,7 @@ export default function Header() {
           aria-haspopup="listbox"
           aria-expanded={plateMenuOpen}
         >
-          {/* Placa automotriz troquelada: fondo marfil, marco negro y tipografía monoespaciada de alto contraste. */}
-          <span className="flex flex-col items-center rounded-md border-2 border-slate-900 bg-[#FDFBF3] px-2.5 pb-0.5 pt-1 shadow-[inset_0_0_0_2px_#FDFBF3,inset_0_0_0_3px_rgba(15,23,42,0.25)]">
-            <span className="whitespace-nowrap font-mono text-[15px] font-bold leading-none tracking-wider text-slate-900">
-              {formatPlate(activeVehicle.plate)}
-            </span>
-            <span className="mt-0.5 max-w-[7.5rem] truncate text-[8px] font-bold uppercase leading-none tracking-[0.18em] text-slate-600">
-              {activeVehicle.brand}
-            </span>
-          </span>
+          <ColombianPlate plate={activeVehicle.plate} subtitle={activeVehicle.brand} size="md" className="max-w-[9.5rem]" />
           <IconChevronDown className="h-4 w-4 flex-shrink-0 text-slate-600" strokeWidth={2.25} />
         </button>
 
@@ -76,9 +64,7 @@ export default function Header() {
                 <span className="flex-1 truncate">
                   {v.brand} {v.model}
                 </span>
-                <span className="rounded border border-slate-900 bg-[#FDFBF3] px-1.5 py-0.5 font-mono text-[11px] font-bold tracking-wider text-slate-900">
-                  {formatPlate(v.plate)}
-                </span>
+                <ColombianPlate plate={v.plate} size="sm" />
               </button>
             ))}
           </div>

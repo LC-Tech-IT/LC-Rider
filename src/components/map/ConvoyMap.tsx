@@ -3,9 +3,22 @@ import { MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap } from 'reac
 import L from 'leaflet'
 import { useApp } from '../../context/AppContext'
 import TurnByTurnBanner from '../navigation/TurnByTurnBanner'
-import { isPhotoAvatar } from '../common/Avatar'
+import Avatar, { isPhotoAvatar } from '../common/Avatar'
 import { QUICK_ACTIONS, type QuickAction } from '../common/quickActions'
-import { QuickActionIcon } from '../common/Icons'
+import {
+  IconAlert,
+  IconClock,
+  IconLayers,
+  IconMap,
+  IconPause,
+  IconPin,
+  IconPlay,
+  IconSquare,
+  IconTarget,
+  IconUsers,
+  QuickActionIcon,
+} from '../common/Icons'
+import ColombianPlate from '../common/ColombianPlate'
 import { announceIntercom } from '../../services/voiceGuidanceService'
 import type { ConvoyMember, ConvoyRole, ConvoyStatus } from '../../types'
 
@@ -38,12 +51,16 @@ function escapeHtml(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
+/** Silueta vectorial para pilotos sin foto (sustituye al emoji de avatar en los marcadores del mapa). */
+const USER_SILHOUETTE_SVG =
+  '<svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="#334155" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>'
+
 function memberIcon(member: ConvoyMember) {
   const color = STATUS_COLOR[member.status]
   const pulse = member.status === 'sos' ? 'animation:pulseRing 1.4s infinite;' : ''
   const avatarHtml = isPhotoAvatar(member.avatarEmoji)
     ? `<img src="${escapeHtml(member.avatarEmoji)}" style="width:100%;height:100%;object-fit:cover;border-radius:9999px;" />`
-    : escapeHtml(member.avatarEmoji)
+    : USER_SILHOUETTE_SVG
   return L.divIcon({
     className: 'convoy-marker',
     html: `
@@ -62,7 +79,7 @@ function memberIcon(member: ConvoyMember) {
 function currentUserIcon(member: ConvoyMember) {
   const avatarHtml = isPhotoAvatar(member.avatarEmoji)
     ? `<img src="${escapeHtml(member.avatarEmoji)}" style="width:100%;height:100%;object-fit:cover;border-radius:9999px;" />`
-    : escapeHtml(member.avatarEmoji)
+    : USER_SILHOUETTE_SVG
   return L.divIcon({
     className: 'convoy-marker',
     html: `
@@ -85,11 +102,18 @@ const startIcon = L.divIcon({
   iconAnchor: [8, 8],
 })
 
+/** Meta de la ruta: banderín a cuadros vectorial sobre mástil (el ancla es la base del mástil). */
 const endIcon = L.divIcon({
   className: 'convoy-marker',
-  html: `<div style="font-size:20px;filter:drop-shadow(0 2px 3px rgba(15,23,42,0.5));">🏁</div>`,
-  iconSize: [24, 24],
-  iconAnchor: [8, 20],
+  html: `<svg width="28" height="32" viewBox="0 0 28 32" style="filter:drop-shadow(0 2px 3px rgba(15,23,42,0.45));">
+    <rect x="3" y="2" width="2.5" height="29" rx="1.2" fill="#0F172A"/>
+    <rect x="5" y="3" width="20" height="13" rx="1" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+    <rect x="5" y="3" width="5" height="4.33" fill="#0F172A"/><rect x="15" y="3" width="5" height="4.33" fill="#0F172A"/>
+    <rect x="10" y="7.33" width="5" height="4.33" fill="#0F172A"/><rect x="20" y="7.33" width="5" height="4.33" fill="#0F172A"/>
+    <rect x="5" y="11.66" width="5" height="4.33" fill="#0F172A"/><rect x="15" y="11.66" width="5" height="4.33" fill="#0F172A"/>
+  </svg>`,
+  iconSize: [28, 32],
+  iconAnchor: [4, 31],
 })
 
 function formatDuration(minutes: number): string {
@@ -137,12 +161,14 @@ export default function ConvoyMap() {
 
   if (!route) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 bg-bike-bg px-6 text-center">
-        <span className="text-4xl">🗺️</span>
-        <p className="text-sm text-slate-500">{t('map.emptyTitle')}</p>
+      <div className="flex h-full flex-col items-center justify-center gap-4 bg-slate-100 px-6 text-center">
+        <span className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-slate-200 bg-white text-slate-700">
+          <IconMap className="h-8 w-8" strokeWidth={2} />
+        </span>
+        <p className="text-sm font-semibold text-slate-700">{t('map.emptyTitle')}</p>
         <button
           onClick={() => setRoutePlannerOpen(true)}
-          className="rounded-full bg-bike-orange px-5 py-2.5 text-sm font-bold text-white shadow-glow-orange active:scale-95"
+          className="min-h-[52px] rounded-xl bg-orange-600 px-6 text-sm font-bold text-white transition hover:bg-orange-700 active:scale-95"
         >
           {t('map.planRoute')}
         </button>
@@ -239,19 +265,19 @@ export default function ConvoyMap() {
         <div className="absolute right-3 top-24 z-20 flex flex-col gap-2">
           <button
             onClick={centerOnMe}
-            className="flex min-h-[48px] min-w-[48px] items-center justify-center rounded-full border border-bike-border bg-white text-lg shadow-xl active:scale-95"
+            className="flex h-[52px] w-[52px] items-center justify-center rounded-full border-2 border-slate-300 bg-white shadow-lg active:scale-95"
             aria-label={t('map.centerOnMeAria')}
             title={t('map.centerOnMe')}
           >
-            🎯
+            <IconTarget className="h-5 w-5 text-slate-800" strokeWidth={2.25} />
           </button>
           <button
             onClick={viewFullConvoy}
-            className="flex min-h-[48px] min-w-[48px] items-center justify-center rounded-full border border-bike-border bg-white text-lg shadow-xl active:scale-95"
+            className="flex h-[52px] w-[52px] items-center justify-center rounded-full border-2 border-slate-300 bg-white shadow-lg active:scale-95"
             aria-label={t('map.viewConvoyAria')}
             title={t('map.viewConvoy')}
           >
-            🗺️
+            <IconLayers className="h-5 w-5 text-slate-800" strokeWidth={2.25} />
           </button>
         </div>
       )}
@@ -259,11 +285,11 @@ export default function ConvoyMap() {
       {rideActive && !panelExpanded && (
         <button
           onClick={() => setReportMenuOpen((o) => !o)}
-          className="absolute right-3 bottom-[9.5rem] z-20 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-bike-orange to-amber-500 text-2xl text-white shadow-2xl transition active:scale-95"
+          className="absolute right-3 bottom-[9.5rem] z-20 flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-amber-600 text-white shadow-xl transition active:scale-95"
           aria-label="Reportar en Vía"
           title="Reportar en Vía"
         >
-          ⚠️
+          <IconAlert className="h-7 w-7 text-white" strokeWidth={2.25} />
         </button>
       )}
 
@@ -294,16 +320,25 @@ export default function ConvoyMap() {
       )}
 
       <div
-        className={`absolute inset-x-0 bottom-0 z-20 rounded-t-3xl border-t border-bike-border bg-white shadow-2xl transition-all ${
+        className={`absolute inset-x-0 bottom-0 z-20 rounded-t-3xl border-t-2 border-slate-200 bg-white shadow-2xl transition-all ${
           rideActive && panelExpanded ? 'max-h-[65vh]' : 'max-h-64'
         } overflow-hidden`}
       >
         <button onClick={() => setPanelExpanded((e) => !e)} className="flex w-full flex-col items-center gap-2 pb-1 pt-2">
-          <span className="h-1 w-10 rounded-full bg-slate-200" />
-          <div className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 text-xs font-semibold text-slate-600">
-            <span>📍 {route.distanceKm.toFixed(1)} km</span>
-            <span>⏱️ {formatDuration(route.durationMinutes)}</span>
-            <span>👥 {convoyMembers.length} {t('map.riders')}</span>
+          <span className="h-1 w-10 rounded-full bg-slate-300" />
+          <div className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 text-xs font-bold text-slate-800">
+            <span className="inline-flex items-center gap-1">
+              <IconPin className="h-4 w-4 text-slate-600" strokeWidth={2} />
+              <span className="tabular-nums">{route.distanceKm.toFixed(1)} km</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <IconClock className="h-4 w-4 text-slate-600" strokeWidth={2} />
+              <span className="tabular-nums">{formatDuration(route.durationMinutes)}</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <IconUsers className="h-4 w-4 text-slate-600" strokeWidth={2} />
+              <span className="tabular-nums">{convoyMembers.length}</span> {t('map.riders')}
+            </span>
             {rideActive && usingRealGps && (
               <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-600">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {t('map.gpsLive')}
@@ -316,22 +351,25 @@ export default function ConvoyMap() {
           {!rideActive ? (
             <button
               onClick={startRide}
-              className="w-full rounded-xl bg-bike-orange py-3.5 text-sm font-bold text-white shadow-glow-orange transition active:scale-[0.98]"
+              className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl bg-orange-600 text-sm font-bold text-white transition hover:bg-orange-700 active:scale-[0.98]"
             >
+              <IconPlay className="h-5 w-5" strokeWidth={2.25} />
               {t('map.startRide')}
             </button>
           ) : (
             <div className="flex gap-2">
               <button
                 onClick={pauseRide}
-                className="flex-1 rounded-xl bg-bike-blue py-3 text-sm font-bold text-white shadow-glow-blue transition active:scale-[0.98]"
+                className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 text-sm font-bold text-white transition active:scale-[0.98]"
               >
+                {simulationRunning ? <IconPause className="h-5 w-5" strokeWidth={2.5} /> : <IconPlay className="h-5 w-5" strokeWidth={2.25} />}
                 {simulationRunning ? t('map.pause') : t('map.resume')}
               </button>
               <button
                 onClick={handleFinalize}
-                className="flex-1 rounded-xl border-2 border-status-danger py-3 text-sm font-bold text-status-danger transition active:scale-[0.98]"
+                className="flex min-h-[56px] flex-1 items-center justify-center rounded-xl border-2 border-red-600 bg-white text-sm font-bold text-red-700 transition active:scale-[0.98]"
               >
+                <IconSquare className="mr-1 inline h-4 w-4" strokeWidth={2.5} />
                 {t('map.finishRide')}
               </button>
             </div>
@@ -345,24 +383,26 @@ export default function ConvoyMap() {
               return (
                 <div
                   key={member.id}
-                  className="flex items-center gap-3 rounded-xl border border-bike-border bg-slate-50 px-3 py-2.5"
+                  className="flex items-center gap-3 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2.5"
                 >
                   <div
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg"
+                    className="h-9 w-9 flex-shrink-0 overflow-hidden rounded-full bg-white"
                     style={{ border: `2px solid ${STATUS_COLOR[member.status]}` }}
                   >
-                    {member.avatarEmoji}
+                    <Avatar value={member.avatarEmoji} className="h-full w-full rounded-full" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-bike-ink">
-                      {member.name} {member.isCurrentUser && <span className="text-bike-blue">{t('map.you')}</span>}
+                    <p className="truncate text-sm font-bold text-slate-950">
+                      {member.name}{' '}
+                      {member.isCurrentUser && member.name !== t('rideSummary.you') && <span className="text-sky-800">{t('map.you')}</span>}
                     </p>
-                    <p className="text-[11px] text-slate-500">
-                      {t(ROLE_LABEL_KEY[member.role])} · {member.vehiclePlate}
-                    </p>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-slate-600">{t(ROLE_LABEL_KEY[member.role])}</span>
+                      {member.vehiclePlate && <ColombianPlate plate={member.vehiclePlate} subtitle="" size="sm" />}
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-display text-sm font-bold text-bike-ink tabular-nums">
+                    <p className="font-display text-sm font-bold text-slate-950 tabular-nums">
                       {Math.round(member.speedKmh)} km/h
                     </p>
                     <p className="text-[10px] font-semibold" style={{ color: STATUS_COLOR[member.status] }}>
@@ -370,7 +410,7 @@ export default function ConvoyMap() {
                     </p>
                   </div>
                   {!member.isCurrentUser && leader && (
-                    <span className="text-[10px] text-slate-400">{member.distanceToLeaderKm.toFixed(2)} km</span>
+                    <span className="text-[10px] font-semibold tabular-nums text-slate-600">{member.distanceToLeaderKm.toFixed(2)} km</span>
                   )}
                 </div>
               )

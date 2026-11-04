@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bike-tracker-v3'
+const CACHE_NAME = 'bike-tracker-v4'
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
@@ -31,15 +31,35 @@ self.addEventListener('message', (event) => {
   }
 })
 
-// Estrategia stale-while-revalidate, solo para peticiones del propio origen (assets del build,
-// imágenes locales). Cualquier llamada a un dominio externo (tiles de mapa, OSRM, Nominatim,
-// Google Fonts) pasa de largo sin interceptarse, para no cachear datos que deben ser siempre frescos.
+// Estrategia para peticiones del propio origen:
+// 1. Navegación (HTML principal): Red primero con fallback a caché para garantizar que siempre
+//    se carguen los bundles JS/CSS más recientes del despliegue, y usar caché offline si no hay red.
+// 2. Assets estáticos del origen: stale-while-revalidate.
+// 3. Dominios externos (tiles, OSRM, Nominatim, Google Fonts): pasan sin interceptar.
 self.addEventListener('fetch', (event) => {
   const { request } = event
   if (request.method !== 'GET') return
 
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(async () => {
+          const cached = await caches.match(request)
+          return cached || (await caches.match('/index.html')) || (await caches.match('/'))
+        }),
+    )
+    return
+  }
 
   event.respondWith(
     caches.match(request).then((cached) => {

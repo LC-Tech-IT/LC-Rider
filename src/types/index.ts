@@ -93,6 +93,8 @@ export interface RouteStep {
   distanceMeters: number
   durationSeconds: number
   maneuver?: string
+  /** Sentido de la maniobra según OSRM ('left', 'slight right', 'uturn', 'straight'…). */
+  modifier?: string
 }
 
 export interface RouteInfo {

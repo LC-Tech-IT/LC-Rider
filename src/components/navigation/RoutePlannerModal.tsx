@@ -9,19 +9,21 @@ import {
   type GeocodeResult,
 } from '../../services/routingService'
 import { loadStorage, saveStorage } from '../../utils/storage'
+import type { ComponentType, SVGProps } from 'react'
 import type { LatLng } from '../../types'
+import { IconBed, IconBuilding, IconCity, IconFuel, IconMap, IconMountain, IconPin, IconTarget, IconX } from '../common/Icons'
 
 const DEBOUNCE_MS = 350
 const RECENTS_KEY = 'recentDestinations'
 const MAX_RECENTS = 5
 
-const TYPE_ICON: Record<NonNullable<GeocodeResult['type']>, string> = {
-  city: '🏙️',
-  poi: '🏢',
-  hotel: '🏨',
-  gas: '⛽',
-  landmark: '🏔️',
-  address: '📍',
+const TYPE_ICON: Record<NonNullable<GeocodeResult['type']>, ComponentType<SVGProps<SVGSVGElement>>> = {
+  city: IconCity,
+  poi: IconBuilding,
+  hotel: IconBed,
+  gas: IconFuel,
+  landmark: IconMountain,
+  address: IconPin,
 }
 
 interface Point {
@@ -224,9 +226,9 @@ export default function RoutePlannerModal() {
                 <button
                   onClick={() => clearField('origin')}
                   aria-label={t('routePlanner.clear')}
-                  className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-slate-200 text-xs text-slate-500 hover:bg-slate-300"
+                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-slate-200 text-slate-700 hover:bg-slate-300"
                 >
-                  ✕
+                  <IconX className="h-3.5 w-3.5" strokeWidth={2.5} />
                 </button>
               )}
               {originFocused && (
@@ -243,9 +245,10 @@ export default function RoutePlannerModal() {
             <button
               onClick={useMyLocation}
               disabled={locating}
-              className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-bike-blue disabled:opacity-50"
+              className="mt-2 flex min-h-[40px] items-center gap-1.5 text-xs font-bold text-sky-800 disabled:opacity-50"
             >
-              📍 {locating ? t('routePlanner.locating') : t('routePlanner.useMyLocation')}
+              <IconTarget className="h-4 w-4" strokeWidth={2.25} />
+              {locating ? t('routePlanner.locating') : t('routePlanner.useMyLocation')}
             </button>
           </div>
 
@@ -264,9 +267,9 @@ export default function RoutePlannerModal() {
                 <button
                   onClick={() => clearField('destination')}
                   aria-label={t('routePlanner.clear')}
-                  className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-slate-200 text-xs text-slate-500 hover:bg-slate-300"
+                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-slate-200 text-slate-700 hover:bg-slate-300"
                 >
-                  ✕
+                  <IconX className="h-3.5 w-3.5" strokeWidth={2.5} />
                 </button>
               )}
               {destFocused && (
@@ -308,8 +311,9 @@ export default function RoutePlannerModal() {
               destination.position &&
               planRoute(origin.position, destination.position, origin.label, destination.label)
             }
-            className="mt-2 w-full rounded-xl bg-bike-orange py-3.5 text-sm font-bold text-white shadow-glow-orange transition disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.98]"
+            className="mt-2 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-orange-600 text-sm font-bold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.98]"
           >
+            {navigation.status !== 'routing' && <IconMap className="h-5 w-5" strokeWidth={2.25} />}
             {navigation.status === 'routing' ? t('routePlanner.calculating') : t('routePlanner.traceRoute')}
           </button>
         </div>
@@ -376,6 +380,11 @@ function SearchDropdown({
   return null
 }
 
+function TypeIcon({ type }: { type: NonNullable<GeocodeResult['type']> }) {
+  const Icon = TYPE_ICON[type]
+  return <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-600" strokeWidth={2} />
+}
+
 function ResultRow({ result, onSelect }: { result: GeocodeResult; onSelect: (r: GeocodeResult) => void }) {
   return (
     <button
@@ -383,7 +392,7 @@ function ResultRow({ result, onSelect }: { result: GeocodeResult; onSelect: (r: 
       onClick={() => onSelect(result)}
       className="flex w-full items-start gap-2 px-3 py-2.5 text-left transition hover:bg-slate-50"
     >
-      <span className="mt-0.5 text-base leading-none">{TYPE_ICON[result.type ?? 'address']}</span>
+      <TypeIcon type={result.type ?? 'address'} />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-xs font-bold text-bike-ink">{result.label}</span>
         {result.subtitle && <span className="block truncate text-[11px] text-slate-400">{result.subtitle}</span>}

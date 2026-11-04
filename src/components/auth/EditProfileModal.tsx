@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '../../context/AppContext'
-import Avatar from '../common/Avatar'
+import Avatar, { isPhotoAvatar } from '../common/Avatar'
 import { formatLongDate } from '../../utils/formatDate'
 import type { GenderOption } from '../../types'
 
-const AVATAR_OPTIONS = ['🏍️', '🪖', '🧔', '👩', '🧑‍🦱', '😎', '🦊', '⚡']
 const MAX_PHOTO_BYTES = 3 * 1024 * 1024
 
 const GENDER_OPTIONS: Array<{ value: GenderOption; icon: string; labelKey: string }> = [
@@ -132,31 +131,24 @@ export default function EditProfileModal() {
         </div>
 
         <div className="flex flex-col items-center gap-3">
-          <Avatar value={avatar} className="h-20 w-20 rounded-full border-2 border-bike-orange shadow-md" emojiClassName="bg-orange-50 text-4xl" />
+          <Avatar value={avatar} className="h-20 w-20 rounded-full border-2 border-slate-300 shadow-md" />
           <label className="cursor-pointer rounded-full bg-bike-orange px-4 py-2 text-xs font-bold text-white shadow-glow-orange active:scale-95">
             {t('profile.uploadPhoto')}
             <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
           </label>
         </div>
 
-        <div className="mt-4">
-          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-slate-400">
-            {t('profile.orChooseAvatar')}
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {AVATAR_OPTIONS.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => setAvatar(emoji)}
-                className={`flex h-11 w-11 items-center justify-center rounded-full border-2 text-xl transition ${
-                  avatar === emoji ? 'border-bike-orange bg-orange-50' : 'border-bike-border bg-white'
-                }`}
-              >
-                {emoji}
-              </button>
-            ))}
+        {/* Sin foto, el perfil muestra la silueta vectorial de Avatar (ya no hay rejilla de avatares emoji). */}
+        {isPhotoAvatar(avatar) && (
+          <div className="mt-3 flex justify-center">
+            <button
+              onClick={() => setAvatar('')}
+              className="min-h-[40px] rounded-lg border-2 border-slate-200 px-4 text-xs font-bold text-slate-700 active:scale-95"
+            >
+              {t('profile.removePhoto')}
+            </button>
           </div>
-        </div>
+        )}
 
         <div className="mt-5 space-y-4">
           <div>

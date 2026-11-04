@@ -3,6 +3,7 @@ import type { ComponentType, SVGProps } from 'react'
 import { useApp } from '../../context/AppContext'
 import { useScrollReveal, scrollRevealClass } from '../../hooks/useScrollReveal'
 import Speedometer from '../cockpit/Speedometer'
+import ColombianPlate from '../common/ColombianPlate'
 import { QUICK_ACTIONS } from '../common/quickActions'
 import {
   IconAlert,
@@ -89,9 +90,7 @@ function CarPlayMockup({ speed, members }: { speed: number; members: MemberRow[]
                 <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-500">Vehículo Activo</p>
                 <p className="text-sm font-bold text-white">Yamaha MT-09</p>
               </div>
-              <div className="rounded-md border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-xs font-semibold tracking-widest text-slate-200">
-                RTX880
-              </div>
+              <ColombianPlate plate="RTX880" subtitle="YAMAHA" size="sm" />
             </div>
 
             <div className="relative mt-3 flex items-center justify-center overflow-hidden rounded-2xl border border-white/[0.06] bg-[#05070C] p-3">
@@ -183,9 +182,7 @@ function CockpitMockup({ speed }: { speed: number }) {
               <p className="text-[9px] uppercase tracking-widest text-slate-400">Vehículo Activo</p>
               <p className="text-sm font-bold text-bike-ink">Yamaha MT-09</p>
             </div>
-            <div className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 font-mono text-xs font-bold tracking-widest text-bike-blue">
-              RTX880
-            </div>
+            <ColombianPlate plate="RTX880" subtitle="YAMAHA" size="sm" />
           </div>
 
           <div className="rounded-2xl border border-bike-border bg-white p-3 shadow-card">

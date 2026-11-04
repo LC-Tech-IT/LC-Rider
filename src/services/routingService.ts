@@ -109,6 +109,7 @@ export async function fetchRoute(origin: LatLng, destination: LatLng, originLabe
       distanceMeters: s.distance,
       durationSeconds: s.duration,
       maneuver: s.maneuver.type,
+      modifier: s.maneuver.modifier,
     })),
   )
 
