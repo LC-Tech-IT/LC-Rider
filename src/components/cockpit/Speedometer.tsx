@@ -4,6 +4,9 @@ const END_ANGLE = 40
 const SIZE = 280
 const CENTER = SIZE / 2
 const RADIUS = 118
+/** Radios interior/exterior de la aguja: deja libre un círculo central de ~60px para la cifra de velocidad. */
+const NEEDLE_INNER = 64
+const NEEDLE_OUTER = RADIUS - 32
 
 function polarToCartesian(angleDeg: number, radius: number) {
   const angleRad = (angleDeg * Math.PI) / 180
@@ -34,11 +37,14 @@ export default function Speedometer({ speed, theme = 'light' }: { speed: number;
   const needleAngle = speedToAngle(speed)
   const progressPath = describeArc(START_ANGLE, needleAngle, RADIUS)
   const trackPath = describeArc(START_ANGLE, END_ANGLE, RADIUS)
-  const needleTip = polarToCartesian(needleAngle, RADIUS - 22)
+  // La aguja es un segmento exterior (de NEEDLE_INNER a NEEDLE_OUTER) en lugar de partir del eje: así el centro
+  // geométrico del dial (CENTER, CENTER) queda libre para la lectura digital, sin que la aguja cruce las cifras.
+  const needleBase = polarToCartesian(needleAngle, NEEDLE_INNER)
+  const needleTip = polarToCartesian(needleAngle, NEEDLE_OUTER)
 
   return (
-    <div className="relative mx-auto" style={{ width: SIZE, height: SIZE }}>
-      <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
+    <div className="relative mx-auto flex aspect-square items-center justify-center" style={{ width: SIZE, maxWidth: '100%' }}>
+      <svg width="100%" height="100%" viewBox={`0 0 ${SIZE} ${SIZE}`} className="absolute inset-0">
         <defs>
           <linearGradient id="speedGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#00C2E8" />
@@ -88,24 +94,32 @@ export default function Speedometer({ speed, theme = 'light' }: { speed: number;
         })}
 
         <line
-          x1={CENTER}
-          y1={CENTER}
+          x1={needleBase.x}
+          y1={needleBase.y}
           x2={needleTip.x}
           y2={needleTip.y}
           stroke="#F97316"
-          strokeWidth={3}
+          strokeWidth={4}
           strokeLinecap="round"
           filter="url(#glow)"
-          style={{ transition: 'all 0.25s linear' }}
         />
-        <circle cx={CENTER} cy={CENTER} r={8} fill="#F97316" filter="url(#glow)" />
       </svg>
 
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pt-6">
-        <span className={`font-display text-5xl font-black tabular-nums ${dark ? 'text-white' : 'text-bike-ink'}`}>
+      {/* Lectura concéntrica: el contenedor ocupa todo el dial y centra la cifra exactamente en (CENTER, CENTER);
+          la unidad KM/H cuelga debajo en posición absoluta para no desplazar el centro de la cifra. */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <span
+          className={`relative font-sans text-5xl font-black leading-none tracking-tight tabular-nums ${dark ? 'text-white' : 'text-slate-900'}`}
+        >
           {Math.round(speed)}
+          <span
+            className={`absolute left-1/2 top-full mt-1.5 -translate-x-1/2 text-[11px] font-bold leading-none tracking-[0.25em] pl-[0.25em] ${
+              dark ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
+            KM/H
+          </span>
         </span>
-        <span className={`mt-1 text-xs font-semibold tracking-[0.3em] ${dark ? 'text-slate-400' : 'text-slate-500'}`}>KM/H</span>
       </div>
     </div>
   )

@@ -1,6 +1,9 @@
+import type { QuickActionIconId } from './Icons'
+
 export interface QuickAction {
   id: 'gasoline' | 'hazard' | 'regroup' | 'police'
-  icon: string
+  /** Identificador del icono SVG (ver QuickActionIcon en Icons.tsx). */
+  icon: QuickActionIconId
   label: string
   message: string
   spokenMessage: string
@@ -10,34 +13,34 @@ export interface QuickAction {
 export const QUICK_ACTIONS: QuickAction[] = [
   {
     id: 'gasoline',
-    icon: '⛽',
+    icon: 'fuel',
     label: 'Parada Gasolina',
-    message: '⛽ Notificación enviada: Solicitaste parada de gasolina al convoy',
+    message: 'Notificación enviada: Solicitaste parada de gasolina al convoy',
     spokenMessage: 'Atención convoy: parada de gasolina solicitada.',
-    colorClass: 'bg-sky-500 hover:bg-sky-600',
+    colorClass: 'bg-sky-700 hover:bg-sky-800',
   },
   {
     id: 'hazard',
-    icon: '⚠️',
+    icon: 'hazard',
     label: 'Peligro en Vía',
-    message: '⚠️ Alerta emitida: Peligro en vía reportado al grupo',
+    message: 'Alerta emitida: Peligro en vía reportado al grupo',
     spokenMessage: 'Atención convoy: peligro reportado en la vía.',
-    colorClass: 'bg-amber-500 hover:bg-amber-600',
+    colorClass: 'bg-amber-700 hover:bg-amber-800',
   },
   {
     id: 'regroup',
-    icon: '🛑',
+    icon: 'regroup',
     label: 'Reagrupación',
-    message: '🛑 Solicitud enviada: Reagrupación de convoy solicitada',
+    message: 'Solicitud enviada: Reagrupación de convoy solicitada',
     spokenMessage: 'Atención convoy: reagrupación solicitada, reduzcan la velocidad.',
-    colorClass: 'bg-emerald-600 hover:bg-emerald-700',
+    colorClass: 'bg-emerald-700 hover:bg-emerald-800',
   },
   {
     id: 'police',
-    icon: '👮',
+    icon: 'police',
     label: 'Control Policial / Retén',
-    message: '👮 Alerta emitida: Presencia de control policial / retén en la vía',
+    message: 'Alerta emitida: Presencia de control policial / retén en la vía',
     spokenMessage: 'Atención convoy: control policial en la vía.',
-    colorClass: 'bg-indigo-600 hover:bg-indigo-700',
+    colorClass: 'bg-indigo-700 hover:bg-indigo-800',
   },
 ]

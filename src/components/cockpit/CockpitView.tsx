@@ -3,6 +3,8 @@ import L from 'leaflet'
 import { useApp } from '../../context/AppContext'
 import Speedometer from './Speedometer'
 import { QUICK_ACTIONS } from '../common/quickActions'
+import { IconClock, IconRoute, IconSignal, QuickActionIcon } from '../common/Icons'
+import type { ComponentType, SVGProps } from 'react'
 
 function formatElapsed(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600)
@@ -34,29 +36,31 @@ export default function CockpitView() {
   const route = navigation.route
   const userMember = route ? { position: route.coordinates[0] } : null
 
+  // Modo Instrumentación Diurna: fondos claros y tinta slate-900 (contraste ~17:1 sobre blanco) para anular el
+  // efecto espejo del vidrio a pleno sol; biseles de 2px y hitboxes de 52px+ para operar con guantes.
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-bike-bg px-4 pb-6 pt-4">
-      <h1 className="mb-3 font-display text-lg font-bold text-bike-ink">{t('cockpit.title')}</h1>
+    <div className="flex h-full flex-col overflow-y-auto bg-slate-100 px-4 pb-6 pt-4">
+      <h1 className="mb-3 text-lg font-extrabold tracking-tight text-slate-900">{t('cockpit.title')}</h1>
 
       {!isOnline && (
-        <div className="mb-3 flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-center text-xs font-bold text-amber-700">
+        <div className="mb-3 flex min-h-[48px] items-center justify-center gap-2 rounded-xl border-2 border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-bold text-amber-900">
           {t('connectivity.offlineBanner')}
         </div>
       )}
 
-      <div className="mb-4 flex items-center justify-between rounded-2xl border border-bike-border bg-white p-3 shadow-card">
+      <div className="mb-4 flex items-center justify-between rounded-2xl border-2 border-slate-200/80 bg-white p-3 shadow-sm">
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-slate-400">{t('cockpit.activeVehicle')}</p>
-          <p className="font-display text-base font-bold text-bike-ink">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">{t('cockpit.activeVehicle')}</p>
+          <p className="text-base font-extrabold text-slate-900">
             {activeVehicle.brand} {activeVehicle.model}
           </p>
         </div>
-        <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 font-display text-sm font-bold tracking-widest text-bike-blue">
+        <div className="rounded-md border-2 border-slate-900 bg-[#FDFBF3] px-2.5 py-1 font-mono text-sm font-bold tracking-widest text-slate-900">
           {activeVehicle.plate}
         </div>
       </div>
 
-      <div className="relative mb-4 overflow-hidden rounded-2xl border border-bike-border shadow-card">
+      <div className="relative mb-4 overflow-hidden rounded-2xl border-2 border-slate-200/80 shadow-sm">
         <div className="h-32 w-full">
           {route ? (
             <MapContainer
@@ -78,52 +82,52 @@ export default function CockpitView() {
             </MapContainer>
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 bg-slate-100">
-              <span className="text-2xl">📡</span>
+              <IconSignal className="h-7 w-7 text-slate-500" />
               <button
                 onClick={() => setRoutePlannerOpen(true)}
-                className="min-h-[48px] rounded-full bg-bike-orange px-4 py-1.5 text-xs font-bold text-white shadow-glow-orange active:scale-95"
+                className="min-h-[52px] rounded-xl bg-orange-600 px-5 py-1.5 text-sm font-bold text-white shadow-sm active:scale-95"
               >
                 {t('cockpit.planRoute')}
               </button>
             </div>
           )}
         </div>
-        <div className="absolute left-2 top-2 z-10 rounded bg-white/90 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-bike-blue shadow-card">
+        <div className="absolute left-2 top-2 z-10 rounded border border-slate-300 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-900">
           {t('cockpit.radar')}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-bike-border bg-white p-4 shadow-card">
+      <div className="rounded-2xl border-2 border-slate-200/80 bg-white p-4 shadow-sm">
         <Speedometer speed={currentSpeedKmh} />
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <MetricCard icon="⏱️" label={t('cockpit.time')} value={formatElapsed(elapsedSeconds)} accent="text-bike-blue" />
-        <MetricCard icon="📏" label={t('cockpit.distance')} value={`${distanceTraveledKm.toFixed(1)} km`} accent="text-bike-orange" />
+        <MetricCard icon={IconClock} label={t('cockpit.time')} value={formatElapsed(elapsedSeconds)} />
+        <MetricCard icon={IconRoute} label={t('cockpit.distance')} value={`${distanceTraveledKm.toFixed(1)} km`} />
       </div>
 
       <div className="mt-5">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">Acciones Rápidas en Ruta</p>
+        <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-600">{t('cockpit.quickActions')}</p>
         <div className="grid grid-cols-2 gap-3">
           {QUICK_ACTIONS.map((action) => (
             <button
               key={action.id}
               onClick={() => showToast(action.message)}
-              className={`flex min-h-[64px] items-center justify-center gap-2 rounded-2xl p-3 font-bold text-white shadow-card transition active:scale-95 ${action.colorClass}`}
+              className={`flex min-h-[64px] items-center gap-2.5 rounded-2xl border-2 border-black/10 px-3.5 py-3 text-left font-bold text-white shadow-sm transition active:scale-95 ${action.colorClass}`}
             >
-              <span className="text-xl">{action.icon}</span>
-              <span className="text-sm">{action.label}</span>
+              <QuickActionIcon id={action.icon} className="h-6 w-6 flex-shrink-0" />
+              <span className="text-sm leading-tight">{action.label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {route && (
-        <div className="mt-3 flex items-center justify-between rounded-xl border border-bike-border bg-white px-4 py-3 text-xs text-slate-600 shadow-card">
+        <div className="mt-3 flex items-center justify-between rounded-xl border-2 border-slate-200/80 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">
           <span>
             {route.originLabel} → {route.destinationLabel}
           </span>
-          <button onClick={() => setView('map')} className="flex min-h-[48px] items-center font-bold text-bike-blue">
+          <button onClick={() => setView('map')} className="flex min-h-[52px] items-center font-bold text-sky-800">
             {t('cockpit.viewMap')}
           </button>
         </div>
@@ -132,12 +136,12 @@ export default function CockpitView() {
   )
 }
 
-function MetricCard({ icon, label, value, accent }: { icon: string; label: string; value: string; accent: string }) {
+function MetricCard({ icon: Icon, label, value }: { icon: ComponentType<SVGProps<SVGSVGElement>>; label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-bike-border bg-white p-4 text-center shadow-card">
-      <div className="mb-1 text-lg">{icon}</div>
-      <div className={`font-display text-xl font-bold tabular-nums ${accent}`}>{value}</div>
-      <div className="text-[10px] uppercase tracking-widest text-slate-400">{label}</div>
+    <div className="flex flex-col items-center rounded-2xl border-2 border-slate-200/80 bg-white p-4 text-center shadow-sm">
+      <Icon className="mb-1 h-5 w-5 text-slate-500" />
+      <div className="font-display text-xl font-bold tabular-nums text-slate-900">{value}</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600">{label}</div>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext'
 import TurnByTurnBanner from '../navigation/TurnByTurnBanner'
 import { isPhotoAvatar } from '../common/Avatar'
 import { QUICK_ACTIONS, type QuickAction } from '../common/quickActions'
+import { QuickActionIcon } from '../common/Icons'
 import { announceIntercom } from '../../services/voiceGuidanceService'
 import type { ConvoyMember, ConvoyRole, ConvoyStatus } from '../../types'
 
@@ -166,6 +167,7 @@ export default function ConvoyMap() {
   }
 
   function handleFinalize() {
+    // finalizeRide() congela distancia, tiempo y convoy en `rideSummary`, lo que abre RideSummaryModal (App.tsx).
     finalizeRide()
     setPanelExpanded(false)
     setReportMenuOpen(false)
@@ -282,7 +284,7 @@ export default function ConvoyMap() {
                   onClick={() => handleReport(action)}
                   className={`flex min-h-[70px] flex-col items-center justify-center gap-1.5 rounded-2xl p-3 font-bold text-white shadow-card transition active:scale-95 ${action.colorClass}`}
                 >
-                  <span className="text-2xl">{action.icon}</span>
+                  <QuickActionIcon id={action.icon} className="h-7 w-7" />
                   <span className="text-center text-xs leading-tight">{action.label}</span>
                 </button>
               ))}

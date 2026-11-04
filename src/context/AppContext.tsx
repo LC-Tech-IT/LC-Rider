@@ -284,6 +284,14 @@ function loadInitialSession(): { user: UserProfile | null; vehicles: Vehicle[]; 
   return { user: account.user, vehicles: account.vehicles, activeVehicleId: account.activeVehicleId }
 }
 
+/** Instantánea de una rodada al momento de finalizarla (se captura antes de resetear la telemetría). */
+export interface RideSummary {
+  distanceKm: number
+  elapsedSeconds: number
+  members: ConvoyMember[]
+  finishedAt: number
+}
+
 interface AppContextValue {
   lang: Lang
   setLang: (lang: Lang) => void
@@ -368,6 +376,9 @@ interface AppContextValue {
   startRide: () => void
   pauseRide: () => void
   finalizeRide: () => void
+  /** Cifras congeladas de la última rodada finalizada; no-null mientras el modal de resumen está abierto. */
+  rideSummary: RideSummary | null
+  closeRideSummary: () => void
   simulationSpeed: number
   setSimulationSpeed: (speed: number) => void
 
@@ -487,6 +498,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [distanceTraveledKm, setDistanceTraveledKm] = useState(0)
   const [currentSpeedKmh, setCurrentSpeedKmh] = useState(0)
+  const [rideSummary, setRideSummary] = useState<RideSummary | null>(null)
 
   const [sosActive, setSosActive] = useState(false)
   const [sosAlerts, setSosAlerts] = useState<SOSAlert[]>([])
@@ -1264,6 +1276,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const finalizeRide = useCallback(() => {
+    // Se congelan las cifras ANTES del reset para que el modal de resumen las muestre intactas. Solo hay resumen
+    // si la rodada llegó a arrancar (evita un modal vacío al finalizar sin haber rodado).
+    if (rideActive || elapsedSeconds > 0) {
+      setRideSummary({
+        distanceKm: distanceTraveledKm,
+        elapsedSeconds,
+        members: convoyMembersRef.current.map((m) => ({ ...m })),
+        finishedAt: Date.now(),
+      })
+    }
     setRideActive(false)
     setSimulationRunning(false)
     setElapsedSeconds(0)
@@ -1275,7 +1297,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const start = navigation.route?.coordinates[0] ?? DEFAULT_POSITION
       return resetMembersToPosition(prev, start)
     })
-  }, [navigation.route])
+  }, [navigation.route, rideActive, elapsedSeconds, distanceTraveledKm])
+
+  const closeRideSummary = useCallback(() => setRideSummary(null), [])
 
   // --- Geolocalización GPS real: mientras hay rodada activa, la posición/velocidad reales del piloto
   // reemplazan a la simulación para el marcador del usuario en el mapa. Los demás convoy members siguen simulados. ---
@@ -1599,6 +1623,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     startRide,
     pauseRide,
     finalizeRide,
+    rideSummary,
+    closeRideSummary,
     simulationSpeed,
     setSimulationSpeed,
     currentSpeedKmh,

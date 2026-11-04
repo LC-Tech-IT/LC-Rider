@@ -7,6 +7,8 @@ import {
   IconFuel,
   IconHeadset,
   IconHome,
+  IconNavArrow,
+  IconPhone,
   IconRoute,
   IconShield,
   IconSignal,
@@ -97,6 +99,142 @@ function PhotoMedia({ src, alt, tags }: { src: string; alt: string; tags: { icon
             {tag.label}
           </TechTag>
         ))}
+      </div>
+    </div>
+  )
+}
+
+/* Acto 03: pantalla real de Bike Tracker sobre el soporte GPS de cockpit-view.jpg.
+ * La foto mide 1376×768 px y la pantalla del soporte ocupa x 786–866 / y 334–397. El contenedor conserva la
+ * proporción exacta de la foto (sin recorte de object-cover), así esas coordenadas porcentuales encajan en
+ * cualquier ancho. */
+const MOUNT_SCREEN = { left: 57.12, top: 43.49, width: 5.81, height: 8.2 }
+const CALLOUT_ANCHOR = { x: 39.5, y: 30 }
+
+/** Mapa de navegación de la app (tema diurno): ruta morada, posiciones del convoy y piloto actual en naranja. */
+function MiniNavMap({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" className={className} aria-hidden="true">
+      <rect width="160" height="100" fill="#EEF2F6" />
+      <path d="M-5 70 L60 52 L170 66" stroke="#FFFFFF" strokeWidth="7" fill="none" />
+      <path d="M38 -5 L52 110" stroke="#FFFFFF" strokeWidth="5" fill="none" />
+      <path d="M110 -5 Q100 40 128 110" stroke="#FFFFFF" strokeWidth="4" fill="none" />
+      <path d="M14 92 C 40 80, 52 58, 76 54 S 118 40, 148 12" stroke="#8B5CF6" strokeWidth="5" strokeLinecap="round" fill="none" />
+      {[
+        [28, 85],
+        [46, 70],
+        [96, 46],
+        [118, 36],
+      ].map(([cx, cy]) => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="4" fill="#0284C7" stroke="#FFFFFF" strokeWidth="1.5" />
+      ))}
+      <circle cx="72" cy="55" r="8" fill="#F97316" opacity="0.25" />
+      <circle cx="72" cy="55" r="5" fill="#F97316" stroke="#FFFFFF" strokeWidth="2" />
+    </svg>
+  )
+}
+
+/** Réplica a escala de la vista de navegación activa, tal como se ve en el teléfono montado en el manillar. */
+function HandlebarAppScreen() {
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-300 bg-white text-slate-900 shadow-2xl shadow-black/50">
+      <div className="flex items-center justify-between bg-slate-900 px-2 py-1">
+        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-[0.14em] text-white sm:text-[8px]">
+          <span className="h-1 w-1 rounded-full bg-emerald-400" />
+          Convoy activo · 5 riders
+        </span>
+        <span className="font-mono text-[7px] tabular-nums text-slate-400 sm:text-[8px]">10:42</span>
+      </div>
+      <div className="relative">
+        <MiniNavMap className="block h-20 w-full sm:h-24" />
+        <div className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded bg-white/95 px-1.5 py-1 shadow-sm">
+          <IconNavArrow className="h-3 w-3 rotate-45 text-violet-600" strokeWidth={2.5} />
+          <span className="text-[7px] font-bold uppercase leading-tight tracking-wide sm:text-[8px]">
+            Próxima curva
+            <span className="block font-mono text-[9px] tabular-nums text-slate-900 sm:text-[10px]">150 m</span>
+          </span>
+        </div>
+      </div>
+      <div className="grid grid-cols-[1fr_auto] items-center gap-2 border-t border-slate-200 px-2 py-1.5">
+        <p className="flex items-baseline gap-1">
+          <span className="text-lg font-black leading-none tabular-nums sm:text-xl">84</span>
+          <span className="text-[8px] font-bold tracking-[0.18em] text-slate-500">KM/H</span>
+        </p>
+        <div className="flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
+            <circle cx="12" cy="12" r="10.5" fill="none" stroke="#CBD5E1" strokeWidth="1" />
+            <circle cx="12" cy="12" r="6" fill="none" stroke="#CBD5E1" strokeWidth="1" />
+            <path d="M12 12 L12 1.5 A10.5 10.5 0 0 1 21 7 Z" fill="#22C55E" opacity="0.25" />
+            <circle cx="15" cy="6" r="1.4" fill="#0284C7" />
+            <circle cx="8" cy="15" r="1.4" fill="#0284C7" />
+            <circle cx="12" cy="12" r="1.6" fill="#F97316" />
+          </svg>
+          <span className="text-[7px] font-bold uppercase leading-tight tracking-wide text-slate-500 sm:text-[8px]">
+            Radar
+            <span className="block text-emerald-600">5/5 OK</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HandlebarMedia() {
+  return (
+    <div className="group relative aspect-[1376/768] w-full overflow-hidden rounded-2xl border border-white/10">
+      <img
+        src="/images/cockpit-view.jpg"
+        alt="Vista del manillar con Bike Tracker abierto en el soporte GPS"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+
+      {/* Pantalla del soporte: la app encendida, calibrada sobre el vidrio del GPS de la foto. */}
+      <div
+        className="absolute overflow-hidden rounded-[3px] bg-white ring-1 ring-black/60"
+        style={{
+          left: `${MOUNT_SCREEN.left}%`,
+          top: `${MOUNT_SCREEN.top}%`,
+          width: `${MOUNT_SCREEN.width}%`,
+          height: `${MOUNT_SCREEN.height}%`,
+        }}
+      >
+        <MiniNavMap className="h-full w-full" />
+        <span className="absolute inset-x-0 bottom-0 h-1/3 bg-white/90" />
+        <span className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent" />
+      </div>
+      <span
+        className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-md ring-2 ring-orange-400/80"
+        style={{
+          left: `${MOUNT_SCREEN.left + MOUNT_SCREEN.width / 2}%`,
+          top: `${MOUNT_SCREEN.top + MOUNT_SCREEN.height / 2}%`,
+          width: `${MOUNT_SCREEN.width + 2.4}%`,
+          height: `${MOUNT_SCREEN.height + 4}%`,
+        }}
+      />
+
+      {/* Ampliación legible de esa misma pantalla, unida al soporte con una línea guía. */}
+      <svg className="pointer-events-none absolute inset-0 hidden h-full w-full sm:block" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <line
+          x1={CALLOUT_ANCHOR.x}
+          y1={CALLOUT_ANCHOR.y}
+          x2={MOUNT_SCREEN.left}
+          y2={MOUNT_SCREEN.top + MOUNT_SCREEN.height / 2}
+          stroke="#FB923C"
+          strokeOpacity={0.85}
+          strokeWidth={0.35}
+          strokeDasharray="1.2 1"
+        />
+      </svg>
+      <div className="absolute left-[3%] top-[6%] hidden w-[36.5%] sm:block">
+        <HandlebarAppScreen />
+      </div>
+
+      <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-1.5">
+        <TechTag icon={IconSignal}>GPS en vivo</TechTag>
+        <TechTag icon={IconHeadset}>Voz Bluetooth</TechTag>
+        <span className="sm:hidden">
+          <TechTag icon={IconPhone}>App en el manillar</TechTag>
+        </span>
       </div>
     </div>
   )
@@ -309,16 +447,7 @@ const ACTS: Act[] = [
     title: 'Visibilidad total, incluso con el sol de frente',
     text: 'Un HUD de alto contraste pensado para leerse de un vistazo, y alertas de voz que llegan por Bluetooth directo al intercomunicador del casco. Tus ojos siguen en la vía.',
     points: ['Alto contraste legible a pleno sol', 'Alertas de voz en el intercomunicador'],
-    media: (
-      <PhotoMedia
-        src="/images/cockpit-view.jpg"
-        alt="Vista del manillar y el tablero desde la moto"
-        tags={[
-          { icon: IconSignal, label: 'GPS en vivo' },
-          { icon: IconHeadset, label: 'Voz Bluetooth' },
-        ]}
-      />
-    ),
+    media: <HandlebarMedia />,
   },
   {
     number: '04',

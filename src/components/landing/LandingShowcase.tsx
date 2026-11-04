@@ -4,11 +4,9 @@ import { useApp } from '../../context/AppContext'
 import { useScrollReveal, scrollRevealClass } from '../../hooks/useScrollReveal'
 import Speedometer from '../cockpit/Speedometer'
 import { QUICK_ACTIONS } from '../common/quickActions'
-import type { QuickAction } from '../common/quickActions'
 import {
   IconAlert,
   IconArrowRight,
-  IconBadge,
   IconBattery,
   IconClock,
   IconDashboard,
@@ -23,6 +21,7 @@ import {
   IconSos,
   IconUsers,
   IconWrench,
+  QuickActionIcon,
 } from './LandingIcons'
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
@@ -47,14 +46,6 @@ function randomSpeed(): number {
 }
 
 const MEMBER_ROLES = ['Líder', 'Rezagado', 'Guardián']
-
-/** Iconos vectoriales equivalentes a las acciones rápidas reales de la app (mismo orden, etiqueta y color). */
-const QUICK_ACTION_ICONS: Record<QuickAction['id'], IconComponent> = {
-  gasoline: IconFuel,
-  hazard: IconAlert,
-  regroup: IconRegroup,
-  police: IconBadge,
-}
 
 const HUD_ACTIONS: { label: string; icon: IconComponent; className: string }[] = [
   { label: 'Gasolina', icon: IconFuel, className: 'border-sky-400/25 bg-sky-500/10 text-sky-300' },
@@ -103,10 +94,8 @@ function CarPlayMockup({ speed, members }: { speed: number; members: MemberRow[]
               </div>
             </div>
 
-            <div className="relative mt-3 flex justify-center overflow-hidden rounded-2xl border border-white/[0.06] bg-[#05070C] p-3">
-              <div className="origin-top scale-[0.92] sm:scale-100">
-                <Speedometer speed={speed} theme="dark" />
-              </div>
+            <div className="relative mt-3 flex items-center justify-center overflow-hidden rounded-2xl border border-white/[0.06] bg-[#05070C] p-3">
+              <Speedometer speed={speed} theme="dark" />
               <div className="absolute right-2 top-2 flex h-12 w-12 flex-col items-center justify-center rounded-full border-[3px] border-red-500 bg-white text-slate-900">
                 <span className="text-base font-black leading-none tabular-nums">60</span>
                 <span className="text-[6px] font-bold uppercase leading-none">km/h</span>
@@ -217,18 +206,15 @@ function CockpitMockup({ speed }: { speed: number }) {
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2.5">
-            {QUICK_ACTIONS.map((action) => {
-              const Icon = QUICK_ACTION_ICONS[action.id]
-              return (
-                <div
-                  key={action.id}
-                  className={`flex min-h-[52px] items-center justify-center gap-1.5 rounded-2xl p-2 text-center font-bold text-white ${action.colorClass}`}
-                >
-                  <Icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-[11px] leading-tight">{action.label}</span>
-                </div>
-              )
-            })}
+            {QUICK_ACTIONS.map((action) => (
+              <div
+                key={action.id}
+                className={`flex min-h-[52px] items-center justify-center gap-1.5 rounded-2xl p-2 text-center font-bold text-white ${action.colorClass}`}
+              >
+                <QuickActionIcon id={action.icon} className="h-4 w-4 flex-shrink-0" />
+                <span className="text-[11px] leading-tight">{action.label}</span>
+              </div>
+            ))}
           </div>
         </div>
 

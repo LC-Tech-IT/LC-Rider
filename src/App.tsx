@@ -21,6 +21,7 @@ import NotificationModal from './components/common/NotificationModal'
 import SubscriptionModal from './components/common/SubscriptionModal'
 import ConcurrentSessionModal from './components/common/ConcurrentSessionModal'
 import PrivacyPolicyModal from './components/common/PrivacyPolicyModal'
+import RideSummaryModal from './components/common/RideSummaryModal'
 import LandingPage from './components/landing/LandingPage'
 
 function PhoneFrame({ children }: { children: ReactNode }) {
@@ -84,6 +85,7 @@ export default function App() {
       <Sidebar />
       <RoutePlannerModal />
       <SOSModal />
+      <RideSummaryModal />
       <EditProfileModal />
       <AddVehicleModal />
       <NotificationModal />
