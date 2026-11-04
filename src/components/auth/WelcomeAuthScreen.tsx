@@ -41,9 +41,11 @@ export default function WelcomeAuthScreen() {
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center text-center">
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-bike-orange to-bike-blue text-5xl shadow-glow-orange">
-          🏍️
-        </div>
+        <img
+          src="/images/app-icon.jpg"
+          alt="Bike Tracker"
+          className="h-24 w-24 rounded-3xl border-2 border-bike-orange object-cover shadow-glow-orange"
+        />
         <h1 className="mt-6 font-display text-3xl font-black text-bike-ink">{t('welcome.title')}</h1>
         <p className="mt-3 max-w-xs text-sm text-slate-500">{t('welcome.tagline')}</p>
       </div>

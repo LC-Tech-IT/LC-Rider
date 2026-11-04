@@ -25,7 +25,7 @@
         "id": "edge-delivery",
         "label": "Production Edge Delivery",
         "focus": ["users", "edge_cdn", "app_core"],
-        "note": "Continuous deployment and static delivery via Vercel Global Edge Network."
+        "note": "Continuous deployment from main and global static delivery via Cloudflare Pages Edge (biker.lcsynctech.com), with DDoS protection and WAF."
       }
     ]
   },
@@ -41,11 +41,11 @@
     {
       "id": "edge_cdn",
       "type": "cloud",
-      "label": "Vercel Edge",
-      "sublabel": "CDN & Hosting",
+      "label": "Cloudflare Pages",
+      "sublabel": "CDN & Edge Hosting",
       "pos": [260, 100],
       "size": [130, 60],
-      "tag": "Global Edge"
+      "tag": "Cloudflare Edge"
     },
     {
       "id": "app_core",
@@ -223,7 +223,7 @@
       "dot": "cyan",
       "title": "Edge & Delivery",
       "items": [
-        "Despliegue global continuo en Vercel Edge con soporte SSL y compresión gzip",
+        "Despliegue continuo desde main en Cloudflare Pages: entrega estática global, SSL, compresión y protección DDoS/WAF en biker.lcsynctech.com",
         "Soporte PWA para instalación como app nativa en dispositivos móviles"
       ]
     },
