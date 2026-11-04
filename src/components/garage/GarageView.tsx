@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import type { Vehicle } from '../../types'
 import ColombianPlate from '../common/ColombianPlate'
-import { IconCar, IconCheck, IconMotorcycle, IconPlus } from '../common/Icons'
+import { IconCar, IconCheck, IconMotorcycle, IconPaperclip, IconPlus, IconShield, IconTrash } from '../common/Icons'
 
+/** Semáforo documental: punto de color + texto de estado. Sin fondos pastel (ficha técnica, no "cajones"). */
 const STATUS_STYLES = {
-  ok: { bg: 'border-emerald-200 bg-emerald-50', text: 'text-emerald-800', dot: 'bg-emerald-600', labelKey: 'garage.statusOk' },
-  warning: { bg: 'border-amber-300 bg-amber-50', text: 'text-amber-900', dot: 'bg-amber-500', labelKey: 'garage.statusWarning' },
-  expired: { bg: 'border-red-300 bg-red-50', text: 'text-red-800', dot: 'bg-red-600', labelKey: 'garage.statusExpired' },
+  ok: { text: 'text-slate-900', dot: 'bg-emerald-500', labelKey: 'garage.statusOk' },
+  warning: { text: 'text-amber-700', dot: 'bg-amber-500', labelKey: 'garage.statusWarning' },
+  expired: { text: 'text-red-700', dot: 'bg-red-600', labelKey: 'garage.statusExpired' },
 }
 
 export default function GarageView() {
@@ -52,97 +53,120 @@ export default function GarageView() {
       </div>
 
       <div className="space-y-3">
-          {vehicles.map((vehicle) => {
-            const soat = vehicleDocStatus(vehicle.soat.expiresAt)
-            const tecno = vehicleDocStatus(vehicle.tecnomecanica.expiresAt)
-            const isActive = vehicle.id === activeVehicleId
-            return (
-              <div key={vehicle.id} className="rounded-2xl border-2 border-slate-200/80 bg-white p-4 shadow-sm">
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 bg-slate-50">
-                    {vehicle.type === 'carro' ? (
-                      <IconCar className="h-6 w-6 text-slate-800" strokeWidth={2} />
-                    ) : (
-                      <IconMotorcycle className="h-6 w-6 text-slate-800" strokeWidth={2} />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-extrabold text-slate-950">
-                      {vehicle.brand} {vehicle.model}
-                    </p>
-                    <p className="text-xs font-semibold capitalize text-slate-600">{vehicle.type}</p>
-                  </div>
-                  <ColombianPlate plate={vehicle.plate} subtitle={vehicle.brand} size="md" />
-                </div>
+        {vehicles.map((vehicle) => {
+          const soat = vehicleDocStatus(vehicle.soat.expiresAt)
+          const tecno = vehicleDocStatus(vehicle.tecnomecanica.expiresAt)
+          const isActive = vehicle.id === activeVehicleId
 
-                <div className="grid grid-cols-2 gap-2">
-                  <DocBadge label={t('garage.soat')} status={soat.status} days={soat.days} t={t} />
-                  <DocBadge label={t('garage.tecno')} status={tecno.status} days={tecno.days} t={t} />
-                </div>
+          function requestDelete() {
+            if (checkDemoRestriction(t('garage.delete'))) return
+            setDeleteTarget(vehicle)
+          }
 
-                {(vehicle.soat.fileName || vehicle.tecnomecanica.fileName) && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {vehicle.soat.fileName && (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-800">
+          return (
+            <div
+              key={vehicle.id}
+              className={`rounded-2xl border-2 border-slate-200/90 bg-white p-4 shadow-sm transition ${
+                isActive ? 'border-l-4 border-l-slate-950 ring-1 ring-slate-900/10' : ''
+              }`}
+            >
+              {/* Cabecera: medallón, identidad y placa */}
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
+                  {vehicle.type === 'carro' ? (
+                    <IconCar className="h-8 w-8" strokeWidth={1.75} />
+                  ) : (
+                    <IconMotorcycle className="h-8 w-8" strokeWidth={1.75} />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 text-base font-black leading-tight tracking-tight text-slate-950">
+                    {vehicle.brand} {vehicle.model}
+                  </p>
+                  <div className="mt-0.5 flex items-center gap-1.5">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">{vehicle.type}</span>
+                    {isActive && (
+                      <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-800">
                         <IconCheck className="h-3 w-3" strokeWidth={3} />
-                        {t('garage.documentLinked')} · SOAT
-                      </span>
-                    )}
-                    {vehicle.tecnomecanica.fileName && (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-800">
-                        <IconCheck className="h-3 w-3" strokeWidth={3} />
-                        {t('garage.documentLinked')} · Tecno
+                        {t('garage.activeBadge')}
                       </span>
                     )}
                   </div>
-                )}
+                </div>
+                <ColombianPlate plate={vehicle.plate} subtitle={vehicle.brand} size="md" />
+              </div>
 
-                <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border-2 border-slate-100 bg-slate-50 px-3 py-2.5">
-                  <div>
-                    <p className="text-xs font-bold text-slate-900">{t('garage.assistancePlan')}</p>
-                    <p className="text-[11px] font-medium text-slate-600">
+              {/* Franja técnica documental: dos columnas separadas por un divisor de 1px */}
+              <div className="my-3 grid grid-cols-2 divide-x divide-slate-200 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3">
+                <DocColumn
+                  label={t('garage.soat')}
+                  status={soat.status}
+                  days={soat.days}
+                  linked={Boolean(vehicle.soat.fileName)}
+                  className="pr-3"
+                  t={t}
+                />
+                <DocColumn
+                  label={t('garage.tecno')}
+                  status={tecno.status}
+                  days={tecno.days}
+                  linked={Boolean(vehicle.tecnomecanica.fileName)}
+                  className="pl-3"
+                  t={t}
+                />
+              </div>
+
+              {/* Plan de asistencia: línea ligera, sin cajón */}
+              <div className="flex items-center justify-between gap-3 py-1 text-xs">
+                <div className="flex min-w-0 items-center gap-2">
+                  <IconShield className="h-4 w-4 flex-shrink-0 text-slate-500" strokeWidth={2} />
+                  <span className="font-medium leading-snug text-slate-600">
+                    {t('garage.assistanceLabel')}:{' '}
+                    <strong className="whitespace-nowrap font-bold text-slate-900">
                       {vehicle.planActive
-                        ? t('garage.planActiveUntil', { date: vehicle.planExpiresAt ?? '' })
+                        ? t('garage.assistanceUntil', { date: vehicle.planExpiresAt ?? '' })
                         : t('garage.noActivePlan')}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (checkDemoRestriction(t(vehicle.planActive ? 'garage.renew' : 'garage.activate'))) return
-                      setRenewalTarget(vehicle)
-                    }}
-                    className="min-h-[40px] flex-shrink-0 rounded-lg bg-orange-600 px-3.5 text-xs font-bold text-white transition hover:bg-orange-700 active:scale-95"
-                  >
-                    {vehicle.planActive ? t('garage.renew') : t('garage.activate')}
-                  </button>
+                    </strong>
+                  </span>
                 </div>
+                <button
+                  onClick={() => {
+                    if (checkDemoRestriction(t(vehicle.planActive ? 'garage.renew' : 'garage.activate'))) return
+                    setRenewalTarget(vehicle)
+                  }}
+                  className="min-h-[40px] flex-shrink-0 px-1 text-xs font-black uppercase tracking-wider text-orange-600 transition hover:text-orange-700 active:scale-95"
+                >
+                  {vehicle.planActive ? t('garage.renew') : t('garage.activate')}
+                </button>
+              </div>
 
-                <div className="mt-3 flex gap-2">
+              {/* Acciones */}
+              <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-3">
+                {isActive ? (
+                  <span className="flex flex-1 items-center gap-1.5 text-xs font-black text-emerald-700">
+                    <IconCheck className="h-4 w-4" strokeWidth={3} />
+                    {t('garage.selectedForRide')}
+                  </span>
+                ) : (
                   <button
                     onClick={() => setActiveVehicleId(vehicle.id)}
-                    disabled={isActive}
-                    className={`flex min-h-[48px] flex-1 items-center justify-center rounded-xl text-xs font-bold transition ${
-                      isActive
-                        ? 'cursor-default border-2 border-emerald-300 bg-emerald-50 text-emerald-800'
-                        : 'bg-slate-900 text-white active:scale-95'
-                    }`}
+                    className="min-h-[44px] flex-1 rounded-xl bg-slate-950 text-xs font-black uppercase tracking-wider text-white shadow-sm transition hover:bg-slate-900 active:scale-[0.98]"
                   >
-                    {isActive && <IconCheck className="mr-1 inline h-4 w-4" strokeWidth={2.75} />}
-                    {isActive ? t('garage.selected') : t('garage.selectForRide')}
+                    {t('garage.selectForRide')}
                   </button>
-                  <button
-                    onClick={() => {
-                      if (checkDemoRestriction(t('garage.delete'))) return
-                      setDeleteTarget(vehicle)
-                    }}
-                    className="min-h-[48px] rounded-xl border-2 border-red-600 px-4 text-xs font-bold text-red-700 active:scale-95"
-                  >
-                    {t('garage.delete')}
-                  </button>
-                </div>
+                )}
+                <button
+                  onClick={requestDelete}
+                  className="flex min-h-[44px] w-11 flex-shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 text-slate-500 transition hover:border-red-300 hover:text-red-600 active:scale-95"
+                  aria-label={t('garage.delete')}
+                  title={t('garage.delete')}
+                >
+                  <IconTrash className="h-4 w-4" strokeWidth={2} />
+                </button>
               </div>
-            )
-          })}
+            </div>
+          )
+        })}
       </div>
 
       {renewalTarget && (
@@ -172,28 +196,38 @@ export default function GarageView() {
   )
 }
 
-function DocBadge({
+function DocColumn({
   label,
   status,
   days,
+  linked,
+  className,
   t,
 }: {
   label: string
   status: 'ok' | 'warning' | 'expired'
   days: number
+  linked: boolean
+  className: string
   t: (key: string, vars?: Record<string, string | number>) => string
 }) {
   const style = STATUS_STYLES[status]
   return (
-    <div className={`rounded-xl border-2 p-3 ${style.bg}`}>
+    <div className={`min-w-0 ${className}`}>
       <div className="mb-1 flex items-center gap-1.5">
-        <span className={`h-2 w-2 rounded-full ${style.dot}`} />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700">{label}</span>
+        <span className={`h-2 w-2 flex-shrink-0 rounded-full ${style.dot}`} />
+        <span className="truncate text-[10px] font-black uppercase tracking-widest text-slate-600">{label}</span>
       </div>
-      <p className={`text-sm font-extrabold ${style.text}`}>{t(style.labelKey)}</p>
-      <p className="text-[11px] font-medium text-slate-700">
+      <p className={`text-xs font-black ${style.text}`}>{t(style.labelKey)}</p>
+      <p className="text-[11px] font-semibold text-slate-600">
         {status === 'expired' ? t('garage.expiredSince', { days: Math.abs(days) }) : t('garage.daysLeft', { days })}
       </p>
+      {linked && (
+        <p className="mt-1 flex items-center gap-1 text-[10px] font-bold text-slate-600" title={t('garage.documentLinked')}>
+          <IconPaperclip className="h-3 w-3 flex-shrink-0" strokeWidth={2.25} />
+          <span className="truncate">{t('garage.documentLinked')}</span>
+        </p>
+      )}
     </div>
   )
 }

@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
+import type { ComponentType, SVGProps } from 'react'
 import type { Vehicle, VehicleCategory } from '../../types'
+import { IconCar, IconMotorcycle, IconPaperclip } from '../common/Icons'
 
-const CATEGORIES: Array<{ value: VehicleCategory; icon: string; labelKey: string }> = [
-  { value: 'sport', icon: '🏍️', labelKey: 'addVehicle.categorySport' },
-  { value: 'trail', icon: '🏜️', labelKey: 'addVehicle.categoryTrail' },
-  { value: 'car', icon: '🚗', labelKey: 'addVehicle.categoryCar' },
+const CATEGORIES: Array<{ value: VehicleCategory; icon: ComponentType<SVGProps<SVGSVGElement>>; labelKey: string }> = [
+  { value: 'sport', icon: IconMotorcycle, labelKey: 'addVehicle.categorySport' },
+  { value: 'trail', icon: IconMotorcycle, labelKey: 'addVehicle.categoryTrail' },
+  { value: 'car', icon: IconCar, labelKey: 'addVehicle.categoryCar' },
 ]
 
 const QUICK_MODELS = [
@@ -109,12 +111,12 @@ export default function VehicleForm({ onSave, onCancel, showActiveToggle = true,
             <button
               key={c.value}
               onClick={() => setCategory(c.value)}
-              className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-3 transition ${
-                category === c.value ? 'border-bike-orange bg-orange-50' : 'border-bike-border bg-white'
+              className={`flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-3 transition ${
+                category === c.value ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-200 bg-white text-slate-800'
               }`}
             >
-              <span className="text-2xl">{c.icon}</span>
-              <span className="text-center text-[10px] font-semibold text-slate-600">{t(c.labelKey)}</span>
+              <c.icon className="h-6 w-6" strokeWidth={2} />
+              <span className={`text-center text-[10px] font-bold ${category === c.value ? 'text-white' : 'text-slate-700'}`}>{t(c.labelKey)}</span>
             </button>
           ))}
         </div>
@@ -268,7 +270,7 @@ function DocumentField({
           htmlFor={inputId}
           className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-bike-border bg-white px-3 py-4 text-center"
         >
-          <span className="text-xl">📎</span>
+          <IconPaperclip className="h-5 w-5 text-slate-600" strokeWidth={2} />
           <span className="text-xs font-semibold text-slate-600">{t('addVehicle.uploadZoneLabel')}</span>
           <span className="text-[10px] text-slate-400">{t('addVehicle.dragHint')}</span>
         </label>

@@ -352,15 +352,34 @@ export const IconLayers = (p: IconProps) => (
   </Icon>
 )
 
-/** Silueta lateral de motocicleta (ruedas, chasis, tanque y manillar). */
+/** Silueta lateral de motocicleta deportiva/naked: tanque esculpido (lazo cerrado), asiento rebajado con colín
+ *  elevado, horquilla invertida inclinada con semimanillar, carenaje frontal, bloque de motor y basculante. */
 export const IconMotorcycle = (p: IconProps) => (
   <Icon {...p}>
-    <circle cx="5.5" cy="16.5" r="3.5" />
-    <circle cx="18.5" cy="16.5" r="3.5" />
-    <path d="M5.5 16.5 9 10h5l2.5 6.5" />
-    <path d="M9 10 8 7.5H5.5" />
-    <path d="M14 10l1.5-3H18l.5 1.5" />
-    <path d="M10.5 16.5h4" />
+    <circle cx="5" cy="17" r="3.2" />
+    <circle cx="19" cy="17" r="3.2" />
+    <path d="M19 17 15.8 8.6" />
+    <path d="M14.6 8h2.8" />
+    <path d="M16.6 10.3l3.2 1.2" />
+    <path d="M15.4 10.2c-1.6-1.3-4-1.5-5.9-.6l-1.3 1.6H5.6L2.4 9.4" />
+    <path d="M8.2 11.2c.4 2.3 1.8 3.7 4 3.7h3.1l.9-3" />
+    <path d="M5 17l4-3.5" />
+    <path d="M10.6 14.9 12 17h4" />
+  </Icon>
+)
+
+export const IconTrash = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 6h18" />
+    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6M14 11v6" />
+  </Icon>
+)
+
+export const IconPaperclip = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m20 11.5-8.2 8.2a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" />
   </Icon>
 )
 
