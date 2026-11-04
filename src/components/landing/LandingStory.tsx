@@ -1,5 +1,21 @@
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode, SVGProps } from 'react'
 import { useScrollReveal, scrollRevealClass } from '../../hooks/useScrollReveal'
+import {
+  IconAlert,
+  IconBadge,
+  IconDocument,
+  IconFuel,
+  IconHeadset,
+  IconHome,
+  IconRoute,
+  IconShield,
+  IconSignal,
+  IconSos,
+  IconUsers,
+  IconWrench,
+} from './LandingIcons'
+
+type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
 
 function RevealBlock({ className, children }: { className?: string; children: ReactNode }) {
   const { ref, visible } = useScrollReveal<HTMLDivElement>()
@@ -10,201 +26,367 @@ function RevealBlock({ className, children }: { className?: string; children: Re
   )
 }
 
-const ACTS = [
-  {
-    badge: '🤝 Hermandad en la Ruta',
-    badgeClass: 'bg-orange-50 text-bike-orange',
-    title: 'La Hermandad de la Carretera',
-    text: 'Lo mejor de la ruta no es solo llegar, sino con quién la compartes. Cada parada, cada café y cada curva se disfrutan el doble cuando sabes que tu grupo está completo y a tiempo.',
-    image: '/images/friends-viewpoint.jpg',
-  },
-  {
-    badge: '🏍️ Enfoque y Libertad',
-    badgeClass: 'bg-sky-50 text-bike-blue',
-    title: 'Cero Preocupaciones al Manillar',
-    text: 'Tus ojos deben estar en la carretera. Bike Tracker te avisa si alguien se rezaga o necesita asistencia con alertas visuales de gran formato y avisos por intercomunicador.',
-    image: '/images/cockpit-view.jpg',
-  },
-]
-
-interface SafetyChip {
-  id: string
-  position: string
-  iconBg: string
-  icon: string
-  title: string
-  subtitle: string
-  dotColor: string
-  dotGlow: string
-  /** Coordenadas en porcentaje (0-100) sobre la fotografía: anchor = esquina del chip, dot = punto conectado en la escena. */
-  anchor: { x: number; y: number }
-  dot: { x: number; y: number }
+/** Micro-etiqueta técnica sobre fotografías y paneles (sustituye a los antiguos chips con emojis). */
+function TechTag({ icon: Icon, children }: { icon: IconComponent; children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-[#070A10]/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300 backdrop-blur-md">
+      <Icon className="h-3.5 w-3.5 text-orange-400" />
+      {children}
+    </span>
+  )
 }
 
-const SAFETY_CHIPS: SafetyChip[] = [
+/* ─────────────── Medios de cada acto ─────────────── */
+
+const GARAGE_ROWS = [
+  { plate: 'RTX 880', model: 'Yamaha MT-09', soat: 'Vigente', tecno: 'Vigente', ok: true },
+  { plate: 'KLM 42F', model: 'BMW R 1250 GS', soat: 'Vigente', tecno: 'Vence en 12 días', ok: false },
+]
+
+/** Acto 01: panel tipo TFT con la flota y el semáforo de documentos legales. */
+function GarageMedia() {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 sm:p-6">
+      <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Garaje · Flota</span>
+        <span className="font-mono text-[10px] tabular-nums text-slate-500">02 VEHÍCULOS</span>
+      </div>
+      <div className="mt-4 space-y-3">
+        {GARAGE_ROWS.map((row) => (
+          <div key={row.plate} className="rounded-xl border border-white/[0.08] bg-[#070A10]/60 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-white">{row.model}</p>
+                <p className="mt-0.5 font-mono text-[11px] tracking-widest text-slate-500">{row.plate}</p>
+              </div>
+              <IconWrench className="h-4 w-4 text-slate-500" />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {[
+                { label: 'SOAT', value: row.soat, ok: true },
+                { label: 'Tecnomecánica', value: row.tecno, ok: row.ok },
+              ].map((doc) => (
+                <div key={doc.label} className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-2">
+                  <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${doc.ok ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">{doc.label}</p>
+                    <p className={`truncate text-[11px] font-semibold ${doc.ok ? 'text-emerald-300' : 'text-amber-300'}`}>{doc.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PhotoMedia({ src, alt, tags }: { src: string; alt: string; tags: { icon: IconComponent; label: string }[] }) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-white/10">
+      <img
+        src={src}
+        alt={alt}
+        className="h-64 w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] sm:h-80"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#070A10]/70 via-transparent to-transparent" />
+      <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-1.5">
+        {tags.map((tag) => (
+          <TechTag key={tag.label} icon={tag.icon}>
+            {tag.label}
+          </TechTag>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+interface SafetyCallout {
+  id: string
+  icon: IconComponent
+  title: string
+  position: string
+  accent: string
+  dot: string
+  /** Coordenadas en porcentaje (0-100) sobre la fotografía: anchor = esquina del callout, target = punto en la escena. */
+  anchor: { x: number; y: number }
+  target: { x: number; y: number }
+}
+
+const SAFETY_CALLOUTS: SafetyCallout[] = [
   {
     id: 'telemetry',
-    position: 'top-2 left-2 sm:top-3 sm:left-3',
-    iconBg: 'bg-emerald-100 text-emerald-600',
-    icon: '📡',
-    title: 'Telemetría',
-    subtitle: 'en vivo',
-    dotColor: 'bg-emerald-400',
-    dotGlow: 'shadow-[0_0_8px_2px_rgba(52,211,153,0.85)]',
-    anchor: { x: 15, y: 9 },
-    dot: { x: 44, y: 29 },
+    icon: IconSignal,
+    title: 'Telemetría Satelital en Vivo',
+    position: 'top-3 left-3',
+    accent: 'text-emerald-400',
+    dot: 'bg-emerald-400',
+    anchor: { x: 18, y: 12 },
+    target: { x: 44, y: 29 },
   },
   {
     id: 'sos',
-    position: 'top-2 right-2 sm:top-3 sm:right-3',
-    iconBg: 'bg-red-100 text-red-600',
-    icon: '🆘',
-    title: 'Alerta SOS',
-    subtitle: 'de un toque',
-    dotColor: 'bg-red-500',
-    dotGlow: 'shadow-[0_0_8px_2px_rgba(239,68,68,0.85)]',
-    anchor: { x: 85, y: 9 },
-    dot: { x: 50, y: 38 },
+    icon: IconSos,
+    title: 'Botón SOS de un Toque',
+    position: 'top-3 right-3',
+    accent: 'text-red-400',
+    dot: 'bg-red-500',
+    anchor: { x: 82, y: 12 },
+    target: { x: 50, y: 38 },
   },
   {
     id: 'gasoline',
-    position: 'right-2 top-1/2 -translate-y-1/2 sm:right-3',
-    iconBg: 'bg-sky-100 text-sky-600',
-    icon: '⛽',
-    title: 'Aviso parada',
-    subtitle: 'de gasolina',
-    dotColor: 'bg-sky-400',
-    dotGlow: 'shadow-[0_0_8px_2px_rgba(56,189,248,0.85)]',
-    anchor: { x: 89, y: 50 },
-    dot: { x: 48, y: 54 },
+    icon: IconFuel,
+    title: 'Aviso de Parada de Gasolina',
+    position: 'right-3 top-1/2 -translate-y-1/2',
+    accent: 'text-sky-400',
+    dot: 'bg-sky-400',
+    anchor: { x: 80, y: 50 },
+    target: { x: 48, y: 54 },
   },
   {
     id: 'hazard',
-    position: 'bottom-2 right-2 sm:bottom-3 sm:right-3',
-    iconBg: 'bg-amber-100 text-amber-600',
-    icon: '⚠️',
-    title: 'Alerta peligro',
-    subtitle: 'en vía',
-    dotColor: 'bg-amber-400',
-    dotGlow: 'shadow-[0_0_8px_2px_rgba(251,191,36,0.85)]',
-    anchor: { x: 85, y: 88 },
-    dot: { x: 56, y: 80 },
+    icon: IconAlert,
+    title: 'Alerta de Peligro en Vía',
+    position: 'bottom-3 right-3',
+    accent: 'text-amber-400',
+    dot: 'bg-amber-400',
+    anchor: { x: 80, y: 88 },
+    target: { x: 56, y: 80 },
   },
 ]
 
-/** Fotografía 8K del Acto de Seguridad con teléfono flotante y callouts vectoriales (texto/iconos HTML nativos,
- *  nunca rasterizados) para garantizar nitidez absoluta en pantallas Retina/4K. */
-function SafetyHeroGraphic() {
+/** Acto 04: fotografía con callouts técnicos vectoriales (texto/iconos HTML nativos, nítidos en Retina/4K). */
+function SafetyMedia() {
   return (
-    <RevealBlock className="group relative h-64 w-full overflow-hidden rounded-3xl border border-bike-border shadow-soft sm:h-80 md:w-1/2">
+    <div className="group relative h-72 w-full overflow-hidden rounded-2xl border border-white/10 sm:h-80">
       <img
         src="/images/safety-features-bg.jpg"
         alt="Piloto en carretera de montaña con respaldo de telemetría Bike Tracker"
         className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
       />
+      <div className="pointer-events-none absolute inset-0 bg-[#070A10]/25" />
 
-      <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {SAFETY_CHIPS.map((chip) => (
+      <svg className="pointer-events-none absolute inset-0 hidden h-full w-full sm:block" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {SAFETY_CALLOUTS.map((c) => (
           <line
-            key={chip.id}
-            x1={chip.anchor.x}
-            y1={chip.anchor.y}
-            x2={chip.dot.x}
-            y2={chip.dot.y}
+            key={c.id}
+            x1={c.anchor.x}
+            y1={c.anchor.y}
+            x2={c.target.x}
+            y2={c.target.y}
             stroke="white"
-            strokeOpacity={0.55}
-            strokeWidth={0.35}
-            strokeDasharray="1.4 1.4"
+            strokeOpacity={0.4}
+            strokeWidth={0.3}
+            strokeDasharray="1.2 1.2"
           />
         ))}
       </svg>
 
-      {SAFETY_CHIPS.map((chip) => (
+      {SAFETY_CALLOUTS.map((c) => (
         <span
-          key={`${chip.id}-dot`}
-          className={`pointer-events-none absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full ${chip.dotColor} ${chip.dotGlow} animate-pulse`}
-          style={{ left: `${chip.dot.x}%`, top: `${chip.dot.y}%` }}
+          key={`${c.id}-dot`}
+          className={`pointer-events-none absolute hidden h-2 w-2 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full ring-4 ring-white/10 sm:block ${c.dot}`}
+          style={{ left: `${c.target.x}%`, top: `${c.target.y}%` }}
         />
       ))}
 
-      {SAFETY_CHIPS.map((chip) => (
+      {SAFETY_CALLOUTS.map((c) => (
         <div
-          key={chip.id}
-          className={`pointer-events-none absolute z-10 flex items-center gap-2 rounded-xl border border-white/60 bg-white/95 px-2.5 py-1.5 shadow-lg backdrop-blur-sm transition-transform duration-300 hover:scale-105 ${chip.position}`}
+          key={c.id}
+          className={`pointer-events-none absolute z-10 flex max-w-[46%] items-center gap-2 rounded-lg border border-white/10 bg-[#070A10]/80 px-2.5 py-1.5 backdrop-blur-md ${c.position}`}
         >
-          <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs ${chip.iconBg}`}>
-            {chip.icon}
-          </span>
-          <span className="text-[11px] font-bold leading-tight text-slate-900">
-            {chip.title}
-            <br />
-            <span className="text-[10px] font-medium text-slate-500">{chip.subtitle}</span>
-          </span>
+          <c.icon className={`h-4 w-4 flex-shrink-0 ${c.accent}`} />
+          <span className="text-[10px] font-semibold leading-tight text-slate-200 sm:text-[11px]">{c.title}</span>
         </div>
       ))}
 
-      <div className="absolute -bottom-2 -left-2 z-10 w-36 origin-bottom-left scale-90 rounded-2xl border-2 border-slate-700 bg-slate-950/95 p-2 text-white shadow-2xl backdrop-blur-md sm:bottom-2 sm:left-3 sm:w-44 sm:scale-100 sm:p-2.5">
-        <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-bold text-emerald-300">
+      <div className="absolute bottom-3 left-3 z-10 w-36 rounded-xl border border-white/10 bg-[#070A10]/90 p-2.5 text-white backdrop-blur-md sm:w-40">
+        <span className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           En vivo
         </span>
         <div className="mt-1.5 flex items-end gap-1">
-          <span className="font-display text-2xl font-black leading-none">68</span>
+          <span className="font-display text-2xl font-black leading-none tabular-nums">68</span>
           <span className="pb-0.5 text-[9px] text-slate-400">km/h</span>
         </div>
-        <p className="mt-0.5 text-[9px] text-slate-400">📍 12.4 km</p>
-        <svg className="mt-1.5 h-8 w-full" viewBox="0 0 100 30" fill="none">
-          <path d="M5 25 Q 30 5, 50 15 T 95 5" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="50" cy="15" r="3" fill="#38BDF8" />
+        <svg className="mt-1.5 h-7 w-full" viewBox="0 0 100 30" fill="none" aria-hidden="true">
+          <path d="M5 25 Q 30 5, 50 15 T 95 5" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="50" cy="15" r="3" fill="#F97316" />
         </svg>
       </div>
-    </RevealBlock>
+    </div>
   )
 }
 
-export default function LandingStory() {
+/** Acto 05: resumen de rodada cerrada (la promesa cumplida). */
+function ReturnMedia() {
+  const riders = ['Líder', 'Piloto 2', 'Piloto 3', 'Piloto 4', 'Guardián']
   return (
-    <section id="benefits" className="mx-auto max-w-5xl px-6 py-20">
-      <h2 className="text-center font-display text-2xl font-black text-bike-ink sm:text-3xl">
-        La Verdadera Experiencia de Rodar
-      </h2>
-
-      <div className="mt-12 space-y-14">
-        {ACTS.map((act, index) => (
-          <div
-            key={act.title}
-            className={`flex flex-col items-center gap-8 md:flex-row ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
-          >
-            <RevealBlock className="w-full overflow-hidden rounded-3xl border border-bike-border shadow-soft md:w-1/2">
-              <img
-                src={act.image}
-                alt={act.title}
-                className="h-64 w-full object-cover transition-transform duration-700 ease-out hover:scale-[1.03] sm:h-80"
-              />
-            </RevealBlock>
-            <div className="w-full md:w-1/2">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${act.badgeClass}`}>
-                {act.badge}
-              </span>
-              <h3 className="mt-3 font-display text-xl font-bold text-bike-ink sm:text-2xl">{act.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:text-base">{act.text}</p>
-            </div>
-          </div>
-        ))}
-
-        <div className="flex flex-col items-center gap-8 md:flex-row">
-          <SafetyHeroGraphic />
-          <div className="w-full md:w-1/2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-              🛡️ Seguridad en Grupo
-            </span>
-            <h3 className="mt-3 font-display text-xl font-bold text-bike-ink sm:text-2xl">Seguridad y Respaldo Inmediato</h3>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:text-base">
-              Telemetría en vivo, alerta SOS de un toque y control de paradas de gasolina y peligros en vía: todo tu
-              convoy conectado, listo para reaccionar en segundos.
+    <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 sm:p-6">
+      <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Rodada finalizada</span>
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          Convoy completo
+        </span>
+      </div>
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        {[
+          { label: 'Distancia', value: '248.3', unit: 'km' },
+          { label: 'Tiempo', value: '05:42', unit: 'h' },
+          { label: 'En casa', value: '5/5', unit: '' },
+        ].map((stat) => (
+          <div key={stat.label}>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-500">{stat.label}</p>
+            <p className="mt-1 flex items-baseline gap-1">
+              <span className="font-display text-xl font-bold tabular-nums text-white">{stat.value}</span>
+              {stat.unit && <span className="text-[10px] text-slate-500">{stat.unit}</span>}
             </p>
           </div>
+        ))}
+      </div>
+      <ul className="mt-5 space-y-2">
+        {riders.map((rider) => (
+          <li key={rider} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-[#070A10]/60 px-3 py-2">
+            <span className="text-xs font-medium text-slate-300">{rider}</span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+              <IconHome className="h-3.5 w-3.5" />
+              Llegó a casa
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/* ─────────────── Narrativa ─────────────── */
+
+interface Act {
+  number: string
+  kicker: string
+  icon: IconComponent
+  title: string
+  text: string
+  points: string[]
+  media: ReactNode
+}
+
+const ACTS: Act[] = [
+  {
+    number: '01',
+    kicker: 'El Garaje & Preparación',
+    icon: IconDocument,
+    title: 'Todo listo antes de encender el motor',
+    text: 'La rodada empieza en el garaje. Tu flota y sus documentos legales quedan bajo control, con avisos antes de que el SOAT o la revisión tecnomecánica venzan.',
+    points: ['Semáforo de vigencia de SOAT y Tecnomecánica', 'Hasta 5 vehículos sincronizados en la nube'],
+    media: <GarageMedia />,
+  },
+  {
+    number: '02',
+    kicker: 'El Convoy en Formación',
+    icon: IconUsers,
+    title: 'El líder abre paso. El guardián cuida la retaguardia.',
+    text: 'Cada piloto ocupa su lugar en la formación. El líder marca la ruta, el guardián cierra el grupo y todos ven en vivo dónde está cada integrante del convoy.',
+    points: ['Roles de Líder, Piloto y Guardián', 'Posición de cada piloto en tiempo real'],
+    media: (
+      <PhotoMedia
+        src="/images/friends-viewpoint.jpg"
+        alt="Grupo de moteros en un mirador de montaña"
+        tags={[
+          { icon: IconRoute, label: 'Ruta compartida' },
+          { icon: IconBadge, label: 'Guardián activo' },
+        ]}
+      />
+    ),
+  },
+  {
+    number: '03',
+    kicker: 'En Curva · High Speed Telemetry',
+    icon: IconHeadset,
+    title: 'Visibilidad total, incluso con el sol de frente',
+    text: 'Un HUD de alto contraste pensado para leerse de un vistazo, y alertas de voz que llegan por Bluetooth directo al intercomunicador del casco. Tus ojos siguen en la vía.',
+    points: ['Alto contraste legible a pleno sol', 'Alertas de voz en el intercomunicador'],
+    media: (
+      <PhotoMedia
+        src="/images/cockpit-view.jpg"
+        alt="Vista del manillar y el tablero desde la moto"
+        tags={[
+          { icon: IconSignal, label: 'GPS en vivo' },
+          { icon: IconHeadset, label: 'Voz Bluetooth' },
+        ]}
+      />
+    ),
+  },
+  {
+    number: '04',
+    kicker: 'El Escudo de Carretera',
+    icon: IconShield,
+    title: 'Nadie se queda atrás',
+    text: 'Detección precisa de rezagados, botón SOS que comparte tu ubicación exacta y avisos de parada o peligro en la vía: el convoy entero reacciona en segundos.',
+    points: ['Alerta automática de pilotos rezagados', 'SOS con ubicación GPS exacta al grupo'],
+    media: <SafetyMedia />,
+  },
+  {
+    number: '05',
+    kicker: 'El Regreso Seguro',
+    icon: IconHome,
+    title: 'La promesa cumplida de la rodada',
+    text: 'Al final del día lo que importa es uno solo: que todos volvieron. Con el guardián cerrando el grupo y el convoy visible hasta el último kilómetro, nadie llega solo.',
+    points: ['Tiempo y distancia de la rodada en tu tablero', 'El guardián confirma que nadie quedó atrás'],
+    media: <ReturnMedia />,
+  },
+]
+
+export default function LandingStory() {
+  return (
+    <section id="benefits" className="border-t border-white/[0.06] bg-[#070A10]">
+      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-orange-400">La Experiencia</p>
+          <h2 className="mt-3 font-sans text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+            Una rodada en cinco actos
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-slate-400">
+            Del garaje a la puerta de tu casa: así acompaña Bike Tracker cada kilómetro de la hermandad motera.
+          </p>
         </div>
+
+        <ol className="mt-16 space-y-20 sm:space-y-24">
+          {ACTS.map((act, index) => (
+            <li
+              key={act.number}
+              className={`flex flex-col items-center gap-10 md:flex-row md:gap-14 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
+            >
+              <RevealBlock className="w-full md:w-1/2">{act.media}</RevealBlock>
+
+              <div className="w-full md:w-1/2">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-sm font-semibold tabular-nums text-orange-400">{act.number}</span>
+                  <span className="h-px w-8 bg-white/15" />
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    <act.icon className="h-3.5 w-3.5 text-slate-500" />
+                    {act.kicker}
+                  </span>
+                </div>
+                <h3 className="mt-4 font-sans text-2xl font-extrabold leading-snug tracking-tight text-white sm:text-3xl">
+                  {act.title}
+                </h3>
+                <p className="mt-4 text-sm leading-relaxed text-slate-400 sm:text-base">{act.text}</p>
+                <ul className="mt-6 space-y-2.5 border-t border-white/[0.06] pt-5">
+                  {act.points.map((point) => (
+                    <li key={point} className="flex items-start gap-2.5 text-sm text-slate-300">
+                      <span className="mt-2 h-1 w-3 flex-shrink-0 rounded-full bg-orange-500" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   )

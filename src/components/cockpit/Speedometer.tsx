@@ -27,7 +27,10 @@ function speedToAngle(speed: number): number {
 
 const TICKS = Array.from({ length: 11 }, (_, i) => i * (MAX_SPEED / 10))
 
-export default function Speedometer({ speed }: { speed: number }) {
+/** `theme="dark"` adapta pista, marcas y cifras a fondos oscuros (maqueta HUD de la landing). Por defecto es claro,
+ *  tal como se usa en el Cockpit de la app. */
+export default function Speedometer({ speed, theme = 'light' }: { speed: number; theme?: 'light' | 'dark' }) {
+  const dark = theme === 'dark'
   const needleAngle = speedToAngle(speed)
   const progressPath = describeArc(START_ANGLE, needleAngle, RADIUS)
   const trackPath = describeArc(START_ANGLE, END_ANGLE, RADIUS)
@@ -51,7 +54,7 @@ export default function Speedometer({ speed }: { speed: number }) {
           </filter>
         </defs>
 
-        <path d={trackPath} fill="none" stroke="#E2E8F0" strokeWidth={14} strokeLinecap="round" />
+        <path d={trackPath} fill="none" stroke={dark ? '#1A2233' : '#E2E8F0'} strokeWidth={14} strokeLinecap="round" />
         <path
           d={progressPath}
           fill="none"
@@ -68,11 +71,11 @@ export default function Speedometer({ speed }: { speed: number }) {
           const label = polarToCartesian(angle, RADIUS - 22)
           return (
             <g key={tickSpeed}>
-              <line x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke="#94A3B8" strokeWidth={2} />
+              <line x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke={dark ? '#475569' : '#94A3B8'} strokeWidth={2} />
               <text
                 x={label.x}
                 y={label.y}
-                fill="#475569"
+                fill={dark ? '#94A3B8' : '#475569'}
                 fontSize={10}
                 fontFamily="Orbitron"
                 textAnchor="middle"
@@ -99,10 +102,10 @@ export default function Speedometer({ speed }: { speed: number }) {
       </svg>
 
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pt-6">
-        <span className="font-display text-5xl font-black tabular-nums text-bike-ink">
+        <span className={`font-display text-5xl font-black tabular-nums ${dark ? 'text-white' : 'text-bike-ink'}`}>
           {Math.round(speed)}
         </span>
-        <span className="mt-1 text-xs font-semibold tracking-[0.3em] text-slate-500">KM/H</span>
+        <span className={`mt-1 text-xs font-semibold tracking-[0.3em] ${dark ? 'text-slate-400' : 'text-slate-500'}`}>KM/H</span>
       </div>
     </div>
   )

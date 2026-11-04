@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { isMuted, playEngineRev, setMuted } from '../../services/soundService'
+import { IconGauge, IconVolume, IconVolumeOff } from './LandingIcons'
 
 const MAX_RPM_K = 14
 const REDLINE_START_K = 10
@@ -98,9 +99,20 @@ export default function LandingHeroTachometer() {
   const gearLabel = rpm > 1600 ? '1' : 'N'
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-bike-border bg-white shadow-soft">
-      <div className="relative flex flex-col items-center bg-bike-surface pb-3 pt-6">
-        <svg width={SIZE} height={232} viewBox="0 0 280 232">
+    <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0A0E17]">
+      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Engine · RPM</span>
+        <button
+          onClick={toggleMute}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-400 transition hover:bg-white/10 hover:text-white"
+          aria-label={muted ? 'Activar sonido' : 'Silenciar sonido'}
+        >
+          {muted ? <IconVolumeOff className="h-4 w-4" /> : <IconVolume className="h-4 w-4" />}
+        </button>
+      </div>
+
+      <div className="relative flex flex-1 flex-col items-center justify-center bg-[radial-gradient(circle_at_50%_45%,_rgba(249,115,22,0.07),_transparent_60%)] pb-3 pt-4">
+        <svg width={SIZE} height={232} viewBox="0 0 280 232" className="max-w-full">
           <defs>
             <linearGradient id="redlineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#F97316" />
@@ -115,8 +127,8 @@ export default function LandingHeroTachometer() {
             </filter>
           </defs>
 
-          <path d={trackPath} fill="none" stroke="#E2E8F0" strokeWidth={14} strokeLinecap="round" />
-          <path d={redlinePath} fill="none" stroke="url(#redlineGradient)" strokeWidth={14} strokeLinecap="round" />
+          <path d={trackPath} fill="none" stroke="#1A2233" strokeWidth={12} strokeLinecap="round" />
+          <path d={redlinePath} fill="none" stroke="url(#redlineGradient)" strokeWidth={12} strokeLinecap="round" opacity={0.9} />
 
           {TICKS.map((tickK) => {
             const angle = rpmKToAngle(tickK)
@@ -130,13 +142,13 @@ export default function LandingHeroTachometer() {
                   y1={inner.y}
                   x2={outer.x}
                   y2={outer.y}
-                  stroke={tickK >= REDLINE_START_K ? '#EA580C' : '#94A3B8'}
+                  stroke={tickK >= REDLINE_START_K ? '#F97316' : '#475569'}
                   strokeWidth={2}
                 />
                 <text
                   x={label.x}
                   y={label.y}
-                  fill={tickK >= REDLINE_START_K ? '#EA580C' : '#475569'}
+                  fill={tickK >= REDLINE_START_K ? '#FB923C' : '#94A3B8'}
                   fontSize={11}
                   fontWeight={700}
                   fontFamily="Orbitron"
@@ -149,7 +161,7 @@ export default function LandingHeroTachometer() {
             )
           })}
 
-          <text x={CENTER} y={62} fill="#94A3B8" fontSize={9} fontWeight={700} textAnchor="middle" letterSpacing={1.5}>
+          <text x={CENTER} y={62} fill="#64748B" fontSize={9} fontWeight={600} textAnchor="middle" letterSpacing={1.5}>
             x1000 RPM
           </text>
 
@@ -163,53 +175,48 @@ export default function LandingHeroTachometer() {
             strokeLinecap="round"
             filter="url(#needleGlow)"
           />
-          <circle cx={CENTER} cy={CENTER} r={8} fill="#0F172A" />
-          <circle cx={CENTER} cy={CENTER} r={4} fill="#F97316" />
+          <circle cx={CENTER} cy={CENTER} r={9} fill="#05070C" stroke="#334155" strokeWidth={1.5} />
+          <circle cx={CENTER} cy={CENTER} r={3.5} fill="#F97316" />
         </svg>
 
         <div className="flex flex-col items-center" style={{ marginTop: -84 }}>
           <div className="flex items-baseline gap-1.5">
-            <span className="font-display text-3xl font-black tabular-nums text-bike-ink sm:text-4xl">
+            <span className="font-display text-3xl font-black tabular-nums text-white sm:text-4xl">
               {Math.round(rpm).toLocaleString('en-US')}
             </span>
-            <span className="text-xs font-bold tracking-widest text-slate-400">RPM</span>
+            <span className="text-[10px] font-semibold tracking-[0.2em] text-slate-500">RPM</span>
           </div>
 
           <div className="mt-2 flex items-center gap-3">
             <span
-              className={`flex h-7 w-7 items-center justify-center rounded-md font-display text-sm font-black transition-colors ${
-                gearLabel === 'N' ? 'bg-emerald-100 text-status-ok' : 'bg-orange-100 text-bike-orange'
+              className={`flex h-7 w-7 items-center justify-center rounded-md border font-display text-sm font-black transition-colors ${
+                gearLabel === 'N'
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                  : 'border-orange-500/30 bg-orange-500/10 text-orange-400'
               }`}
             >
               {gearLabel}
             </span>
             <span
-              className={`h-3 w-3 rounded-full transition-all ${
-                inRedline ? 'animate-pulse bg-status-danger shadow-[0_0_10px_3px_rgba(220,38,38,0.7)]' : 'bg-slate-200'
+              className={`h-2.5 w-2.5 rounded-full transition-all ${
+                inRedline ? 'animate-pulse bg-red-500 shadow-[0_0_10px_3px_rgba(239,68,68,0.6)]' : 'bg-slate-700'
               }`}
               aria-hidden="true"
             />
-            <span className={`text-[10px] font-bold uppercase tracking-widest ${inRedline ? 'text-status-danger' : 'text-slate-300'}`}>
+            <span className={`text-[10px] font-semibold uppercase tracking-[0.2em] ${inRedline ? 'text-red-400' : 'text-slate-600'}`}>
               Shift
             </span>
           </div>
         </div>
-
-        <button
-          onClick={toggleMute}
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-bike-border bg-white text-base text-bike-ink shadow-card transition hover:bg-slate-50"
-          aria-label={muted ? 'Activar sonido' : 'Silenciar sonido'}
-        >
-          {muted ? '🔇' : '🔊'}
-        </button>
       </div>
 
-      <div className="flex justify-center border-t border-bike-border bg-bike-surface p-4">
+      <div className="border-t border-white/[0.06] p-3">
         <button
           onClick={handleAccelerate}
-          className="rounded-full bg-gradient-to-r from-bike-orange to-bike-orangeDark px-6 py-3 text-sm font-bold text-white shadow-glow-orange transition active:scale-95"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-orange-500/40 bg-orange-500/10 py-3 text-sm font-bold text-orange-300 transition hover:bg-orange-500/20 hover:text-orange-200 active:scale-[0.98]"
         >
-          🔊 Acelerar Motor
+          <IconGauge className="h-4 w-4" />
+          Acelerar Motor
         </button>
       </div>
     </div>
