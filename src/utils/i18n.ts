@@ -217,6 +217,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     'onboarding.explain': 'Para unirte a rodadas y activar tu telemetría, registra tu primer vehículo.',
     'onboarding.saveAndEnter': 'Guardar y Entrar al Tablero',
     'onboarding.cancelAndBack': 'Cancelar y volver al inicio',
+    'onboarding.proHighlight': 'Hasta 5 vehículos + Alertas de Voz',
+    'onboarding.proPitch':
+      'El plan Libre incluye 1 vehículo. Con Convoy Pro gestionas hasta 5 vehículos con alertas de SOAT y Tecnomecánica en cada uno, y navegas con intercomunicador en tu casco.',
+    'onboarding.proCta': 'Desbloquear Garaje Pro · Desde $8.250 COP/mes',
 
     // Convoy
     'convoy.title': 'Sala de Convoy',
@@ -629,6 +633,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     'onboarding.explain': 'To join rides and activate your telemetry, register your first vehicle.',
     'onboarding.saveAndEnter': 'Save and Enter Dashboard',
     'onboarding.cancelAndBack': 'Cancel and go back home',
+    'onboarding.proHighlight': 'Up to 5 vehicles + Helmet Voice Alerts',
+    'onboarding.proPitch':
+      'The Free plan includes 1 vehicle. With Convoy Pro, manage up to 5 vehicles with SOAT and technical inspection alerts on each, and ride with helmet intercom guidance.',
+    'onboarding.proCta': 'Unlock Pro Garage · From $8,250 COP/mo',
 
     // Convoy
     'convoy.title': 'Convoy Room',

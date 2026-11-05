@@ -1,5 +1,6 @@
 import { useApp } from '../../context/AppContext'
 import { goToLanding } from '../../utils/navigationHelper'
+import { IconHome } from '../common/Icons'
 
 export default function WelcomeAuthScreen() {
   const { lang, setLang, signInWithGoogle, loginDemo, setAuthModalOpen, setTopLevelMode, showToast, t } = useApp()
@@ -20,7 +21,7 @@ export default function WelcomeAuthScreen() {
           className="flex items-center gap-1.5 rounded-full border border-bike-border bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-card transition hover:bg-slate-50 hover:text-bike-ink active:scale-95"
           title={t('nav.home')}
         >
-          <span>🏠</span>
+          <IconHome className="h-3.5 w-3.5" strokeWidth={2} />
           <span>{t('nav.home')}</span>
         </button>
 
