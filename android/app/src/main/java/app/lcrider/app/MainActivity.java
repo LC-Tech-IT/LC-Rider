@@ -1,4 +1,4 @@
-package app.biketracker.app;
+package app.lcrider.app;
 
 import com.getcapacitor.BridgeActivity;
 

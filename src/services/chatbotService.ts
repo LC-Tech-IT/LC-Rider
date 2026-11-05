@@ -4,7 +4,7 @@ export interface ChatbotIntent {
 }
 
 const GUARDRAIL_RESPONSE =
-  'Soy el asistente oficial de **Bike Tracker (LC SyncTech)** y estoy capacitado exclusivamente para brindarte información sobre nuestra aplicación, planes y soporte técnico motero. Para consultas ajenas a nuestro producto o situaciones de apoyo personal, te sugerimos acudir a los canales y líneas de atención especializadas de tu región.'
+  'Soy el asistente oficial de **LC Rider (LC SyncTech)** y estoy capacitado exclusivamente para brindarte información sobre nuestra aplicación, planes y soporte técnico motero. Para consultas ajenas a nuestro producto o situaciones de apoyo personal, te sugerimos acudir a los canales y líneas de atención especializadas de tu región.'
 
 const EMERGENCY_LINE =
   'Si tú o alguien más está en peligro inmediato, por favor comunícate ahora mismo con las líneas de emergencia de tu país (por ejemplo, 123 o 911).'
@@ -51,12 +51,12 @@ const OUT_OF_SCOPE_KEYWORDS = [
 const PRODUCT_INTENTS: ChatbotIntent[] = [
   {
     keywords: [
-      'que es bike tracker', 'qué es bike tracker', 'de que se trata', 'de qué se trata', 'que es esto', 'qué es esto',
+      'que es lc rider', 'qué es lc rider', 'que es lcrider', 'que es bike tracker', 'qué es bike tracker', 'de que se trata', 'de qué se trata', 'que es esto', 'qué es esto',
       'como funciona', 'cómo funciona', 'que hace la app', 'qué hace la app', 'para que sirve', 'para qué sirve',
       'que es esta app', 'qué es esta app', 'que es la app', 'qué es la app', 'que es bike', 'de que trata',
     ],
     response:
-      '¡Quiubo, parcero! Bike Tracker es la plataforma de LC SyncTech hecha por y para moteros que ruedan en parche: conecta a todo el convoy en un mapa en tiempo real (quién va de Líder, quién de Piloto Guardián y quién se nos queda rezagado), te guía con navegación turn-by-turn con voz estilo Waze, dispara un botón SOS con tu ubicación GPS exacta ante cualquier eventualidad, y te lleva el control digital de tus motos (SOAT, tecnomecánica, garaje). Funciona desde el celular o instalada como app en tu pantalla de inicio (PWA, sin tiendas ni descargas pesadas), y hasta se ve en pantallas tipo CarPlay/Android Auto. Tiene un plan gratis pa\' arrancar y planes Pro/Club pa\' rodar sin límites. ¿Le sigo contando del modo Convoy, el botón SOS o los planes, hermano?',
+      '¡Quiubo, parcero! LC Rider es la plataforma de LC SyncTech hecha por y para moteros que ruedan en parche: conecta a todo el convoy en un mapa en tiempo real (quién va de Líder, quién de Piloto Guardián y quién se nos queda rezagado), te guía con navegación turn-by-turn con voz estilo Waze, dispara un botón SOS con tu ubicación GPS exacta ante cualquier eventualidad, y te lleva el control digital de tus motos (SOAT, tecnomecánica, garaje). Funciona desde el celular o instalada como app en tu pantalla de inicio (PWA, sin tiendas ni descargas pesadas), y hasta se ve en pantallas tipo CarPlay/Android Auto. Tiene un plan gratis pa\' arrancar y planes Pro/Club pa\' rodar sin límites. ¿Le sigo contando del modo Convoy, el botón SOS o los planes, hermano?',
   },
   {
     keywords: ['precio', 'costo', 'cuanto cuesta', 'cuánto cuesta', 'plan', 'suscripcion', 'suscripción'],
@@ -94,7 +94,7 @@ const PRODUCT_INTENTS: ChatbotIntent[] = [
   {
     keywords: ['carplay', 'android auto', 'pantalla del carro', 'moto pantalla'],
     response:
-      'Bike Tracker tiene una vista optimizada estilo CarPlay/Android Auto dentro del showcase de la app, con velocímetro y estado del convoy en alto contraste pa\' tableros y pantallas montadas en el manillar.',
+      'LC Rider tiene una vista optimizada estilo CarPlay/Android Auto dentro del showcase de la app, con velocímetro y estado del convoy en alto contraste pa\' tableros y pantallas montadas en el manillar.',
   },
   {
     keywords: ['bateria', 'batería', 'consumo', 'gps'],
@@ -158,7 +158,7 @@ export function getChatbotResponse(message: string): string {
 }
 
 export const SUGGESTED_PROMPTS = [
-  '¿Qué es Bike Tracker?',
+  '¿Qué es LC Rider?',
   '¿Qué incluye Convoy Pro?',
   '¿Cómo pago con QR Bancolombia/Nequi?',
   '¿Tiene alerta SOS?',

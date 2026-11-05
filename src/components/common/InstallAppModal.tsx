@@ -40,7 +40,7 @@ export default function InstallAppModal() {
         </button>
 
         <div className="flex flex-col items-center text-center">
-          <img src="/images/app-icon.jpg" alt="Bike Tracker" className="h-16 w-16 rounded-2xl object-cover shadow-card" />
+          <img src="/images/app-icon.jpg" alt="LC Rider" className="h-16 w-16 rounded-2xl object-cover shadow-card" />
           <h2 className="mt-3 font-display text-lg font-black text-bike-ink">{t('install.title')}</h2>
           <p className="mt-1 text-xs text-slate-500">{t('install.subtitle')}</p>
         </div>

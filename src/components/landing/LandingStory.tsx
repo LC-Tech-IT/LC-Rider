@@ -104,7 +104,7 @@ function PhotoMedia({ src, alt, tags }: { src: string; alt: string; tags: { icon
   )
 }
 
-/* Acto 03: pantalla real de Bike Tracker sobre el soporte GPS de cockpit-view.jpg.
+/* Acto 03: pantalla real de LC Rider sobre el soporte GPS de cockpit-view.jpg.
  * La foto mide 1376×768 px y la pantalla del soporte ocupa x 786–866 / y 334–397. El contenedor conserva la
  * proporción exacta de la foto (sin recorte de object-cover), así esas coordenadas porcentuales encajan en
  * cualquier ancho. */
@@ -184,7 +184,7 @@ function HandlebarMedia() {
     <div className="group relative aspect-[1376/768] w-full overflow-hidden rounded-2xl border border-white/10">
       <img
         src="/images/cockpit-view.jpg"
-        alt="Vista del manillar con Bike Tracker abierto en el soporte GPS"
+        alt="Vista del manillar con LC Rider abierto en el soporte GPS"
         className="absolute inset-0 h-full w-full object-cover"
       />
 
@@ -301,7 +301,7 @@ function SafetyMedia() {
     <div className="group relative h-72 w-full overflow-hidden rounded-2xl border border-white/10 sm:h-80">
       <img
         src="/images/safety-features-bg.jpg"
-        alt="Piloto en carretera de montaña con respaldo de telemetría Bike Tracker"
+        alt="Piloto en carretera de montaña con respaldo de telemetría LC Rider"
         className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
       />
       <div className="pointer-events-none absolute inset-0 bg-[#070A10]/25" />
@@ -479,7 +479,7 @@ export default function LandingStory() {
             Una rodada en cinco actos
           </h2>
           <p className="mt-4 text-base leading-relaxed text-slate-400">
-            Del garaje a la puerta de tu casa: así acompaña Bike Tracker cada kilómetro de la hermandad motera.
+            Del garaje a la puerta de tu casa: así acompaña LC Rider cada kilómetro de la hermandad motera.
           </p>
         </div>
 

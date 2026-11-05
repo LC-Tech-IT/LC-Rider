@@ -19,7 +19,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     // Sidebar
     'sidebar.support': 'Soporte',
     'sidebar.language': 'Idioma',
-    'sidebar.defaultRiderName': 'Piloto Bike Tracker',
+    'sidebar.defaultRiderName': 'Piloto LC Rider',
     'sidebar.signInRegister': 'Iniciar Sesión / Registrarse',
     'sidebar.editProfile': 'Editar Perfil',
     'sidebar.logout': 'Cerrar Sesión',
@@ -99,7 +99,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'garage.statusExpired': 'Vencido',
     'garage.daysLeft': '{{days}} días restantes',
     'garage.expiredSince': 'Vencido hace {{days}} días',
-    'garage.assistancePlan': 'Plan Asistencia Bike Tracker',
+    'garage.assistancePlan': 'Plan Asistencia LC Rider',
     'garage.planActiveUntil': 'Activo hasta {{date}}',
     'garage.noActivePlan': 'Sin plan activo',
     'garage.renew': 'Renovar',
@@ -115,9 +115,9 @@ export const translations: Record<Lang, Record<string, string>> = {
     'garage.deleteConfirmBody': 'Esta acción no se puede deshacer. {{vehicle}} se eliminará de tu garaje.',
     'garage.cancel': 'Cancelar',
     'garage.confirm': 'Confirmar',
-    'garage.renewalTitle': 'Renovar Plan Bike Tracker',
+    'garage.renewalTitle': 'Renovar Plan LC Rider',
     'garage.renewalBody': 'Activarás el plan de asistencia en vía para {{vehicle}} por 365 días.',
-    'garage.welcomeTitle': '¡Bienvenido a Bike Tracker, {{name}}!',
+    'garage.welcomeTitle': '¡Bienvenido a LC Rider, {{name}}!',
     'garage.welcomeSubtitle': 'Aún no tienes vehículos registrados. Registra tu primera moto para comenzar a rodar.',
     'garage.registerFirstBike': 'Registrar mi primera moto',
     'garage.emptyGeneric': 'Aún no hay vehículos en el garaje.',
@@ -206,14 +206,14 @@ export const translations: Record<Lang, Record<string, string>> = {
     'profile.errorFileSize': 'La foto supera el límite de 3 MB.',
 
     // Bienvenida (Auth Gate)
-    'welcome.title': 'Bike Tracker',
+    'welcome.title': 'LC Rider',
     'welcome.tagline': 'Tu compañero de ruta, telemetría y seguridad en convoy',
     'welcome.createOrEmail': 'Crear Cuenta / Iniciar con Correo',
     'welcome.tryDemoQuestion': '¿Quieres probar primero?',
     'welcome.tryDemo': 'Entrar en Modo Demo',
 
     // Onboarding de primer vehículo
-    'onboarding.greeting': '¡Hola, {{name}}! Bienvenido a Bike Tracker',
+    'onboarding.greeting': '¡Hola, {{name}}! Bienvenido a LC Rider',
     'onboarding.explain': 'Para unirte a rodadas y activar tu telemetría, registra tu primer vehículo.',
     'onboarding.saveAndEnter': 'Guardar y Entrar al Tablero',
     'onboarding.cancelAndBack': 'Cancelar y volver al inicio',
@@ -261,7 +261,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'tier.free': 'FREE',
     'tier.pro': 'PRO',
     'tier.club': 'CLUB',
-    'subscription.title': 'Planes de Bike Tracker',
+    'subscription.title': 'Planes de LC Rider',
     'subscription.subtitle': 'Elige el plan que mejor se adapte a tu forma de rodar.',
     'subscription.billingMonthly': 'Mensual',
     'subscription.billingYearly': 'Anual',
@@ -313,7 +313,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'subscription.qrSendReceipt': 'Enviar Comprobante por WhatsApp',
     'subscription.qrActivationNote': 'Activamos tu plan apenas confirmemos tu pago por WhatsApp (usualmente en minutos).',
     'subscription.qrWhatsappMessage':
-      'Hola Bike Tracker, acabo de transferir {{price}} por el plan {{plan}} vía QR Bancolombia/Nequi. Mi referencia es: {{reference}}. Adjunto el comprobante.',
+      'Hola LC Rider, acabo de transferir {{price}} por el plan {{plan}} vía QR Bancolombia/Nequi. Mi referencia es: {{reference}}. Adjunto el comprobante.',
     'subscription.phoneLabel': 'Número de celular',
     'subscription.bankLabel': 'Banco',
     'subscription.personType': 'Tipo de persona',
@@ -367,11 +367,11 @@ export const translations: Record<Lang, Record<string, string>> = {
     'update.ridePill': 'Actualización lista · se aplica al terminar la rodada',
 
     // Modal de instalación (PWA pura)
-    'install.title': 'Instala Bike Tracker en tu Celular',
+    'install.title': 'Instala LC Rider en tu Celular',
     'install.subtitle': 'Acceso instantáneo sin descargas pesadas ni tiendas de aplicaciones',
     'install.close': 'Cerrar',
     'install.closeButton': 'Cerrar',
-    'install.alreadyInstalled': 'Ya tienes Bike Tracker instalada en este dispositivo.',
+    'install.alreadyInstalled': 'Ya tienes LC Rider instalada en este dispositivo.',
     'install.nativeCta': 'Instalar en tu Pantalla de Inicio',
     'install.nativeSupport': 'Pesa menos de 1 MB, abre a pantalla completa y sigue funcionando sin conexión en carretera.',
     'install.iosIntro': 'En iPhone/iPad, instálala desde Safari en 3 pasos:',
@@ -379,14 +379,14 @@ export const translations: Record<Lang, Record<string, string>> = {
     'install.iosStep2': 'Desliza hacia abajo y presiona "Agregar al inicio".',
     'install.iosStep3': 'Confirma tocando "Agregar" en la esquina superior derecha.',
     'install.desktopText':
-      'Abre el menú de opciones de tu navegador (⋮ o ⋯) y elige "Instalar Bike Tracker" o "Instalar app" para anclarla como una aplicación más. En tu celular, ábrela desde Chrome (Android) o Safari (iPhone).',
+      'Abre el menú de opciones de tu navegador (⋮ o ⋯) y elige "Instalar LC Rider" o "Instalar app" para anclarla como una aplicación más. En tu celular, ábrela desde Chrome (Android) o Safari (iPhone).',
     'install.desktopHint': 'Si estás en Chrome o Edge, espera unos segundos: el botón de instalación con un solo toque aparecerá automáticamente.',
     'install.continueWeb': 'Continuar usando en la web',
 
     // Sesión única activa y sincronización con la nube
     'session.concurrentTitle': 'Sesión iniciada en otro dispositivo',
     'session.concurrentMessage':
-      'Tu cuenta de Bike Tracker ha iniciado sesión en otro celular o navegador. Para proteger tus datos y garantizar la equidad en el convoy, solo se permite un dispositivo activo a la vez.',
+      'Tu cuenta de LC Rider ha iniciado sesión en otro celular o navegador. Para proteger tus datos y garantizar la equidad en el convoy, solo se permite un dispositivo activo a la vez.',
     'session.reclaimAction': 'Retomar control en este dispositivo',
     'session.reclaiming': 'Retomando control…',
     'session.reclaimError': 'No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.',
@@ -398,7 +398,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'privacy.close': 'Entendido, volver',
     'auth.acceptPrefix': 'Acepto la',
     'auth.privacyPolicyLink': 'Política de Privacidad y Tratamiento de Datos (Ley 1581)',
-    'auth.acceptSuffix': 'de Bike Tracker.',
+    'auth.acceptSuffix': 'de LC Rider.',
     'auth.errorAcceptTerms': 'Debes aceptar la Política de Tratamiento de Datos para continuar.',
     'auth.googleConsentPrefix': 'Al continuar con Google aceptas la',
     'profile.dangerZoneTitle': 'Zona de Peligro',
@@ -432,7 +432,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     // Sidebar
     'sidebar.support': 'Support',
     'sidebar.language': 'Language',
-    'sidebar.defaultRiderName': 'Bike Tracker Rider',
+    'sidebar.defaultRiderName': 'LC Rider Pilot',
     'sidebar.signInRegister': 'Sign In / Register',
     'sidebar.editProfile': 'Edit Profile',
     'sidebar.logout': 'Log Out',
@@ -512,7 +512,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'garage.statusExpired': 'Expired',
     'garage.daysLeft': '{{days}} days left',
     'garage.expiredSince': 'Expired {{days}} days ago',
-    'garage.assistancePlan': 'Bike Tracker Assistance Plan',
+    'garage.assistancePlan': 'LC Rider Assistance Plan',
     'garage.planActiveUntil': 'Active until {{date}}',
     'garage.noActivePlan': 'No active plan',
     'garage.renew': 'Renew',
@@ -528,9 +528,9 @@ export const translations: Record<Lang, Record<string, string>> = {
     'garage.deleteConfirmBody': 'This action cannot be undone. {{vehicle}} will be removed from your garage.',
     'garage.cancel': 'Cancel',
     'garage.confirm': 'Confirm',
-    'garage.renewalTitle': 'Renew Bike Tracker Plan',
+    'garage.renewalTitle': 'Renew LC Rider Plan',
     'garage.renewalBody': "You'll activate the roadside assistance plan for {{vehicle}} for 365 days.",
-    'garage.welcomeTitle': 'Welcome to Bike Tracker, {{name}}!',
+    'garage.welcomeTitle': 'Welcome to LC Rider, {{name}}!',
     'garage.welcomeSubtitle': "You don't have any vehicles yet. Register your first bike to start riding.",
     'garage.registerFirstBike': 'Register my first bike',
     'garage.emptyGeneric': 'No vehicles in the garage yet.',
@@ -619,14 +619,14 @@ export const translations: Record<Lang, Record<string, string>> = {
     'profile.errorFileSize': 'The photo exceeds the 3 MB limit.',
 
     // Welcome (Auth Gate)
-    'welcome.title': 'Bike Tracker',
+    'welcome.title': 'LC Rider',
     'welcome.tagline': 'Your ride companion for telemetry and convoy safety',
     'welcome.createOrEmail': 'Create Account / Sign in with Email',
     'welcome.tryDemoQuestion': 'Want to try it first?',
     'welcome.tryDemo': 'Enter Demo Mode',
 
     // First-vehicle onboarding
-    'onboarding.greeting': 'Hi, {{name}}! Welcome to Bike Tracker',
+    'onboarding.greeting': 'Hi, {{name}}! Welcome to LC Rider',
     'onboarding.explain': 'To join rides and activate your telemetry, register your first vehicle.',
     'onboarding.saveAndEnter': 'Save and Enter Dashboard',
     'onboarding.cancelAndBack': 'Cancel and go back home',
@@ -674,7 +674,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'tier.free': 'FREE',
     'tier.pro': 'PRO',
     'tier.club': 'CLUB',
-    'subscription.title': 'Bike Tracker Plans',
+    'subscription.title': 'LC Rider Plans',
     'subscription.subtitle': 'Choose the plan that best fits your riding style.',
     'subscription.billingMonthly': 'Monthly',
     'subscription.billingYearly': 'Yearly',
@@ -726,7 +726,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'subscription.qrSendReceipt': 'Send Receipt via WhatsApp',
     'subscription.qrActivationNote': "We'll activate your plan as soon as we confirm your payment on WhatsApp (usually within minutes).",
     'subscription.qrWhatsappMessage':
-      'Hi Bike Tracker, I just transferred {{price}} for the {{plan}} plan via Bancolombia/Nequi QR. My reference is: {{reference}}. Receipt attached.',
+      'Hi LC Rider, I just transferred {{price}} for the {{plan}} plan via Bancolombia/Nequi QR. My reference is: {{reference}}. Receipt attached.',
     'subscription.phoneLabel': 'Phone number',
     'subscription.bankLabel': 'Bank',
     'subscription.personType': 'Account type',
@@ -780,11 +780,11 @@ export const translations: Record<Lang, Record<string, string>> = {
     'update.ridePill': 'Update ready · applies when the ride ends',
 
     // Install modal (pure PWA)
-    'install.title': 'Install Bike Tracker on your Phone',
+    'install.title': 'Install LC Rider on your Phone',
     'install.subtitle': 'Instant access with no heavy downloads or app stores',
     'install.close': 'Close',
     'install.closeButton': 'Close',
-    'install.alreadyInstalled': 'Bike Tracker is already installed on this device.',
+    'install.alreadyInstalled': 'LC Rider is already installed on this device.',
     'install.nativeCta': 'Install on your Home Screen',
     'install.nativeSupport': 'Under 1 MB, opens full screen and keeps working offline on the road.',
     'install.iosIntro': 'On iPhone/iPad, install it from Safari in 3 steps:',
@@ -792,14 +792,14 @@ export const translations: Record<Lang, Record<string, string>> = {
     'install.iosStep2': 'Scroll down and tap "Add to Home Screen".',
     'install.iosStep3': 'Confirm by tapping "Add" in the top-right corner.',
     'install.desktopText':
-      'Open your browser\'s options menu (⋮ or ⋯) and choose "Install Bike Tracker" or "Install app" to pin it like any other application. On your phone, open it from Chrome (Android) or Safari (iPhone).',
+      'Open your browser\'s options menu (⋮ or ⋯) and choose "Install LC Rider" or "Install app" to pin it like any other application. On your phone, open it from Chrome (Android) or Safari (iPhone).',
     'install.desktopHint': "If you're on Chrome or Edge, wait a few seconds: the one-tap install button will appear automatically.",
     'install.continueWeb': 'Continue using the web version',
 
     // Single active session & cloud sync
     'session.concurrentTitle': 'Session opened on another device',
     'session.concurrentMessage':
-      'Your Bike Tracker account has logged in on another phone or browser. To protect your data and keep the convoy fair, only one active device is allowed at a time.',
+      'Your LC Rider account has logged in on another phone or browser. To protect your data and keep the convoy fair, only one active device is allowed at a time.',
     'session.reclaimAction': 'Take control on this device',
     'session.reclaiming': 'Taking control…',
     'session.reclaimError': "We couldn't reach the server. Check your connection and try again.",
@@ -811,7 +811,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'privacy.close': 'Got it, go back',
     'auth.acceptPrefix': 'I accept the',
     'auth.privacyPolicyLink': 'Privacy & Data Processing Policy (Law 1581)',
-    'auth.acceptSuffix': 'of Bike Tracker.',
+    'auth.acceptSuffix': 'of LC Rider.',
     'auth.errorAcceptTerms': 'You must accept the Data Processing Policy to continue.',
     'auth.googleConsentPrefix': 'By continuing with Google you accept the',
     'profile.dangerZoneTitle': 'Danger Zone',

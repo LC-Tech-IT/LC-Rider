@@ -1,7 +1,7 @@
 {
-  "name": "Bike Tracker - Convoy & Telemetría",
-  "short_name": "BikeTracker",
-  "description": "Plataforma de telemetría y convoy en tiempo real para moteros",
+  "name": "LC Rider - Convoy & Telemetría",
+  "short_name": "LC Rider",
+  "description": "Plataforma de telemetría y convoy en tiempo real para moteros por LC SyncTech",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

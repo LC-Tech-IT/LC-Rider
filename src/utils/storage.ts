@@ -1,8 +1,36 @@
 import type { UserAccountData } from '../types'
 
-const PREFIX = 'biketracker.'
+const PREFIX = 'lcrider.'
+/** Prefijo de la marca anterior (Bike Tracker). Sus datos se migran una sola vez al prefijo nuevo. */
+const LEGACY_PREFIX = 'biketracker.'
 const ACCOUNTS_KEY = 'accounts'
 const CURRENT_USER_KEY = 'currentUserEmail'
+
+/** Copia al prefijo `lcrider.` todo lo guardado con `biketracker.` (cuentas, garaje, sesión, id de dispositivo,
+ *  preferencias) y borra la copia antigua. Si ya existe un valor con el prefijo nuevo, gana el nuevo. Se ejecuta al
+ *  importar este módulo, antes de que AppContext lea la sesión, para que nadie pierda su sesión ni su garaje. */
+function migrateLegacyStorage(store: Storage): void {
+  const legacyKeys: string[] = []
+  for (let i = 0; i < store.length; i++) {
+    const key = store.key(i)
+    if (key?.startsWith(LEGACY_PREFIX)) legacyKeys.push(key)
+  }
+  for (const legacyKey of legacyKeys) {
+    const newKey = PREFIX + legacyKey.slice(LEGACY_PREFIX.length)
+    const value = store.getItem(legacyKey)
+    if (value !== null && store.getItem(newKey) === null) store.setItem(newKey, value)
+    // Solo se borra lo antiguo si la copia quedó guardada (p. ej. sin cuota llena).
+    if (store.getItem(newKey) !== null) store.removeItem(legacyKey)
+  }
+}
+
+for (const getStore of [() => window.localStorage, () => window.sessionStorage]) {
+  try {
+    migrateLegacyStorage(getStore())
+  } catch {
+    /* Almacenamiento no disponible: no hay nada que migrar. */
+  }
+}
 
 export function loadStorage<T>(key: string, fallback: T): T {
   try {

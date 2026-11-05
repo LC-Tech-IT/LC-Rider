@@ -106,7 +106,13 @@ function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`
 }
 
-const DEMO_EMAIL = 'demo@biketracker.app'
+const DEMO_EMAIL = 'demo@lcrider.app'
+/** Correo demo de la marca anterior: una sesión demo guardada antes del cambio de marca se sigue tratando como demo. */
+const LEGACY_DEMO_EMAIL = 'demo@biketracker.app'
+
+function isDemoEmail(email: string | null | undefined): boolean {
+  return email === DEMO_EMAIL || email === LEGACY_DEMO_EMAIL
+}
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function isUuid(id: string): boolean {
@@ -124,12 +130,13 @@ function newUuid(): string {
 
 /** Solo las cuentas reales de Supabase Auth (id uuid) se sincronizan con la nube; el Modo Demo vive solo en memoria. */
 function isCloudUser(u: UserProfile | null): u is UserProfile {
-  return !!u && u.isLoggedIn && u.email !== DEMO_EMAIL && isUuid(u.id)
+  return !!u && u.isLoggedIn && !isDemoEmail(u.email) && isUuid(u.id)
 }
 
 // --- Sesión única activa: un identificador estable por dispositivo (compartido entre pestañas del mismo
 // navegador), de modo que solo otro celular/navegador —no una segunda pestaña— desplace a este dispositivo. ---
-const DEVICE_SESSION_KEY = 'biketracker.session_id'
+// Usa el mismo prefijo que utils/storage.ts, que migra el id antiguo (`biketracker.session_id`) al cargar.
+const DEVICE_SESSION_KEY = 'lcrider.session_id'
 let fallbackDeviceSessionId: string | null = null
 
 function getDeviceSessionId(): string {
@@ -435,7 +442,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     userRef.current = next
     setUser(next)
   }, [])
-  const isDemoUser = user?.email === DEMO_EMAIL
+  const isDemoUser = isDemoEmail(user?.email)
 
   // --- Expiración automática de suscripciones: al cargar/cambiar la sesión, si el plan de pago (Pro/Club)
   // ya venció, se degrada a 'free' de inmediato (también en Supabase) en vez de dejar al usuario disfrutando de
@@ -485,7 +492,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [routePlannerOpen, setRoutePlannerOpen] = useState(false)
 
   const [convoyMembers, setConvoyMembers] = useState<ConvoyMember[]>(() =>
-    loadInitialSession().user?.email === 'demo@biketracker.app'
+    isDemoEmail(loadInitialSession().user?.email)
       ? createInitialConvoyMembers(DEFAULT_POSITION, DEMO_VEHICLES[0].plate)
       : createSoloMember(DEFAULT_POSITION),
   )
@@ -794,7 +801,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     setConvoyRoom(null)
     // El Modo Demo arranca en tier 'pro' para mostrar la experiencia completa (voz de intercomunicador, etc.).
-    setUser(buildProfile('Piloto Demo', 'demo@biketracker.app', '🕶️', 'email', 'pro'))
+    setUser(buildProfile('Piloto Demo', DEMO_EMAIL, '🕶️', 'email', 'pro'))
     setVehicleDocs(DEMO_VEHICLES)
     setActiveVehicleId(DEMO_VEHICLES[0].id)
     setConvoyMembers(createInitialConvoyMembers(DEFAULT_POSITION, DEMO_VEHICLES[0].plate))
@@ -875,7 +882,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const current = userRef.current
     if (!current) return true
 
-    if (current.email === DEMO_EMAIL) {
+    if (isDemoEmail(current.email)) {
       logout()
       setEditProfileModalOpen(false)
       setTopLevelMode('landing')

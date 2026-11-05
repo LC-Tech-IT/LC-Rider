@@ -58,12 +58,12 @@ export default function LandingPage() {
           <div className="flex min-w-0 items-center gap-3">
             <img
               src="/images/app-icon.jpg"
-              alt="Bike Tracker"
+              alt="LC Rider"
               className="h-10 w-10 flex-shrink-0 rounded-xl border border-white/10 object-cover shadow-md"
             />
             <div className="flex min-w-0 flex-col">
               <div className="flex items-center gap-2">
-                <span className="font-sans text-base font-extrabold tracking-tight text-white">Bike Tracker</span>
+                <span className="font-sans text-base font-extrabold tracking-tight text-white">LC Rider</span>
                 <span className="hidden rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-slate-400 sm:inline-block">
                   Telemetry
                 </span>
@@ -96,8 +96,8 @@ export default function LandingPage() {
             <button
               onClick={() => setInstallModalOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white sm:px-3"
-              title="Instalar Bike Tracker"
-              aria-label="Instalar Bike Tracker"
+              title="Instalar LC Rider"
+              aria-label="Instalar LC Rider"
             >
               <IconDownload className="h-4 w-4" />
               <span className="hidden sm:inline">Instalar</span>
@@ -229,9 +229,9 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-7xl 2xl:max-w-[1400px] flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-start md:justify-between lg:px-8">
           <div className="max-w-sm">
             <div className="flex items-center gap-3">
-              <img src="/images/app-icon.jpg" alt="Bike Tracker" className="h-9 w-9 rounded-lg border border-white/10 object-cover" />
+              <img src="/images/app-icon.jpg" alt="LC Rider" className="h-9 w-9 rounded-lg border border-white/10 object-cover" />
               <div>
-                <p className="text-sm font-extrabold tracking-tight text-white">Bike Tracker</p>
+                <p className="text-sm font-extrabold tracking-tight text-white">LC Rider</p>
                 <p className="text-[11px] text-slate-500">por LC SyncTech</p>
               </div>
             </div>
@@ -242,7 +242,7 @@ export default function LandingPage() {
 
           <div className="flex flex-col gap-3 text-sm">
             <a
-              href="mailto:contacto@lcsynctech.com?subject=Consulta%20Bike%20Tracker"
+              href="mailto:contacto@lcsynctech.com?subject=Consulta%20LC%20Rider"
               className="inline-flex items-center gap-2.5 text-slate-400 transition hover:text-white"
             >
               <IconMail className="h-4 w-4 text-slate-500" />

@@ -1,4 +1,4 @@
-# 🏍️ Bike Tracker — LC SyncTech
+# 🏍️ LC Rider — LC SyncTech
 
 [![Production Deployment](https://img.shields.io/badge/Deployment-Cloudflare%20Pages-success?style=for-the-badge&logo=cloudflarepages)](https://biker.lcsynctech.com/)
 [![Tech Stack](https://img.shields.io/badge/Stack-React%2018%20%7C%20Vite%20%7C%20Capacitor-orange?style=for-the-badge&logo=react)](https://biker.lcsynctech.com/)

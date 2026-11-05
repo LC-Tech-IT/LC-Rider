@@ -16,12 +16,12 @@ const POLICY: Record<Lang, { updated: string; intro: string; sections: PolicySec
   es: {
     updated: 'Última actualización: 11 de octubre de 2026',
     intro:
-      'En Bike Tracker respetamos tu privacidad. Esta política explica qué datos personales tratamos, para qué, cómo los protegemos y cómo puedes ejercer tus derechos como titular conforme a la Ley Estatutaria 1581 de 2012 (Habeas Data) y el Decreto 1377 de 2013.',
+      'En LC Rider respetamos tu privacidad. Esta política explica qué datos personales tratamos, para qué, cómo los protegemos y cómo puedes ejercer tus derechos como titular conforme a la Ley Estatutaria 1581 de 2012 (Habeas Data) y el Decreto 1377 de 2013.',
     sections: [
       {
         title: '1. Responsable del Tratamiento',
         paragraphs: [
-          `LC SyncTech, operador de la plataforma Bike Tracker, con domicilio en Colombia. Canales de atención: correo ${CONTACT_EMAIL} y WhatsApp ${CONTACT_WHATSAPP}.`,
+          `LC SyncTech, operador de la plataforma LC Rider, con domicilio en Colombia. Canales de atención: correo ${CONTACT_EMAIL} y WhatsApp ${CONTACT_WHATSAPP}.`,
         ],
       },
       {
@@ -30,7 +30,7 @@ const POLICY: Record<Lang, { updated: string; intro: string; sections: PolicySec
         bullets: [
           'Identificación y contacto: nombre, apellidos, correo electrónico y teléfono; de forma opcional, género, edad y foto de perfil.',
           'Garaje: placa, marca y modelo de tus vehículos, fechas de vencimiento del SOAT y la revisión tecnomecánica, y las fotos o PDF de esos documentos si decides cargarlos.',
-          'Suscripción: plan contratado, fecha de vigencia y código de club. Los pagos los procesa la pasarela Wompi: Bike Tracker no almacena números de tarjeta ni credenciales bancarias.',
+          'Suscripción: plan contratado, fecha de vigencia y código de club. Los pagos los procesa la pasarela Wompi: LC Rider no almacena números de tarjeta ni credenciales bancarias.',
           'Datos técnicos: un identificador de sesión por dispositivo, usado para permitir un solo dispositivo activo por cuenta.',
         ],
       },
@@ -89,12 +89,12 @@ const POLICY: Record<Lang, { updated: string; intro: string; sections: PolicySec
   en: {
     updated: 'Last updated: October 11, 2026',
     intro:
-      'At Bike Tracker we respect your privacy. This policy explains which personal data we process, why, how we protect it and how you can exercise your rights as a data subject under Colombian Statutory Law 1581 of 2012 (Habeas Data) and Decree 1377 of 2013.',
+      'At LC Rider we respect your privacy. This policy explains which personal data we process, why, how we protect it and how you can exercise your rights as a data subject under Colombian Statutory Law 1581 of 2012 (Habeas Data) and Decree 1377 of 2013.',
     sections: [
       {
         title: '1. Data Controller',
         paragraphs: [
-          `LC SyncTech, operator of the Bike Tracker platform, based in Colombia. Support channels: email ${CONTACT_EMAIL} and WhatsApp ${CONTACT_WHATSAPP}.`,
+          `LC SyncTech, operator of the LC Rider platform, based in Colombia. Support channels: email ${CONTACT_EMAIL} and WhatsApp ${CONTACT_WHATSAPP}.`,
         ],
       },
       {
@@ -103,7 +103,7 @@ const POLICY: Record<Lang, { updated: string; intro: string; sections: PolicySec
         bullets: [
           'Identity and contact: first name, last name, email and phone; optionally gender, age and profile photo.',
           'Garage: plate, make and model of your vehicles, SOAT and technical inspection expiry dates, and photos or PDFs of those documents if you choose to upload them.',
-          "Subscription: plan, validity date and club code. Payments are processed by the Wompi gateway: Bike Tracker doesn't store card numbers or banking credentials.",
+          "Subscription: plan, validity date and club code. Payments are processed by the Wompi gateway: LC Rider doesn't store card numbers or banking credentials.",
           'Technical data: one session identifier per device, used to allow a single active device per account.',
         ],
       },

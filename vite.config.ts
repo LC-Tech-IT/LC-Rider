@@ -31,7 +31,7 @@ function pwaVersionPlugin(): Plugin {
       if (!existsSync(swPath)) throw new Error('[pwa-version] No se encontró dist/sw.js')
       const sw = readFileSync(swPath, 'utf-8')
       if (!sw.includes('__BUILD_ID__')) throw new Error('[pwa-version] public/sw.js no contiene el marcador __BUILD_ID__')
-      const header = `/* Bike Tracker v${pkg.version} · build ${BUILD_ID}${COMMIT ? ` · ${COMMIT}` : ''} · ${BUILD_TIME} */\n`
+      const header = `/* LC Rider v${pkg.version} · build ${BUILD_ID}${COMMIT ? ` · ${COMMIT}` : ''} · ${BUILD_TIME} */\n`
       writeFileSync(swPath, header + sw.replace(/__BUILD_ID__/g, BUILD_ID))
     },
   }

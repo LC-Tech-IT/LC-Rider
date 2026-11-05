@@ -71,7 +71,7 @@ function CarPlayMockup({ speed, members }: { speed: number; members: MemberRow[]
             </span>
           </div>
           <span className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300">
-            CarPlay / Android Auto · Bike Tracker HUD
+            CarPlay / Android Auto · LC Rider HUD
           </span>
           <div className="flex items-center gap-1.5 text-slate-400">
             {[IconMap, IconPhone, IconSettings].map((Icon, i) => (
@@ -260,7 +260,7 @@ export default function LandingShowcase() {
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-orange-400">El Convoy</p>
           <h2 className="mt-3 font-sans text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Bike Tracker en acción
+            LC Rider en acción
           </h2>
           <p className="mt-4 text-base leading-relaxed text-slate-400">
             Así se ve tu convoy en tiempo real, en tu celular o en la pantalla de tu vehículo.

@@ -9,7 +9,7 @@ const SUBJECT_OPTIONS = [
 ]
 
 const WHATSAPP_NUMBER = '573505208592'
-const WHATSAPP_MESSAGE = 'Hola Bike Tracker, quisiera más información sobre la app y los planes Pro'
+const WHATSAPP_MESSAGE = 'Hola LC Rider, quisiera más información sobre la app y los planes Pro'
 const CONTACT_EMAIL = 'contacto@lcsynctech.com'
 
 export default function LandingContact() {
@@ -26,7 +26,7 @@ export default function LandingContact() {
       return
     }
 
-    const subjectLabel = SUBJECT_OPTIONS.find((opt) => opt.value === subject)?.label ?? 'Consulta Bike Tracker'
+    const subjectLabel = SUBJECT_OPTIONS.find((opt) => opt.value === subject)?.label ?? 'Consulta LC Rider'
     const body = `Nombre: ${name}\nCorreo: ${email}\n\n${message}`
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subjectLabel)}&body=${encodeURIComponent(body)}`
 

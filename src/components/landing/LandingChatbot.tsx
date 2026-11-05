@@ -59,7 +59,7 @@ export default function LandingChatbot({ open: openProp, onOpenChange }: Landing
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 Asistente Biker
               </p>
-              <p className="text-[10px] text-slate-500">Bike Tracker · LC SyncTech</p>
+              <p className="text-[10px] text-slate-500">LC Rider · LC SyncTech</p>
             </div>
             <button onClick={() => setOpen(false)} className="text-xl leading-none text-slate-500 transition hover:text-white" aria-label="Cerrar chat">
               ×
