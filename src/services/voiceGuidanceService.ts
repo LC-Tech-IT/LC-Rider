@@ -6,9 +6,11 @@ const LOCALE_BY_LANG: Record<Lang, string> = {
   en: 'en-US',
 }
 
-/** Prosodia por defecto: rápida, fluida y enérgica, con actitud para salir a rodar. */
-const DEFAULT_RATE = 1.18
-const DEFAULT_PITCH = 1.1
+/** Prosodia para navegación en carretera: pausada y clara, óptima con viento e intercomunicador en el casco. */
+const NAV_PROSODY = { rate: 1.05, pitch: 1.02 }
+
+/** Prosodia para la demo comercial de la landing: rápida, ágil y llena de energía para salir a rodar. */
+const DEMO_PROSODY = { rate: 1.18, pitch: 1.1 }
 
 function speechSynthesisAvailable(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window
@@ -93,8 +95,8 @@ function speak(text: string, lang: Lang, options?: { pitch?: number; rate?: numb
     } else {
       utterance.lang = LOCALE_BY_LANG[lang]
     }
-    utterance.rate = options?.rate ?? DEFAULT_RATE
-    utterance.pitch = options?.pitch ?? DEFAULT_PITCH
+    utterance.rate = options?.rate ?? NAV_PROSODY.rate
+    utterance.pitch = options?.pitch ?? NAV_PROSODY.pitch
     if (options?.onEnd) {
       utterance.onend = options.onEnd
       utterance.onerror = options.onEnd
@@ -108,18 +110,18 @@ function speak(text: string, lang: Lang, options?: { pitch?: number; rate?: numb
 
 /** Instrucción de navegación tipo Waze, anunciada ante cada giro o maniobra de la ruta. */
 export function announceTurnInstruction(instruction: string, lang: Lang): void {
-  speak(instruction, lang)
+  speak(instruction, lang, NAV_PROSODY)
 }
 
 /** Alerta de intercomunicador de convoy (gasolina, reagrupación, rezagados). */
 export function announceIntercom(message: string, lang: Lang): void {
-  speak(message, lang, { pitch: 1.1 })
+  speak(message, lang, { ...NAV_PROSODY, pitch: 1.06 })
 }
 
 /** Locución enérgica con aviso de fin (para encadenar UI tras la voz). `onEnd` se llama también si la voz falla
  *  o no existe, así quien espera nunca queda colgado. */
 export function speakWithVoice(text: string, lang: Lang, onEnd?: () => void): void {
-  speak(text, lang, { pitch: DEFAULT_PITCH, rate: DEFAULT_RATE, onEnd })
+  speak(text, lang, { ...DEMO_PROSODY, onEnd })
 }
 
 /** Locuciones de la demo "Iniciar Convoy" del radar de la landing, por fase. */
