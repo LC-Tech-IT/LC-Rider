@@ -1,13 +1,83 @@
 import type { Lang } from '../types'
 
+/** Locale primario por idioma: español de Colombia (no es-ES) e inglés de EE. UU. */
 const LOCALE_BY_LANG: Record<Lang, string> = {
-  es: 'es-ES',
+  es: 'es-CO',
   en: 'en-US',
 }
+
+/** Prosodia por defecto: un punto más ágil y animada que la neutra, clara para salir a rodar. */
+const DEFAULT_RATE = 1.05
+const DEFAULT_PITCH = 1.05
 
 function speechSynthesisAvailable(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window
 }
+
+/* ───────────────────────── Selección de voz ───────────────────────── */
+
+// Chrome carga las voces de forma asíncrona: se cachean y se refrescan con `voiceschanged`.
+let cachedVoices: SpeechSynthesisVoice[] = []
+
+function refreshVoices(): void {
+  try {
+    cachedVoices = window.speechSynthesis.getVoices()
+  } catch {
+    cachedVoices = []
+  }
+}
+
+if (speechSynthesisAvailable()) {
+  refreshVoices()
+  try {
+    window.speechSynthesis.addEventListener('voiceschanged', refreshVoices)
+  } catch {
+    /* Navegadores antiguos sin EventTarget en speechSynthesis: se lee la lista en cada locución. */
+  }
+}
+
+const normLang = (v: SpeechSynthesisVoice) => v.lang.replace('_', '-').toLowerCase()
+
+/** Dentro de un mismo nivel, prefiere voces neuronales ("Natural"/"Online") y luego las de Google. */
+function quality(v: SpeechSynthesisVoice): number {
+  if (/natural|online|neural/i.test(v.name)) return 2
+  if (/google/i.test(v.name)) return 1
+  return 0
+}
+
+function bestOf(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+  if (!voices.length) return null
+  return [...voices].sort((a, b) => quality(b) - quality(a))[0]
+}
+
+const COLOMBIA = (v: SpeechSynthesisVoice) =>
+  normLang(v) === 'es-co' || /colombia|salome|gonzalo/i.test(v.name)
+const LATAM_NEUTRAL = (v: SpeechSynthesisVoice) =>
+  ['es-419', 'es-us', 'es-mx'].some((p) => normLang(v).startsWith(p)) ||
+  /latin|latino|m[eé]xico|estados unidos|united states/i.test(v.name)
+const SPAIN = (v: SpeechSynthesisVoice) => normLang(v) === 'es-es' || /espa[ñn]a|spain|castilian/i.test(v.name)
+
+/** Elige la mejor voz disponible: Colombia → Latinoamérica neutra (es-419/es-US/es-MX) → cualquier otra de
+ *  Latinoamérica → (último recurso) cualquier voz en español. En inglés prioriza en-US. */
+export function pickBestVoice(lang: Lang): SpeechSynthesisVoice | null {
+  if (!speechSynthesisAvailable()) return null
+  if (!cachedVoices.length) refreshVoices()
+  const voices = cachedVoices
+
+  if (lang === 'es') {
+    const spanish = voices.filter((v) => normLang(v).startsWith('es'))
+    return (
+      bestOf(spanish.filter(COLOMBIA)) ??
+      bestOf(spanish.filter(LATAM_NEUTRAL)) ??
+      bestOf(spanish.filter((v) => !SPAIN(v))) ??
+      bestOf(spanish)
+    )
+  }
+  const english = voices.filter((v) => normLang(v).startsWith('en'))
+  return bestOf(english.filter((v) => normLang(v) === 'en-us')) ?? bestOf(english)
+}
+
+/* ───────────────────────── Locución ───────────────────────── */
 
 function speak(text: string, lang: Lang, options?: { pitch?: number; rate?: number; onEnd?: () => void }): void {
   if (!speechSynthesisAvailable() || !text) {
@@ -16,9 +86,15 @@ function speak(text: string, lang: Lang, options?: { pitch?: number; rate?: numb
   }
   try {
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = LOCALE_BY_LANG[lang]
-    utterance.rate = options?.rate ?? 1
-    utterance.pitch = options?.pitch ?? 1
+    const voice = pickBestVoice(lang)
+    if (voice) {
+      utterance.voice = voice
+      utterance.lang = voice.lang
+    } else {
+      utterance.lang = LOCALE_BY_LANG[lang]
+    }
+    utterance.rate = options?.rate ?? DEFAULT_RATE
+    utterance.pitch = options?.pitch ?? DEFAULT_PITCH
     if (options?.onEnd) {
       utterance.onend = options.onEnd
       utterance.onerror = options.onEnd
@@ -40,10 +116,10 @@ export function announceIntercom(message: string, lang: Lang): void {
   speak(message, lang, { pitch: 1.1 })
 }
 
-/** Locución de intercomunicador con aviso de fin (para encadenar UI tras la voz). `onEnd` se llama también si
- *  la voz falla o no existe, así quien espera nunca queda colgado. */
-export function announceIntercomThen(message: string, lang: Lang, onEnd: () => void): void {
-  speak(message, lang, { pitch: 1.05, rate: 1.05, onEnd })
+/** Locución enérgica con aviso de fin (para encadenar UI tras la voz). `onEnd` se llama también si la voz falla
+ *  o no existe, así quien espera nunca queda colgado. */
+export function speakWithVoice(text: string, lang: Lang, onEnd?: () => void): void {
+  speak(text, lang, { pitch: 1.06, rate: 1.06, onEnd })
 }
 
 /** iOS Safari solo permite speechSynthesis si la primera locución nace de un gesto del usuario. Llamar esto

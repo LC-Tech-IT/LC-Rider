@@ -51,10 +51,16 @@ export default {
           '0%, 100%': { opacity: 1 },
           '50%': { opacity: 0.35 },
         },
+        // Tacómetro de la landing en "Convoy conectado": oscilación sutil de la aguja (±~40 RPM).
+        needleBreath: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '50%': { transform: 'rotate(0.9deg)' },
+        },
       },
       animation: {
         pulseRing: 'pulseRing 1.6s cubic-bezier(0.4,0,0.6,1) infinite',
         blink: 'blink 1s ease-in-out infinite',
+        needleBreath: 'needleBreath 2.4s ease-in-out infinite',
       },
     },
   },

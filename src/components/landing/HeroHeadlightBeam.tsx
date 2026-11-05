@@ -9,9 +9,10 @@ import { useEffect, useRef } from 'react'
  *    grupo transparente y aparecería como un rectángulo oscuro.
  *  - El video se dimensiona por ancho y se desplaza hacia arriba para que el faro caiga en la franja superior que
  *    el Hero reserva (pt-36 / sm:pt-40), por encima del titular, en cualquier ancho de pantalla.
- *  - Se reproduce una sola vez y queda congelado con el faro encendido: el clip va de apagado a encendido, así que
- *    un loop cortaría a negro cada 5 s detrás del titular. Con `prefers-reduced-motion` se muestra directamente el
- *    último cuadro. */
+ *  - Se reproduce una vez y queda congelado con el faro encendido: el clip va de apagado a encendido, así que
+ *    un loop cortaría a negro cada 5 s detrás del titular. Si el usuario baja por la página y regresa al Hero,
+ *    un IntersectionObserver rebobina el clip y el faro se enciende de nuevo. Con `prefers-reduced-motion` se
+ *    muestra directamente el último cuadro y no se repite. */
 
 /** Fracción vertical del cuadro donde está el centro del faro. */
 const LAMP_FRACTION = 0.38
@@ -32,12 +33,19 @@ const topFor = ({ width, lampY }: { width: number; lampY: number }) => Math.roun
 const VIDEO_MASK =
   'radial-gradient(ellipse 50% 40% at 50% 40%, black 28%, rgba(0,0,0,0.65) 58%, transparent 100%)'
 
+/** Fracción visible del Hero por debajo de la cual se considera que el usuario "salió" de la sección. */
+const VISIBLE_THRESHOLD = 0.15
+
 export default function HeroHeadlightBeam() {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  /** true cuando el Hero salió del viewport: al volver, el faro se enciende de nuevo desde el segundo 0. */
+  const hasScrolledAwayRef = useRef(false)
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video) return
+    const container = containerRef.current
+    if (!video || !container) return
     // Último cuadro = faro encendido. Se usa con movimiento reducido y como respaldo si el navegador bloquea la
     // reproducción automática (modo ahorro de batería/datos), para que la moto nunca quede apagada.
     const showLastFrame = () => {
@@ -55,10 +63,32 @@ export default function HeroHeadlightBeam() {
       return
     }
     void video.play().catch(showLastFrame)
+
+    // Reactivación por scroll: al salir del Hero se pausa (ahorra CPU/batería) y al volver se rebobina y el faro
+    // se enciende otra vez. Al terminar, el clip queda pausado en su último cuadro (faro encendido) porque no
+    // tiene `loop`. Se compara `intersectionRatio` y no `isIntersecting`: con un umbral de 0.15, al bajar el
+    // callback llega con el Hero aún parcialmente visible (isIntersecting = true) y la salida nunca se marcaría.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.intersectionRatio < VISIBLE_THRESHOLD) {
+            hasScrolledAwayRef.current = true
+            if (!video.ended) video.pause()
+          } else if (hasScrolledAwayRef.current) {
+            hasScrolledAwayRef.current = false
+            video.currentTime = 0
+            void video.play().catch(showLastFrame)
+          }
+        }
+      },
+      { threshold: VISIBLE_THRESHOLD },
+    )
+    observer.observe(container)
+    return () => observer.disconnect()
   }, [])
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div ref={containerRef} className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       {/* Resplandor ambiental de amplio espectro: extiende la luz del faro a lo ancho de pantallas ultra-anchas */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_25%,rgba(249,115,22,0.12),rgba(255,255,255,0.03)_35%,transparent_75%)] opacity-80" />
 
