@@ -9,9 +9,6 @@ const LOCALE_BY_LANG: Record<Lang, string> = {
 /** Prosodia para navegación en carretera: pausada y clara, óptima con viento e intercomunicador en el casco. */
 const NAV_PROSODY = { rate: 1.05, pitch: 1.02 }
 
-/** Prosodia para la demo comercial de la landing: rápida, ágil y llena de energía para salir a rodar. */
-const DEMO_PROSODY = { rate: 1.18, pitch: 1.1 }
-
 function speechSynthesisAvailable(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window
 }
@@ -116,19 +113,6 @@ export function announceTurnInstruction(instruction: string, lang: Lang): void {
 /** Alerta de intercomunicador de convoy (gasolina, reagrupación, rezagados). */
 export function announceIntercom(message: string, lang: Lang): void {
   speak(message, lang, { ...NAV_PROSODY, pitch: 1.06 })
-}
-
-/** Locución enérgica con aviso de fin (para encadenar UI tras la voz). `onEnd` se llama también si la voz falla
- *  o no existe, así quien espera nunca queda colgado. */
-export function speakWithVoice(text: string, lang: Lang, onEnd?: () => void): void {
-  speak(text, lang, { ...DEMO_PROSODY, onEnd })
-}
-
-/** Locuciones de la demo "Iniciar Convoy" del radar de la landing, por fase. */
-export const CONVOY_RADAR_LINES: Record<'locating' | 'connecting' | 'ready', Record<Lang, string>> = {
-  locating: { es: '¡Rastreo GPS activo! ¡Buscando pilotos en ruta!', en: 'GPS tracking active! Scanning riders on route!' },
-  connecting: { es: '¡Enlazando telemetría de convoy!', en: 'Linking convoy telemetry!' },
-  ready: { es: '¡Todos los pilotos encontrados! ¡Listos para rodar con toda!', en: 'All riders connected! Ready to hit the road!' },
 }
 
 /** iOS Safari solo permite speechSynthesis si la primera locución nace de un gesto del usuario. Llamar esto

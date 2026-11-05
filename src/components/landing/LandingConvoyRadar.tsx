@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { useApp } from '../../context/AppContext'
 import {
   isMuted,
   playConvoyReadyChime,
@@ -9,7 +8,6 @@ import {
   setMuted,
   unlockAudio,
 } from '../../services/soundService'
-import { CONVOY_RADAR_LINES, cancelSpeech, speakWithVoice } from '../../services/voiceGuidanceService'
 import { IconCheckCircle, IconCrown, IconPin, IconPlay, IconShield, IconSignal, IconVolume, IconVolumeOff } from './LandingIcons'
 
 /* ───────────────────────── Geometría del radar (viewBox 280 × 280) ───────────────────────── */
@@ -84,12 +82,15 @@ type ActivePhase = Exclude<ConvoyFlowState, 'idle'>
 
 /** Velocidad del haz (grados/s): crucero 6 s por vuelta, rastreo 1,5 s por vuelta. */
 const SWEEP_SPEED: Record<ConvoyFlowState, number> = { idle: 60, locating: 240, connecting: 150, ready: 90 }
-/** Cada fase dura al menos esto y avanza al terminar la voz. Rastreo pide algo más para completar un barrido. */
-const MIN_PHASE_MS: Record<ActivePhase, number> = { locating: 1600, connecting: 1100, ready: 0 }
-/** Salvaguarda: si el navegador nunca dispara `onend` de la voz, la fase avanza igual. */
-const MAX_PHASE_MS = 4500
-
-const NEXT_PHASE: Record<ActivePhase, ActivePhase | null> = { locating: 'connecting', connecting: 'ready', ready: null }
+/** Locución real (voz natural colombiana, 10,56 s) con las tres frases de la secuencia. */
+const VOICE_SRC = '/audio/convoy-voice.mp3'
+/** Línea de tiempo calibrada contra la locución, en segundos del propio audio:
+ *  0,08–3,64 s "¡Rastreo GPS activo!…" · 4,06–6,20 s "¡Enlazando telemetría…!" · 6,72–10,56 s "¡Todos los pilotos…!". */
+const TIMELINE = { connecting: 4.0, ready: 6.5, end: 10.56 }
+/** Si el audio se atasca (red lenta, buffering), la secuencia nunca va más de esto por detrás del reloj real. */
+const MAX_AUDIO_LAG_S = 1.5
+/** Frecuencia con la que se consulta el reloj de la secuencia (también corre con la pestaña en segundo plano). */
+const CLOCK_TICK_MS = 40
 
 const PHASE_TONE: Record<ActivePhase, () => void> = {
   locating: playRadarPing,
@@ -121,19 +122,21 @@ const STATUS_PILL: Record<ConvoyFlowState, { icon: ReactNode; label: string; cla
 }
 
 export default function LandingConvoyRadar() {
-  const { lang } = useApp()
   const [muted, setMutedState] = useState(isMuted())
   const [flow, setFlow] = useState<ConvoyFlowState>('idle')
+  /** true desde el clic hasta que termina la locución: mientras tanto el botón no reinicia. */
+  const [running, setRunning] = useState(false)
   const [detected, setDetected] = useState<boolean[]>(() => PILOTS.map(() => false))
 
   const rootRef = useRef<HTMLDivElement>(null)
   const sweepRef = useRef<SVGGElement>(null)
   const flowRef = useRef<ConvoyFlowState>('idle')
   const detectedRef = useRef<boolean[]>(PILOTS.map(() => false))
-  const timersRef = useRef<number[]>([])
-  /** Identifica la ejecución vigente: los callbacks de una secuencia cancelada (voz, timers) se ignoran. */
+  /** Intervalo del reloj de la secuencia en curso. */
+  const clockRef = useRef<number | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  /** Identifica la ejecución vigente: los callbacks de una secuencia cancelada (audio, timers) se ignoran. */
   const runIdRef = useRef(0)
-  const activeRef = useRef(false)
 
   /* Haz de barrido a 60 FPS: un bucle rAF mueve el haz escribiendo el atributo `transform` directamente (sin
    * re-render de React). La velocidad se acerca suavemente a la de cada fase (el radar "acelera"). Durante el
@@ -186,7 +189,19 @@ export default function LandingConvoyRadar() {
     }
   }, [])
 
-  useEffect(() => () => cancelRun(), [])
+  // Audio de la locución: se precarga al montar y se libera al desmontar.
+  useEffect(() => {
+    const audio = new Audio(VOICE_SRC)
+    audio.preload = 'auto'
+    audio.muted = isMuted()
+    audioRef.current = audio
+    return () => {
+      cancelRun()
+      audio.removeAttribute('src')
+      audio.load()
+      audioRef.current = null
+    }
+  }, [])
 
   function setPhase(next: ConvoyFlowState) {
     flowRef.current = next
@@ -198,69 +213,85 @@ export default function LandingConvoyRadar() {
     setDetected([...detectedRef.current])
   }
 
+  /** Detiene la secuencia vigente: invalida sus callbacks, detiene el reloj y rebobina el audio. */
   function cancelRun() {
     runIdRef.current += 1
-    timersRef.current.forEach((id) => window.clearTimeout(id))
-    timersRef.current = []
-    if (activeRef.current) cancelSpeech()
-    activeRef.current = false
+    if (clockRef.current !== null) window.clearInterval(clockRef.current)
+    clockRef.current = null
+    const audio = audioRef.current
+    if (audio) {
+      audio.pause()
+      audio.currentTime = 0
+    }
   }
 
-  function later(runId: number, fn: () => void, ms: number) {
-    timersRef.current.push(window.setTimeout(() => runIdRef.current === runId && fn(), ms))
-  }
-
-  /** Ejecuta una fase: estado visual + tono + voz. Avanza a la siguiente cuando termina la voz (con mínimo y
-   *  máximo por fase). Con sonido silenciado el flujo visual corre igual, sin audio. */
-  function runPhase(phase: ActivePhase, runId: number) {
+  /** Estado visual + tono de cada fase. Con sonido silenciado los tonos no suenan, pero la fase cambia igual. */
+  function enterPhase(phase: ActivePhase) {
     setPhase(phase)
-    // Al enlazar ya no puede quedar ningún piloto sin detectar (p. ej. si la voz fue muy corta o está en mute).
+    // Al enlazar ya no puede quedar ningún piloto sin detectar.
     if (phase !== 'locating') markDetected(true)
     PHASE_TONE[phase]()
-
-    const next = NEXT_PHASE[phase]
-    const startedAt = performance.now()
-    let advanced = false
-    const onVoiceDone = () => {
-      if (advanced || runIdRef.current !== runId) return
-      advanced = true
-      if (!next) {
-        activeRef.current = false
-        return
-      }
-      later(runId, () => runPhase(next, runId), Math.max(0, MIN_PHASE_MS[phase] - (performance.now() - startedAt)))
-    }
-
-    if (isMuted()) {
-      onVoiceDone()
-      return
-    }
-    speakWithVoice(CONVOY_RADAR_LINES[phase][lang], lang, onVoiceDone)
-    later(runId, onVoiceDone, MAX_PHASE_MS)
   }
 
   function handleStart() {
-    if (flow === 'locating' || flow === 'connecting') return
-    // Reinicio instantáneo: se cancela todo lo pendiente y el radar vuelve a rastrear desde cero.
+    if (running) return
+    // Reinicio instantáneo: se cancela todo lo pendiente, el audio vuelve a 0 y el radar rastrea desde cero.
     cancelRun()
     const runId = runIdRef.current
-    activeRef.current = true
+    setRunning(true)
     markDetected(false)
-    // La primera voz y el primer tono nacen dentro del gesto del usuario: desbloquea audio y voz en iOS/Android.
+    // Tono y audio nacen dentro del gesto del usuario: así iOS Safari y Chrome Android no bloquean la reproducción.
     unlockAudio()
-    runPhase('locating', runId)
+    enterPhase('locating')
+
+    const audio = audioRef.current
+    let audioPlaying = false
+    if (audio) {
+      // En silencio el archivo se reproduce mudo: sigue sirviendo de reloj y, si se activa el sonido a mitad de la
+      // secuencia, la voz entra justo en la frase que corresponde.
+      audio.muted = isMuted()
+      audio.addEventListener('playing', () => runIdRef.current === runId && (audioPlaying = true), { once: true })
+      void audio.play().catch(() => {
+        /* Archivo bloqueado o ausente: la secuencia corre con el reloj real. */
+      })
+    }
+
+    // Reloj de la secuencia: manda el tiempo del propio audio, así la latencia de arranque (carga del archivo,
+    // salida Bluetooth) nunca adelanta el radar a la voz. Sin audio, o si este se atasca más de MAX_AUDIO_LAG_S,
+    // manda el reloj real para que la demo nunca se quede congelada.
+    const startedAt = performance.now()
+    let phase: ActivePhase = 'locating'
+    clockRef.current = window.setInterval(() => {
+      if (runIdRef.current !== runId) return
+      const wall = (performance.now() - startedAt) / 1000
+      const t = audio && audioPlaying ? Math.max(audio.currentTime, wall - MAX_AUDIO_LAG_S) : wall
+      if (phase === 'locating' && t >= TIMELINE.connecting) {
+        phase = 'connecting'
+        enterPhase(phase)
+      }
+      if (phase === 'connecting' && t >= TIMELINE.ready) {
+        phase = 'ready'
+        enterPhase(phase)
+      }
+      if (t >= TIMELINE.end || (audioPlaying && audio?.ended)) {
+        if (clockRef.current !== null) window.clearInterval(clockRef.current)
+        clockRef.current = null
+        setRunning(false)
+      }
+    }, CLOCK_TICK_MS)
   }
 
   function toggleMute() {
     const next = !muted
     setMutedState(next)
     setMuted(next)
-    // Al silenciar se corta la voz en curso; su `onend` hace avanzar la fase, así el flujo visual sigue.
-    if (next) cancelSpeech()
+    if (audioRef.current) audioRef.current.muted = next
   }
 
   const busy = flow === 'locating' || flow === 'connecting'
   const ready = flow === 'ready'
+  /** Convoy conectado y locución terminada: el botón queda listo para repetir la prueba. */
+  const canRestart = ready && !running
   const linked = flow === 'connecting' || ready
   const detectedCount = detected.filter(Boolean).length
   const sweepColor = ready ? '#10B981' : '#38BDF8'
@@ -466,10 +497,10 @@ export default function LandingConvoyRadar() {
       <div className="border-t border-white/[0.06] p-3">
         <button
           onClick={handleStart}
-          disabled={busy}
-          className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-2.5 text-left transition active:scale-[0.98] disabled:cursor-wait ${
+          disabled={running}
+          className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-2.5 text-left transition active:scale-[0.98] disabled:cursor-default ${
             ready
-              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15 hover:text-emerald-200'
+              ? `border-emerald-500/40 bg-emerald-500/10 text-emerald-300 ${canRestart ? 'hover:bg-emerald-500/15 hover:text-emerald-200' : ''}`
               : busy
                 ? 'animate-pulse border-amber-500/50 bg-amber-500/15 text-amber-200'
                 : 'border-orange-500 bg-orange-600 text-white shadow-lg shadow-orange-900/30 hover:bg-orange-500'
@@ -484,11 +515,13 @@ export default function LandingConvoyRadar() {
           )}
           <span className="flex flex-col leading-tight">
             <span className="text-sm font-bold">
-              {ready ? 'Convoy Conectado (Reiniciar)' : busy ? 'Conectando Convoy...' : 'Iniciar Convoy'}
+              {canRestart ? 'Convoy Conectado (Reiniciar)' : ready ? 'Convoy Conectado' : busy ? 'Conectando Convoy...' : 'Iniciar Convoy'}
             </span>
             <span className={`text-[11px] font-medium ${ready ? 'text-emerald-300/70' : busy ? 'text-amber-200/70' : 'text-orange-100/85'}`}>
-              {ready
+              {canRestart
                 ? '5 pilotos en formación · Clic para repetir prueba'
+                : ready
+                ? '5 pilotos en formación'
                 : busy
                   ? 'Sincronizando telemetría GPS satelital'
                   : 'Escanear pilotos cercanos y enlazar telemetría'}
