@@ -472,7 +472,7 @@ const ACTS: Act[] = [
 export default function LandingStory() {
   return (
     <section id="benefits" className="border-t border-white/[0.06] bg-[#070A10]">
-      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
+      <div className="mx-auto max-w-7xl 2xl:max-w-[1400px] px-4 py-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-orange-400">La Experiencia</p>
           <h2 className="mt-3 font-sans text-3xl font-extrabold tracking-tight text-white sm:text-4xl">

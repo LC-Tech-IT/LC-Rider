@@ -1,125 +1,90 @@
-/** Fondo cinematográfico del Hero: en la penumbra aparece la firma lumínica frontal de una moto naked/deportiva
- *  (DRL LED afilados gemelos + proyector central), se enciende y proyecta un haz cónico tenue sobre el asfalto.
- *
- *  Secuencia (2 s, keyframes en tailwind.config.js): 0–0.4 s DRL tenues · 0.4–0.8 s destello del LED principal ·
- *  0.8–2 s el haz se abre hacia el frente. Con `prefers-reduced-motion` se muestra directamente el estado final.
- *
- *  Es decorativo (aria-hidden, pointer-events-none, z-0): el texto del Hero va encima en z-10 y la luz se mantiene
- *  por debajo de ~18% de opacidad en el centro, desvaneciéndose hacia los costados y el fondo #070A10. */
+import { useEffect, useRef } from 'react'
 
-/** Distancia desde el borde superior del Hero hasta el centro del proyector (origen del haz), en px. */
-const LENS_Y = 84
-const BEAM_W = 1400
-const BEAM_H = 820
-const BEAM_CLIP = 'polygon(48.6% 0, 51.4% 0, 100% 100%, 0 100%)'
-const BEAM_FADE = 'radial-gradient(ellipse 55% 100% at 50% 0, black 25%, transparent 85%)'
+/** Fondo cinematográfico del Hero: video real (/videos/hero-headlight.mp4) de una moto en la oscuridad que
+ *  enciende su faro LED y baña el asfalto.
+ *
+ *  Datos del clip: 768×1344 (vertical), 5,18 s, fondo ~#000. El faro está al 38% de la altura del cuadro.
+ *  - `mix-blend-screen` vuelve transparente el negro del video sobre el fondo #070A10. Ningún ancestro del <video>
+ *    crea contexto de apilamiento (sin z-index, transform ni mask): si lo hiciera, el negro se mezclaría contra un
+ *    grupo transparente y aparecería como un rectángulo oscuro.
+ *  - El video se dimensiona por ancho y se desplaza hacia arriba para que el faro caiga en la franja superior que
+ *    el Hero reserva (pt-36 / sm:pt-40), por encima del titular, en cualquier ancho de pantalla.
+ *  - Se reproduce una sola vez y queda congelado con el faro encendido: el clip va de apagado a encendido, así que
+ *    un loop cortaría a negro cada 5 s detrás del titular. Con `prefers-reduced-motion` se muestra directamente el
+ *    último cuadro. */
+
+/** Fracción vertical del cuadro donde está el centro del faro. */
+const LAMP_FRACTION = 0.38
+/** Relación alto/ancho del clip (1344 / 768). */
+const CLIP_RATIO = 1344 / 768
+
+/** Ancho del video y altura (px desde el borde superior del Hero) a la que debe quedar el faro, por breakpoint. */
+const LAYOUT = {
+  base: { width: 420, lampY: 66 },
+  sm: { width: 560, lampY: 74 },
+  lg: { width: 640, lampY: 80 },
+}
+
+const topFor = ({ width, lampY }: { width: number; lampY: number }) => Math.round(lampY - width * CLIP_RATIO * LAMP_FRACTION)
+
+/** Máscara elíptica centrada en el faro (38% del alto). Radio horizontal = 50% del ancho y opacidad 0 en el
+ *  100%, de modo que el video se desvanece por completo antes de sus bordes laterales e inferior (sin bandas). */
+const VIDEO_MASK =
+  'radial-gradient(ellipse 50% 40% at 50% 40%, black 28%, rgba(0,0,0,0.65) 58%, transparent 100%)'
 
 export default function HeroHeadlightBeam() {
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    // Último cuadro = faro encendido. Se usa con movimiento reducido y como respaldo si el navegador bloquea la
+    // reproducción automática (modo ahorro de batería/datos), para que la moto nunca quede apagada.
+    const showLastFrame = () => {
+      const seek = () => {
+        video.pause()
+        video.currentTime = Math.max(0, video.duration - 0.05)
+      }
+      if (video.readyState >= 1) seek()
+      else video.addEventListener('loadedmetadata', seek, { once: true })
+    }
+
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      video.removeAttribute('autoplay')
+      showLastFrame()
+      return
+    }
+    void video.play().catch(showLastFrame)
+  }, [])
+
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-      {/* Resplandor ambiental del faro sobre la escena */}
-      <div className="absolute inset-0 origin-top animate-headlightBeam bg-[radial-gradient(ellipse_80%_60%_at_50%_15%,rgba(249,115,22,0.15),rgba(255,255,255,0.06)_40%,transparent_75%)] opacity-70 motion-reduce:animate-none" />
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Resplandor ambiental de amplio espectro: extiende la luz del faro a lo ancho de pantallas ultra-anchas */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_25%,rgba(249,115,22,0.12),rgba(255,255,255,0.03)_35%,transparent_75%)] opacity-80" />
 
-      {/* Haz cónico sobre el asfalto + textura de asfalto y guías del carril */}
-      <div
-        className="absolute origin-top animate-headlightBeam motion-reduce:animate-none"
-        style={{
-          top: LENS_Y,
-          left: '50%',
-          marginLeft: -BEAM_W / 2,
-          width: BEAM_W,
-          height: BEAM_H,
-          WebkitMaskImage: BEAM_FADE,
-          maskImage: BEAM_FADE,
-        }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            clipPath: BEAM_CLIP,
-            background:
-              'linear-gradient(to bottom, rgba(255,237,213,0.18), rgba(251,146,60,0.08) 35%, rgba(251,146,60,0.03) 65%, transparent 92%)',
-          }}
-        />
-        <svg className="absolute inset-0 h-full w-full" viewBox={`0 0 ${BEAM_W} ${BEAM_H}`} preserveAspectRatio="none">
-          <defs>
-            <filter id="asphalt-grain" x="0" y="0" width="100%" height="100%">
-              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
-              <feColorMatrix type="saturate" values="0" />
-            </filter>
-            <clipPath id="beam-clip">
-              <polygon points={`${BEAM_W * 0.486},0 ${BEAM_W * 0.514},0 ${BEAM_W},${BEAM_H} 0,${BEAM_H}`} />
-            </clipPath>
-          </defs>
-          {/* Grano de asfalto, visible solo dentro del haz */}
-          <rect width={BEAM_W} height={BEAM_H} filter="url(#asphalt-grain)" opacity="0.07" clipPath="url(#beam-clip)" />
-          {/* Bordes del carril con fuga al proyector */}
-          <line x1={BEAM_W / 2} y1="0" x2={BEAM_W * 0.2} y2={BEAM_H} stroke="white" strokeOpacity="0.07" strokeWidth="2" />
-          <line x1={BEAM_W / 2} y1="0" x2={BEAM_W * 0.8} y2={BEAM_H} stroke="white" strokeOpacity="0.07" strokeWidth="2" />
-          {/* Línea central discontinua */}
-          <line
-            x1={BEAM_W / 2}
-            y1="40"
-            x2={BEAM_W / 2}
-            y2={BEAM_H}
-            stroke="#FBBF24"
-            strokeOpacity="0.12"
-            strokeWidth="3"
-            strokeDasharray="22 30"
-          />
-        </svg>
-      </div>
+      <video
+        ref={videoRef}
+        src="/videos/hero-headlight.mp4"
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        disablePictureInPicture
+        className="hero-headlight-video absolute left-1/2 max-w-none opacity-90 mix-blend-screen"
+        style={{ maskImage: VIDEO_MASK, WebkitMaskImage: VIDEO_MASK }}
+      />
+      <style>{`
+        .hero-headlight-video { width: ${LAYOUT.base.width}px; margin-left: -${LAYOUT.base.width / 2}px; top: ${topFor(LAYOUT.base)}px; }
+        @media (min-width: 640px) {
+          .hero-headlight-video { width: ${LAYOUT.sm.width}px; margin-left: -${LAYOUT.sm.width / 2}px; top: ${topFor(LAYOUT.sm)}px; }
+        }
+        @media (min-width: 1024px) {
+          .hero-headlight-video { width: ${LAYOUT.lg.width}px; margin-left: -${LAYOUT.lg.width / 2}px; top: ${topFor(LAYOUT.lg)}px; }
+        }
+      `}</style>
 
-      {/* Firma lumínica frontal de la moto */}
-      <div className="absolute left-1/2 top-5 -ml-[120px] h-[110px] w-[240px]">
-        {/* Halo del proyector */}
-        <div
-          className="absolute left-1/2 top-[64px] -ml-12 -mt-12 h-24 w-24 animate-headlightFlash rounded-full bg-[radial-gradient(circle,rgba(255,247,237,0.55),rgba(251,146,60,0.18)_45%,transparent_70%)] blur-md motion-reduce:animate-none"
-        />
-        <svg viewBox="0 0 240 110" className="relative h-full w-full">
-          <defs>
-            <radialGradient id="projector-lens" cx="50%" cy="45%" r="55%">
-              <stop offset="0%" stopColor="#FFFFFF" />
-              <stop offset="45%" stopColor="#FFF7ED" />
-              <stop offset="100%" stopColor="#FB923C" />
-            </radialGradient>
-          </defs>
-
-          {/* Manillar y barras de horquilla en penumbra */}
-          <path d="M10 24 Q120 8 230 24" fill="none" stroke="#94A3B8" strokeOpacity="0.16" strokeWidth="3" strokeLinecap="round" />
-          <path d="M97 92 L93 110 M143 92 L147 110" stroke="#94A3B8" strokeOpacity="0.16" strokeWidth="6" strokeLinecap="round" />
-
-          {/* Cúpula del faro */}
-          <path
-            d="M72 22 L168 22 L194 42 L182 74 L150 92 L90 92 L58 74 L46 42 Z"
-            fill="#0B0F18"
-            stroke="#FFFFFF"
-            strokeOpacity="0.08"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-
-          {/* DRL LED gemelos afilados */}
-          <g
-            className="animate-headlightDrl motion-reduce:animate-none"
-            style={{ filter: 'drop-shadow(0 0 6px rgba(251,191,36,0.75)) drop-shadow(0 0 12px rgba(249,115,22,0.6))' }}
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M58 44 L97 54 L108 67" stroke="#FFF7ED" strokeWidth="3.5" />
-            <path d="M182 44 L143 54 L132 67" stroke="#FFF7ED" strokeWidth="3.5" />
-            <path d="M68 60 L95 68" stroke="#FCD34D" strokeWidth="2" />
-            <path d="M172 60 L145 68" stroke="#FCD34D" strokeWidth="2" />
-          </g>
-
-          {/* Proyector central (LED principal) */}
-          <g className="animate-headlightFlash motion-reduce:animate-none" style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
-            <circle cx="120" cy="64" r="13" fill="url(#projector-lens)" />
-            <circle cx="120" cy="64" r="16.5" fill="none" stroke="#FFFFFF" strokeOpacity="0.35" strokeWidth="1.5" />
-          </g>
-        </svg>
-      </div>
+      {/* Guías laterales muy tenues que enmarcan la escena en pantallas anchas */}
+      <div className="absolute inset-y-0 left-1/2 hidden w-full max-w-7xl -translate-x-1/2 border-x border-white/[0.03] lg:block 2xl:max-w-[1440px]" />
     </div>
   )
 }

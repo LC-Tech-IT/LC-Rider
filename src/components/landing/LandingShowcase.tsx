@@ -59,7 +59,7 @@ const HUD_ACTIONS: { label: string; icon: IconComponent; className: string }[] =
  *  tablero, con velocímetro real, telemetría de viaje, navegación activa y radar de convoy en vivo. */
 function CarPlayMockup({ speed, members }: { speed: number; members: MemberRow[] }) {
   return (
-    <div className="w-full max-w-4xl rounded-[1.75rem] border border-white/10 bg-gradient-to-b from-[#1A1F2A] to-[#0B0F18] p-1.5 shadow-2xl shadow-black/50">
+    <div className="w-full max-w-5xl rounded-[1.75rem] border border-white/10 bg-gradient-to-b from-[#1A1F2A] to-[#0B0F18] p-1.5 shadow-2xl shadow-black/50">
       <div className="rounded-[1.4rem] border border-black/60 bg-[#090D16] p-4 text-white sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
           <div className="flex items-center gap-3 text-[11px] font-medium text-slate-400">
@@ -256,7 +256,7 @@ export default function LandingShowcase() {
 
   return (
     <section id="ride-mode" className="relative border-t border-white/[0.06] bg-[#05070C]">
-      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
+      <div className="mx-auto max-w-7xl 2xl:max-w-[1400px] px-4 py-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-orange-400">El Convoy</p>
           <h2 className="mt-3 font-sans text-3xl font-extrabold tracking-tight text-white sm:text-4xl">

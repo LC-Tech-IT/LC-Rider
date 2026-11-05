@@ -54,7 +54,7 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-[100dvh] w-full bg-[#070A10] font-sans text-slate-300 antialiased">
       <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#070A10]/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-7xl 2xl:max-w-[1400px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <img
               src="/images/app-icon.jpg"
@@ -118,7 +118,7 @@ export default function LandingPage() {
           <HeroHeadlightBeam />
 
           {/* pt reserva la franja superior para la firma lumínica del faro (HeroHeadlightBeam, ~130 px). */}
-          <div className="relative z-10 mx-auto max-w-6xl px-4 pb-20 pt-36 text-center sm:px-6 sm:pt-40">
+          <div className="relative z-10 mx-auto max-w-7xl 2xl:max-w-[1400px] px-4 pb-20 pt-36 text-center sm:px-6 sm:pt-40 lg:px-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-widest text-orange-400">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-500" />
               Sistema de Telemetría &amp; Navegación Grupal
@@ -156,7 +156,7 @@ export default function LandingPage() {
             </div>
 
             {/* Franja de métricas */}
-            <dl className="mx-auto mt-14 grid max-w-4xl grid-cols-2 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.02] lg:grid-cols-4">
+            <dl className="mx-auto mt-14 grid max-w-5xl grid-cols-2 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.02] lg:grid-cols-4">
               {HERO_METRICS.map((metric, index) => (
                 <div
                   key={metric.label}
@@ -178,7 +178,7 @@ export default function LandingPage() {
             {/* Instrument Cluster: fotografía de ruta + tacómetro en un único bisel */}
             <div
               ref={heroCluster.ref}
-              className={`mx-auto mt-14 max-w-5xl rounded-3xl border border-white/10 bg-slate-900/50 p-2 text-left shadow-2xl shadow-black/40 backdrop-blur sm:p-3 ${scrollRevealClass(heroCluster.visible)}`}
+              className={`mx-auto mt-14 max-w-6xl rounded-3xl border border-white/10 bg-slate-900/50 2xl:max-w-[1360px] p-2 text-left shadow-2xl shadow-black/40 backdrop-blur sm:p-3 ${scrollRevealClass(heroCluster.visible)}`}
             >
               <div className="flex items-center justify-between px-3 pb-2.5 pt-1.5 sm:px-4">
                 <div className="flex items-center gap-2">
@@ -226,7 +226,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t border-white/[0.08] bg-[#05070C]">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-start md:justify-between">
+        <div className="mx-auto flex max-w-7xl 2xl:max-w-[1400px] flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-start md:justify-between lg:px-8">
           <div className="max-w-sm">
             <div className="flex items-center gap-3">
               <img src="/images/app-icon.jpg" alt="Bike Tracker" className="h-9 w-9 rounded-lg border border-white/10 object-cover" />

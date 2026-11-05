@@ -51,32 +51,10 @@ export default {
           '0%, 100%': { opacity: 1 },
           '50%': { opacity: 0.35 },
         },
-        // Encendido del faro del Hero (2 s): 0–0.4 s penumbra con DRL tenue, 0.4–0.8 s destello del LED
-        // principal, 0.8–2 s el haz se abre sobre el asfalto.
-        headlightDrl: {
-          '0%': { opacity: '0.15' },
-          '20%': { opacity: '0.3' },
-          '28%': { opacity: '1' },
-          '34%': { opacity: '0.7' },
-          '40%, 100%': { opacity: '1' },
-        },
-        headlightFlash: {
-          '0%, 20%': { opacity: '0', transform: 'scale(0.6)' },
-          '26%': { opacity: '1', transform: 'scale(1.25)' },
-          '32%': { opacity: '0.45', transform: 'scale(1)' },
-          '40%, 100%': { opacity: '1', transform: 'scale(1)' },
-        },
-        headlightBeam: {
-          '0%, 40%': { opacity: '0', transform: 'scaleY(0.25)' },
-          '100%': { opacity: '1', transform: 'scaleY(1)' },
-        },
       },
       animation: {
         pulseRing: 'pulseRing 1.6s cubic-bezier(0.4,0,0.6,1) infinite',
         blink: 'blink 1s ease-in-out infinite',
-        headlightDrl: 'headlightDrl 2s ease-out both',
-        headlightFlash: 'headlightFlash 2s ease-out both',
-        headlightBeam: 'headlightBeam 2s cubic-bezier(0.22,1,0.36,1) both',
       },
     },
   },

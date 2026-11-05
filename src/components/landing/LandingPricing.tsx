@@ -15,8 +15,8 @@ function Feature({ children, accent }: { children: ReactNode; accent: string }) 
 function Price({ amount, period }: { amount: string; period: string }) {
   return (
     <div className="mt-5 flex items-baseline gap-1.5">
-      <span className="font-sans text-4xl font-extrabold tabular-nums tracking-tight text-white sm:text-[2.6rem]">{amount}</span>
-      <span className="text-sm font-medium text-slate-500">{period}</span>
+      <span className="font-sans text-4xl font-extrabold tabular-nums tracking-tight text-white sm:text-[2.6rem] 2xl:text-5xl">{amount}</span>
+      <span className="text-sm font-medium text-slate-500 2xl:text-base">{period}</span>
     </div>
   )
 }
@@ -40,9 +40,9 @@ export default function LandingPricing() {
   return (
     <section
       id="pricing"
-      className="relative overflow-hidden border-t border-white/[0.06] bg-[#070A10] bg-[radial-gradient(ellipse_at_center,_rgba(234,88,12,0.08),_transparent_65%)]"
+      className="relative overflow-hidden border-t border-white/[0.06] bg-[#070A10] bg-[radial-gradient(ellipse_100%_60%_at_50%_40%,rgba(234,88,12,0.07),transparent_75%)]"
     >
-      <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
+      <div className="mx-auto max-w-7xl 2xl:max-w-[1400px] px-4 py-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-orange-400">Planes y Precios</p>
           <h2 className="mt-3 font-sans text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
@@ -80,15 +80,15 @@ export default function LandingPricing() {
           </div>
         </div>
 
-        <div className="mt-14 grid items-stretch gap-6 lg:grid-cols-3">
+        <div className="mt-14 grid items-stretch gap-6 lg:grid-cols-3 lg:gap-8">
           {/* Card 1: Piloto Libre */}
-          <div className="flex h-full flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/60 p-7">
+          <div className="flex h-full flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/60 p-8 lg:p-9 2xl:p-10">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Piloto Libre</p>
               <Price amount="$0" period="/ siempre" />
               <p className="mt-2 text-xs text-slate-500">Para quienes salen a rodar de vez en cuando.</p>
 
-              <ul className="mt-7 space-y-3.5 border-t border-white/[0.06] pt-6 text-sm text-slate-300">
+              <ul className="mt-7 space-y-3.5 border-t border-white/[0.06] pt-6 text-sm text-slate-300 2xl:space-y-4 2xl:text-[15px]">
                 <Feature accent="text-slate-400">
                   Convoy de hasta <strong className="font-semibold text-white">3 pilotos</strong>
                 </Feature>
@@ -112,7 +112,7 @@ export default function LandingPricing() {
           </div>
 
           {/* Card 2: Convoy Pro (Destacada) */}
-          <div className="relative flex h-full flex-col justify-between rounded-2xl border border-orange-500/50 bg-gradient-to-b from-orange-500/[0.07] to-slate-900/60 p-7 shadow-2xl shadow-orange-950/20">
+          <div className="relative flex h-full flex-col justify-between rounded-2xl border border-orange-500/50 bg-gradient-to-b from-orange-500/[0.07] to-slate-900/60 p-8 shadow-2xl shadow-orange-950/20 lg:p-9 2xl:p-10">
             <span className="absolute -top-3 left-7 rounded-md border border-orange-500/40 bg-[#0B0F18] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-400">
               Más Popular
             </span>
@@ -124,7 +124,7 @@ export default function LandingPricing() {
                 {yearly ? 'Equivale a ≈ $8.250 COP/mes · Ahorras 45%' : 'Paga mes a mes, cancela cuando quieras'}
               </p>
 
-              <ul className="mt-7 space-y-3.5 border-t border-white/[0.08] pt-6 text-sm text-slate-300">
+              <ul className="mt-7 space-y-3.5 border-t border-white/[0.08] pt-6 text-sm text-slate-300 2xl:space-y-4 2xl:text-[15px]">
                 <Feature accent="text-orange-400">
                   <strong className="font-semibold text-white">Pilotos ilimitados</strong> en convoy
                 </Feature>
@@ -153,7 +153,7 @@ export default function LandingPricing() {
           </div>
 
           {/* Card 3: Biker Club */}
-          <div className="relative flex h-full flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/60 p-7">
+          <div className="relative flex h-full flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/60 p-8 lg:p-9 2xl:p-10">
             <span className="absolute -top-3 left-7 rounded-md border border-white/15 bg-[#0B0F18] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300">
               Para Clubes
             </span>
@@ -165,7 +165,7 @@ export default function LandingPricing() {
                 {yearly ? 'Equivale a ≈ $24.916 COP/mes · Ahorras 28%' : 'Flexibilidad mes a mes para tu club o rodadas'}
               </p>
 
-              <ul className="mt-7 space-y-3.5 border-t border-white/[0.06] pt-6 text-sm text-slate-300">
+              <ul className="mt-7 space-y-3.5 border-t border-white/[0.06] pt-6 text-sm text-slate-300 2xl:space-y-4 2xl:text-[15px]">
                 <Feature accent="text-amber-300">
                   Convoy de hasta <strong className="font-semibold text-white">25 pilotos simultáneos</strong>
                 </Feature>
