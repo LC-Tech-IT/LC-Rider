@@ -359,8 +359,12 @@ export const translations: Record<Lang, Record<string, string>> = {
 
     // Conectividad y auto-actualización
     'connectivity.offlineBanner': 'Sin conexión a internet · GPS Satelital Activo',
-    'update.available': 'Nueva actualización disponible.',
+    'update.title': '¡Nueva actualización disponible!',
+    'update.desc': 'Toca para activar las últimas mejoras en telemetría y convoy.',
     'update.action': 'Actualizar Ahora',
+    'update.later': 'Más tarde',
+    'update.updating': 'Actualizando...',
+    'update.ridePill': 'Actualización lista · se aplica al terminar la rodada',
 
     // Modal de instalación (PWA pura)
     'install.title': 'Instala Bike Tracker en tu Celular',
@@ -768,8 +772,12 @@ export const translations: Record<Lang, Record<string, string>> = {
 
     // Connectivity & auto-update
     'connectivity.offlineBanner': 'No internet connection · Satellite GPS Active',
-    'update.available': 'New update available.',
+    'update.title': 'New update available!',
+    'update.desc': 'Tap to enable the latest telemetry and convoy improvements.',
     'update.action': 'Update Now',
+    'update.later': 'Later',
+    'update.updating': 'Updating...',
+    'update.ridePill': 'Update ready · applies when the ride ends',
 
     // Install modal (pure PWA)
     'install.title': 'Install Bike Tracker on your Phone',

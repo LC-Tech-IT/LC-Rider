@@ -1,4 +1,7 @@
-const CACHE_NAME = 'bike-tracker-v4'
+// El marcador de build de CACHE_NAME lo sustituye el plugin pwa-version de vite.config.ts en cada build: así cada despliegue publica
+// un sw.js distinto byte a byte (el navegador detecta la versión nueva) y una caché propia (la anterior se borra
+// al activarse).
+const CACHE_NAME = 'bike-tracker-__BUILD_ID__'
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
@@ -42,6 +45,8 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
+  // /version.json es el respaldo de detección de versiones: siempre va a la red, nunca a la caché.
+  if (url.pathname === '/version.json') return
 
   if (request.mode === 'navigate') {
     event.respondWith(

@@ -60,6 +60,11 @@ export default {
           '0%': { transform: 'scale(1)', opacity: 0.9 },
           '100%': { transform: 'scale(3.2)', opacity: 0 },
         },
+        // Botón "Actualizar Ahora" del aviso de actualización: pulso sutil de halo naranja.
+        updateGlow: {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(249,115,22,0.45)' },
+          '50%': { boxShadow: '0 0 0 6px rgba(249,115,22,0)' },
+        },
       },
       animation: {
         pulseRing: 'pulseRing 1.6s cubic-bezier(0.4,0,0.6,1) infinite',
@@ -67,6 +72,7 @@ export default {
         dataFlow: 'dataFlow 0.8s linear infinite',
         radarPing: 'radarPing 1s ease-out forwards',
         radarHalo: 'radarPing 2.2s ease-out infinite',
+        updateGlow: 'updateGlow 2.2s ease-in-out infinite',
       },
     },
   },

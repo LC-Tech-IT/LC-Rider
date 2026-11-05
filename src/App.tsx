@@ -35,11 +35,24 @@ function PhoneFrame({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  const { view, user, vehicles, topLevelMode, rideActive } = useApp()
+  const { view, rideActive } = useApp()
 
   // Pantalla siempre activa durante la rodada o en las vistas de Tablero/Mapa, para que el velocímetro y la
   // navegación turn-by-turn nunca se pierdan por un bloqueo automático de pantalla a mitad de curva.
   useWakeLock(rideActive || view === 'cockpit' || view === 'map')
+
+  // El aviso de actualización se monta a nivel raíz: está activo en la landing, la bienvenida/login, el
+  // onboarding y la app principal, y no depende de que el usuario haya iniciado sesión.
+  return (
+    <>
+      <AppScreen />
+      <UpdateBanner />
+    </>
+  )
+}
+
+function AppScreen() {
+  const { view, user, vehicles, topLevelMode } = useApp()
 
   if (topLevelMode === 'landing') {
     return <LandingPage />
@@ -93,7 +106,6 @@ export default function App() {
       <ConcurrentSessionModal />
       <PrivacyPolicyModal />
       <Toast />
-      <UpdateBanner />
     </PhoneFrame>
   )
 }
