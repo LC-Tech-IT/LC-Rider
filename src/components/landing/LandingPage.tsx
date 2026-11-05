@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
-import LandingHeroTachometer from './LandingHeroTachometer'
+import LandingConvoyRadar from './LandingConvoyRadar'
 import HeroHeadlightBeam from './HeroHeadlightBeam'
 import LandingStory from './LandingStory'
 import LandingShowcase from './LandingShowcase'
@@ -213,7 +213,7 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <LandingHeroTachometer />
+                <LandingConvoyRadar />
               </div>
             </div>
           </div>

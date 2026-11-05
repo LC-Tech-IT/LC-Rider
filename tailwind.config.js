@@ -51,16 +51,22 @@ export default {
           '0%, 100%': { opacity: 1 },
           '50%': { opacity: 0.35 },
         },
-        // Tacómetro de la landing en "Convoy conectado": oscilación sutil de la aguja (±~40 RPM).
-        needleBreath: {
-          '0%, 100%': { transform: 'rotate(0deg)' },
-          '50%': { transform: 'rotate(0.9deg)' },
+        // Radar de convoy de la landing: flujo de datos por los vectores de telemetría (hacia afuera)…
+        dataFlow: {
+          to: { strokeDashoffset: '-16' },
+        },
+        // …onda única al detectar un piloto y halo continuo de los pilotos enlazados.
+        radarPing: {
+          '0%': { transform: 'scale(1)', opacity: 0.9 },
+          '100%': { transform: 'scale(3.2)', opacity: 0 },
         },
       },
       animation: {
         pulseRing: 'pulseRing 1.6s cubic-bezier(0.4,0,0.6,1) infinite',
         blink: 'blink 1s ease-in-out infinite',
-        needleBreath: 'needleBreath 2.4s ease-in-out infinite',
+        dataFlow: 'dataFlow 0.8s linear infinite',
+        radarPing: 'radarPing 1s ease-out forwards',
+        radarHalo: 'radarPing 2.2s ease-out infinite',
       },
     },
   },
