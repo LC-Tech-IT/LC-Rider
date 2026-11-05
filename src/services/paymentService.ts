@@ -81,7 +81,7 @@ export function isPaymentGatewayConfigured(): boolean {
 }
 
 export function buildPaymentReference(userId: string): string {
-  return `BT-SUB-${userId}-${Date.now()}`
+  return `LCR-SUB-${userId}-${Date.now()}`
 }
 
 /** Monto oficial en COP de cada combinación de plan/ciclo de facturación. */

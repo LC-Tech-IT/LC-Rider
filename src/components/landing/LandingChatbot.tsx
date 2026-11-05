@@ -11,7 +11,7 @@ interface ChatMessage {
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'bot',
-  text: '¡Hola! Soy el Asistente Biker de LC SyncTech 🏍️. Puedo ayudarte a elegir tu plan, armar tu convoy, renovar tu suscripción o resolver cualquier duda técnica de la app. Por cierto, con Convoy Pro tu convoy queda ilimitado y desbloqueas alertas por voz — ¿quieres que te cuente más?',
+  text: '¡Hola! Soy el Asistente LC Rider de LC SyncTech 🏍️. Puedo ayudarte a elegir tu plan, armar tu convoy, renovar tu suscripción o resolver cualquier duda técnica de la app. Por cierto, con Convoy Pro tu convoy queda ilimitado y desbloqueas alertas por voz — ¿quieres que te cuente más?',
 }
 
 interface LandingChatbotProps {
@@ -57,7 +57,7 @@ export default function LandingChatbot({ open: openProp, onOpenChange }: Landing
             <div>
               <p className="flex items-center gap-2 text-sm font-bold text-white">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Asistente Biker
+                Asistente LC Rider
               </p>
               <p className="text-[10px] text-slate-500">LC Rider · LC SyncTech</p>
             </div>
@@ -127,7 +127,7 @@ export default function LandingChatbot({ open: openProp, onOpenChange }: Landing
         className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#0B0F18]/95 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-black/50 backdrop-blur transition hover:border-orange-500/50 active:scale-95"
       >
         <IconChat className="h-4 w-4 text-orange-400" />
-        Asistente Biker
+        Asistente LC Rider
       </button>
     </div>
   )

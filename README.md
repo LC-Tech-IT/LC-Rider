@@ -1,7 +1,7 @@
 # 🏍️ LC Rider — LC SyncTech
 
-[![Production Deployment](https://img.shields.io/badge/Deployment-Cloudflare%20Pages-success?style=for-the-badge&logo=cloudflarepages)](https://biker.lcsynctech.com/)
-[![Tech Stack](https://img.shields.io/badge/Stack-React%2018%20%7C%20Vite%20%7C%20Capacitor-orange?style=for-the-badge&logo=react)](https://biker.lcsynctech.com/)
+[![Production Deployment](https://img.shields.io/badge/Deployment-Cloudflare%20Pages-success?style=for-the-badge&logo=cloudflarepages)](https://rider.lcsynctech.com/)
+[![Tech Stack](https://img.shields.io/badge/Stack-React%2018%20%7C%20Vite%20%7C%20Capacitor-orange?style=for-the-badge&logo=react)](https://rider.lcsynctech.com/)
 [![Realtime Backend](https://img.shields.io/badge/Backend-Supabase%20Realtime-emerald?style=for-the-badge&logo=supabase)](https://supabase.com)
 [![Payment Gateway](https://img.shields.io/badge/Payments-Wompi%20Bancolombia-blue?style=for-the-badge)](https://wompi.co)
 
@@ -34,7 +34,7 @@
 ## 🚀 Despliegue y CI/CD
 
 El proyecto cuenta con integración continua (**CI/CD**):
-- Cada commit en la rama `main` de GitHub dispara un build automático en **Cloudflare Pages** (`npm run build` → `dist/`) y se publica en **[https://biker.lcsynctech.com](https://biker.lcsynctech.com)**.
+- Cada commit en la rama `main` de GitHub dispara un build automático en **Cloudflare Pages** (`npm run build` → `dist/`) y se publica en **[https://rider.lcsynctech.com](https://rider.lcsynctech.com)**.
 - El enrutamiento SPA (`public/_redirects`) y las cabeceras de seguridad HSTS, X-Frame-Options y Permissions-Policy (`public/_headers`) se aplican directamente en el edge de Cloudflare.
 
 ---
