@@ -11,7 +11,7 @@ interface ChatMessage {
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'bot',
-  text: '¡Hola! Soy el Asistente LC Rider de LC SyncTech 🏍️. Puedo ayudarte a elegir tu plan, armar tu convoy, renovar tu suscripción o resolver cualquier duda técnica de la app. Por cierto, con Convoy Pro tu convoy queda ilimitado y desbloqueas alertas por voz — ¿quieres que te cuente más?',
+  text: '¡Hola! Soy el Asistente LC Rider de LC SyncTech 🏍️. Puedo ayudarte a elegir tu plan, armar tu convoy, renovar tu suscripción o resolver cualquier duda técnica de la app. Por cierto, con Convoy Pro tu convoy se amplía a 12 pilotos y desbloqueas alertas por voz — ¿quieres que te cuente más?',
 }
 
 interface LandingChatbotProps {

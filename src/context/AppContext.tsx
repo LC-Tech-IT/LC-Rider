@@ -36,7 +36,7 @@ interface BeforeInstallPromptEvent extends Event {
 const DEFAULT_POSITION: LatLng = { lat: 4.711, lng: -74.0721 }
 
 /** Matriz oficial de monetización: cupos de convoy y garaje por nivel de suscripción. */
-const TIER_CONVOY_LIMIT: Record<SubscriptionTier, number> = { free: 3, pro: 999, club: 25 }
+const TIER_CONVOY_LIMIT: Record<SubscriptionTier, number> = { free: 3, pro: 12, club: 50 }
 const TIER_VEHICLE_LIMIT: Record<SubscriptionTier, number> = { free: 1, pro: 5, club: 5 }
 
 /** Códigos de canje de Biker Club (demo): activan el tier 'club' con el nombre del club asociado. */
@@ -922,15 +922,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // --- Suscripciones (Free / Pro / Club) ---
   /** Activa una suscripción de pago (Pro o Club), calculando su fecha de vencimiento: +30 días si es mensual,
-   *  +365 si es anual, y +30 días adicionales de regalo (395 en total para el plan anual) cuando el pago se
-   *  hizo por QR Bancolombia/Nequi, tal como se promete en la Landing y el checkout. El modal permanece abierto
+   *  +365 si es anual. Solo en el plan anual, pagar por QR Bancolombia/Nequi suma +30 días de regalo (395 en
+   *  total): en el mensual, un mes gratis equivaldría a un 50% de descuento, muy por encima de la comisión de
+   *  Wompi que se ahorra. El modal permanece abierto
    *  para que el usuario vea la confirmación ("Plan activo") antes de cerrarlo. */
   const upgradeTier = useCallback(
     async (tier: SubscriptionTier, billingCycle: 'monthly' | 'yearly' = 'monthly', paidViaQr: boolean = false) => {
       const prev = userRef.current
       if (!prev) return
       const baseDays = billingCycle === 'yearly' ? 365 : 30
-      const days = paidViaQr ? baseDays + 30 : baseDays
+      const days = paidViaQr && billingCycle === 'yearly' ? baseDays + 30 : baseDays
       const next: UserProfile = {
         ...prev,
         tier,
@@ -947,7 +948,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [commitUser, showToast, t],
   )
 
-  /** Canjea un Código de Club válido, activando el tier 'club' con cupo de hasta 25 pilotos.
+  /** Canjea un Código de Club válido, activando el tier 'club' con cupo de hasta 50 pilotos.
    *  Devuelve el nombre del club si el código es válido, o null si no existe. El modal permanece abierto
    *  para que el usuario vea el mensaje de bienvenida al club antes de cerrarlo. */
   const redeemClubCode = useCallback(
@@ -1131,7 +1132,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const joinConvoyRoom = useCallback(
     (pin: string, name: string, role: ConvoyMember['role']) => {
-      // El cupo real de la sala lo declara el líder; hasta conocerlo por un broadcast, se asume sin límite.
+      // El cupo real de la sala lo declara el líder; hasta conocerlo por un broadcast, 999 marca "cupo aún desconocido"
+      // (solo es informativo: quien hace cumplir el cupo es el líder).
       setConvoyRoom({ pin, leaderEmail: '', createdAt: Date.now(), tier: 'pro', maxMembers: 999 })
       setConvoyMembers((prev) => prev.map((m) => (m.isCurrentUser ? { ...m, role, name: name || m.name } : m)))
       if (!isDemoUser) setupConvoyChannel(pin, false, 'pro', 999)

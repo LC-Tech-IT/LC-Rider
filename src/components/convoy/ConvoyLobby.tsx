@@ -64,8 +64,9 @@ export default function ConvoyLobby() {
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{t('convoy.members')}</p>
           <p className="font-display text-xs font-bold text-bike-blue">
+            {/* 999 = el unido aún no recibe el cupo real del líder: se muestra solo el conteo. */}
             {convoyRoom.maxMembers >= 999
-              ? `${convoyMembers.length} · ${t('convoy.unlimited')}`
+              ? convoyMembers.length
               : t('convoy.capacity', { count: convoyMembers.length, max: convoyRoom.maxMembers })}
           </p>
         </div>
@@ -133,9 +134,7 @@ export default function ConvoyLobby() {
           {mode === 'create' && (
             <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">
               {t(`tier.${user?.tier ?? 'free'}`)} ·{' '}
-              {convoyMemberLimit >= 999
-                ? t('convoy.unlimited')
-                : t('convoy.capacity', { count: 1, max: convoyMemberLimit })}
+              {t('convoy.capacity', { count: 1, max: convoyMemberLimit })}
             </p>
           )}
 

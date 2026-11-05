@@ -126,7 +126,7 @@ export default function LandingPricing() {
 
               <ul className="mt-7 space-y-3.5 border-t border-white/[0.08] pt-6 text-sm text-slate-300 2xl:space-y-4 2xl:text-[15px]">
                 <Feature accent="text-orange-400">
-                  <strong className="font-semibold text-white">Pilotos ilimitados</strong> en convoy
+                  Convoy de hasta <strong className="font-semibold text-white">12 pilotos</strong>
                 </Feature>
                 <Feature accent="text-orange-400">
                   Hasta <strong className="font-semibold text-white">5 vehículos</strong> en el garaje
@@ -134,8 +134,12 @@ export default function LandingPricing() {
                 <Feature accent="text-orange-400">
                   <strong className="font-semibold text-white">Alertas de voz</strong> en intercomunicador Bluetooth
                 </Feature>
-                <Feature accent="text-orange-400">Telemetría avanzada, radar y exportación GPX</Feature>
-                <Feature accent="text-orange-400">Prioridad en emergencias SOS y alertas grupales</Feature>
+                <Feature accent="text-orange-400">
+                  <strong className="font-semibold text-white">Telemetría en tiempo real</strong> y radar táctico de proximidad
+                </Feature>
+                <Feature accent="text-orange-400">
+                  <strong className="font-semibold text-white">Botón SOS de emergencia</strong> con coordenadas GPS y alertas en ruta
+                </Feature>
               </ul>
             </div>
 
@@ -147,7 +151,7 @@ export default function LandingPricing() {
                 Obtener Convoy Pro
               </button>
               <p className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.07] px-3 py-2 text-center text-[11px] font-medium text-emerald-300">
-                <IconGift className="h-3.5 w-3.5 flex-shrink-0" />1 mes gratis adicional pagando con QR Bancolombia / Nequi
+                <IconGift className="h-3.5 w-3.5 flex-shrink-0" />1 mes gratis adicional en planes anuales pagando con QR Bancolombia / Nequi
               </p>
             </div>
           </div>
@@ -167,14 +171,14 @@ export default function LandingPricing() {
 
               <ul className="mt-7 space-y-3.5 border-t border-white/[0.06] pt-6 text-sm text-slate-300 2xl:space-y-4 2xl:text-[15px]">
                 <Feature accent="text-amber-300">
-                  Convoy de hasta <strong className="font-semibold text-white">25 pilotos simultáneos</strong>
+                  Convoy masivo de hasta <strong className="font-semibold text-white">50 pilotos simultáneos</strong>
                 </Feature>
-                <Feature accent="text-amber-300">Código de canje exclusivo para tu Club</Feature>
-                <Feature accent="text-amber-300">Nombre y emblema del Club en la cabecera</Feature>
+                <Feature accent="text-amber-300">Nombre y emblema oficial del Club en la cabecera</Feature>
+                <Feature accent="text-amber-300">Activación personalizada de tu Club vía WhatsApp VIP</Feature>
                 <Feature accent="text-amber-300">
-                  <strong className="font-semibold text-white">Todas las funciones Pro</strong> para los miembros
+                  <strong className="font-semibold text-white">Todas las funciones Pro:</strong> voz en casco, radar táctico y telemetría
                 </Feature>
-                <Feature accent="text-amber-300">Soporte prioritario para rodadas del club</Feature>
+                <Feature accent="text-amber-300">Soporte VIP directo vía WhatsApp para rodadas y eventos</Feature>
               </ul>
             </div>
 

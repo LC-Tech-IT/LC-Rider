@@ -156,6 +156,6 @@ export interface ConvoyRoom {
   leaderEmail: string
   createdAt: number
   tier: SubscriptionTier
-  /** 3 para Free, 25 para Club, 999 (ilimitado en la práctica) para Pro. */
+  /** 3 para Free, 12 para Pro y 50 para Club. 999 = cupo aún desconocido (unido que no ha recibido el del líder). */
   maxMembers: number
 }
