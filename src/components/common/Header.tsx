@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
-import { goToLanding } from '../../utils/navigationHelper'
 import Avatar, { isPhotoAvatar } from './Avatar'
 import ColombianPlate from './ColombianPlate'
-import { IconBell, IconChevronDown, IconHome, IconMenu, IconStar, IconUser, IconUsers } from './Icons'
+import { IconBell, IconChevronDown, IconMenu, IconStar, IconUser, IconUsers } from './Icons'
 
 
 export default function Header() {
@@ -13,7 +12,6 @@ export default function Header() {
     setActiveVehicleId,
     setSidebarOpen,
     setAuthModalOpen,
-    setTopLevelMode,
     setNotificationModalOpen,
     unreadNotificationsCount,
     markNotificationsRead,
@@ -72,15 +70,6 @@ export default function Header() {
       </div>
 
       <div className="flex flex-shrink-0 items-center gap-1.5">
-        <button
-          onClick={() => goToLanding(setTopLevelMode)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-900 transition active:scale-95"
-          aria-label={t('nav.home')}
-          title={t('nav.home')}
-        >
-          <IconHome className="h-5 w-5" strokeWidth={2} />
-        </button>
-
         <button
           onClick={() => (user?.isLoggedIn ? setSidebarOpen(true) : setAuthModalOpen(true))}
           className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-200 bg-white text-slate-900 transition active:scale-95"

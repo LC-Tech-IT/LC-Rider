@@ -1,9 +1,8 @@
 import { useApp } from '../../context/AppContext'
-import { goToLanding } from '../../utils/navigationHelper'
 import type { ComponentType, SVGProps } from 'react'
 import Avatar from './Avatar'
 import ColombianPlate from './ColombianPlate'
-import { IconGauge, IconHome, IconLifeBuoy, IconMap, IconRotateCw, IconUser, IconUsers, IconWrench } from './Icons'
+import { IconGauge, IconLifeBuoy, IconMap, IconRotateCw, IconUser, IconUsers, IconWrench } from './Icons'
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
 
@@ -15,7 +14,6 @@ export default function Sidebar() {
     setLang,
     activeVehicle,
     setView,
-    setTopLevelMode,
     user,
     logout,
     setAuthModalOpen,
@@ -110,15 +108,6 @@ export default function Sidebar() {
           <SidebarItem icon={IconWrench} label={t('nav.garajeSoat')} onClick={() => { setView('garage'); setSidebarOpen(false) }} />
           <SidebarItem icon={IconUsers} label={t('convoy.title')} onClick={() => { setView('convoy'); setSidebarOpen(false) }} />
           <SidebarItem icon={IconLifeBuoy} label={t('sidebar.support')} onClick={() => setSidebarOpen(false)} />
-          <div className="my-2 border-t-2 border-slate-200" />
-          <SidebarItem
-            icon={IconHome}
-            label={t('nav.home')}
-            onClick={() => {
-              goToLanding(setTopLevelMode)
-              setSidebarOpen(false)
-            }}
-          />
         </nav>
 
         <div className="border-t-2 border-slate-200 p-4">
