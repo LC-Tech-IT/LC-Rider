@@ -1,7 +1,8 @@
 import type { Lang } from '../types'
 
-/** Formatea una fecha ISO (yyyy-mm-dd) de forma legible según el idioma activo, p. ej. "24 de octubre de 2026". */
+/** Formatea una fecha ISO de forma legible según el idioma activo, p. ej. "24 de octubre de 2026". Acepta una fecha
+ *  sola (yyyy-mm-dd, se interpreta en hora local) o un instante completo (vencimiento de suscripción desde Supabase). */
 export function formatLongDate(dateIso: string, lang: Lang): string {
-  const date = new Date(`${dateIso}T00:00:00`)
+  const date = dateIso.includes('T') ? new Date(dateIso) : new Date(`${dateIso}T00:00:00`)
   return new Intl.DateTimeFormat(lang === 'es' ? 'es-CO' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
 }

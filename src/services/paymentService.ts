@@ -112,6 +112,21 @@ export function buildPaymentReference(userId: string): string {
   return `LCR-SUB-${userId}-${Date.now()}`
 }
 
+/** Wompi admite referencias de hasta 255 caracteres alfanuméricos con guiones. */
+const MAX_REFERENCE_LENGTH = 255
+
+/** Referencia de un invitado (pago sin cuenta): lleva el correo del pago codificado en hexadecimal
+ *  (`LCR-SUB-G<hex>-<timestamp>`). La referencia viaja firmada con la firma de integridad, así que el webhook ata el
+ *  plan a ESTE correo aunque el cliente lo modifique dentro del widget de Wompi. */
+export function buildGuestPaymentReference(email: string): string {
+  const hex = Array.from(new TextEncoder().encode(email.trim().toLowerCase()))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+  const reference = `LCR-SUB-G${hex}-${Date.now()}`
+  // Un correo extremadamente largo no cabe: el webhook usará entonces el correo que reporte Wompi.
+  return reference.length <= MAX_REFERENCE_LENGTH ? reference : `LCR-SUB-invitado-${Date.now()}`
+}
+
 /** Monto oficial en COP de cada combinación de plan/ciclo de facturación. */
 export function getPlanAmountCOP(tier: Extract<SubscriptionTier, 'pro' | 'club'>, billingCycle: 'monthly' | 'yearly'): number {
   if (tier === 'club') return billingCycle === 'yearly' ? 299000 : 34900

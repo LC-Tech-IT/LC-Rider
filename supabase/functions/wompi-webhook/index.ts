@@ -110,13 +110,28 @@ serve(async (req) => {
     const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole)
 
-    // 5. Extraer User ID del reference (LCR-SUB-<uuid>-<timestamp>) o por email
+    // 5. Destinatario del plan:
+    //    - Con cuenta: LCR-SUB-<uuid>-<timestamp>.
+    //    - Invitado:   LCR-SUB-G<correo en hex>-<timestamp>. El correo va dentro de la referencia firmada, así que manda
+    //      sobre transaction.customer_email (el cliente puede cambiar el correo prellenado dentro del widget).
+    //    - Referencias antiguas sin correo: se usa transaction.customer_email.
     let targetUserId: string | null = null
+    let payerEmail = transaction.customer_email ? String(transaction.customer_email).trim().toLowerCase() : ''
+    const guestMatch = reference.match(/^LCR-SUB-G([0-9a-f]+)-\d+$/)
+    if (guestMatch && guestMatch[1].length % 2 === 0) {
+      try {
+        const bytes = new Uint8Array(guestMatch[1].match(/../g)!.map((h) => parseInt(h, 16)))
+        const decoded = new TextDecoder().decode(bytes).trim().toLowerCase()
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(decoded)) payerEmail = decoded
+      } catch {
+        /* referencia malformada: se conserva customer_email */
+      }
+    }
     const uuidMatch = reference.match(/LCR-SUB-([0-9a-fA-F-]{36})-/)
     if (uuidMatch) {
       targetUserId = uuidMatch[1]
-    } else if (transaction.customer_email) {
-      const email = String(transaction.customer_email).trim().toLowerCase()
+    } else if (payerEmail) {
+      const email = payerEmail
       const { data: userProfile } = await supabaseAdmin
         .from('profiles')
         .select('id')
@@ -128,8 +143,8 @@ serve(async (req) => {
     }
 
     if (!targetUserId) {
-      if (transaction.customer_email) {
-        const cleanEmail = String(transaction.customer_email).trim().toLowerCase()
+      if (payerEmail) {
+        const cleanEmail = payerEmail
         console.log(`[LC Rider Webhook] Usuario aún no registrado para email: ${cleanEmail}. Guardando en pending_subscriptions.`)
         // upsert idempotente: un reintento de Wompi con la misma transacción no duplica el plan.
         const { error: insertPendingError } = await supabaseAdmin

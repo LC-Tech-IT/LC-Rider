@@ -174,7 +174,9 @@ function rowToSubscription(row: Record<string, unknown> | null | undefined): Sub
   const tier: SubscriptionTier = row?.tier === 'pro' || row?.tier === 'club' ? row.tier : 'free'
   return normalizeSubscription({
     tier,
-    subscriptionExpiresAt: row?.subscription_expires_at ? String(row.subscription_expires_at).slice(0, 10) : undefined,
+    // Se conserva el instante exacto (no solo la fecha): recortarlo a "aaaa-mm-dd" hacía vencer el plan a la
+    // medianoche UTC, es decir, hasta un día antes de lo pagado (en Colombia, a las 7 p. m. del día anterior).
+    subscriptionExpiresAt: row?.subscription_expires_at ? new Date(String(row.subscription_expires_at)).toISOString() : undefined,
     clubName: typeof row?.club_name === 'string' ? row.club_name : undefined,
     clubCode: typeof row?.club_code === 'string' ? row.club_code : undefined,
   })

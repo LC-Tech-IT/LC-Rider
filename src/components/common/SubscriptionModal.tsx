@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { formatLongDate } from '../../utils/formatDate'
-import { buildPaymentReference, getPlanAmountCOP, openWompiCheckout } from '../../services/paymentService'
+import { buildGuestPaymentReference, buildPaymentReference, getPlanAmountCOP, openWompiCheckout } from '../../services/paymentService'
 import { clearPendingCheckout, savePendingCheckout } from '../../utils/storage'
 import type { ComponentType, SVGProps } from 'react'
 import type { SubscriptionTier } from '../../types'
@@ -178,7 +178,7 @@ export default function SubscriptionModal() {
     try {
       const result = await openWompiCheckout({
         amountInCOP: getPlanAmountCOP(checkoutTier, billingCycle),
-        reference: buildPaymentReference(user?.isLoggedIn ? user.id : 'invitado'),
+        reference: user?.isLoggedIn ? buildPaymentReference(user.id) : buildGuestPaymentReference(email),
         customerEmail: email,
         customerFullName: (user?.name || guestName).trim(),
       })
