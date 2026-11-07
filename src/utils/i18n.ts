@@ -316,6 +316,14 @@ export const translations: Record<Lang, Record<string, string>> = {
     'subscription.qrStep3': 'Haz clic abajo para enviarnos tu comprobante por WhatsApp.',
     'subscription.qrSendReceipt': 'Enviar Comprobante por WhatsApp',
     'subscription.qrActivationNote': 'Activamos tu plan apenas confirmemos tu pago por WhatsApp (usualmente en minutos).',
+    'subscription.qrPendingTitle': 'Comprobante en Revisión',
+    'subscription.qrPendingDesc':
+      'Nuestro equipo confirmará tu transferencia en Bancolombia/Nequi en pocos minutos y te avisará por WhatsApp cuando tu plan quede activo.',
+    'subscription.qrPendingReference': 'Tu referencia de pago',
+    'subscription.qrPendingClose': 'Cerrar y Explorar App',
+    'subscription.clubVipNotice':
+      'Los Códigos de Club se validan y activan exclusivamente por nuestra línea oficial de WhatsApp VIP (+57 350 520 8592). Te abrimos el chat con tu código.',
+    'subscription.clubCodeWhatsappMessage': 'Hola LC Rider, quiero activar mi Código de Club: {{code}}',
     'subscription.qrWhatsappMessage':
       'Hola LC Rider, acabo de transferir {{price}} por el plan {{plan}} vía QR Bancolombia/Nequi. Mi referencia es: {{reference}}. Adjunto el comprobante.',
     'subscription.phoneLabel': 'Número de celular',
@@ -732,6 +740,14 @@ export const translations: Record<Lang, Record<string, string>> = {
     'subscription.qrStep3': 'Click below to send us your receipt via WhatsApp.',
     'subscription.qrSendReceipt': 'Send Receipt via WhatsApp',
     'subscription.qrActivationNote': "We'll activate your plan as soon as we confirm your payment on WhatsApp (usually within minutes).",
+    'subscription.qrPendingTitle': 'Receipt Under Review',
+    'subscription.qrPendingDesc':
+      'Our team will confirm your Bancolombia/Nequi transfer within minutes and notify you on WhatsApp once your plan is active.',
+    'subscription.qrPendingReference': 'Your payment reference',
+    'subscription.qrPendingClose': 'Close and Explore App',
+    'subscription.clubVipNotice':
+      'Club Codes are validated and activated exclusively through our official VIP WhatsApp line (+57 350 520 8592). We opened the chat with your code.',
+    'subscription.clubCodeWhatsappMessage': 'Hi LC Rider, I want to activate my Club Code: {{code}}',
     'subscription.qrWhatsappMessage':
       'Hi LC Rider, I just transferred {{price}} for the {{plan}} plan via Bancolombia/Nequi QR. My reference is: {{reference}}. Receipt attached.',
     'subscription.phoneLabel': 'Phone number',

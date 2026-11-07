@@ -4,10 +4,10 @@ import { formatLongDate } from '../../utils/formatDate'
 import { buildPaymentReference, getPlanAmountCOP, isPaymentGatewayConfigured, openWompiCheckout } from '../../services/paymentService'
 import type { ComponentType, SVGProps } from 'react'
 import type { SubscriptionTier } from '../../types'
-import { IconBank, IconCard, IconCheck, IconCheckCircle, IconPhone, IconSend, IconZap } from './Icons'
+import { IconBank, IconCard, IconCheck, IconCheckCircle, IconClock, IconPhone, IconSend, IconWhatsApp, IconZap } from './Icons'
 
 type PaymentMethod = 'nequi' | 'pse' | 'card' | 'qr'
-type CheckoutView = 'plans' | 'checkout' | 'processing' | 'success'
+type CheckoutView = 'plans' | 'checkout' | 'processing' | 'success' | 'qrPending'
 
 const PSE_BANKS = ['Bancolombia', 'Davivienda', 'BBVA Colombia', 'Banco de Bogotá', 'Nequi', 'Banco Popular']
 
@@ -35,8 +35,7 @@ export default function SubscriptionModal() {
   } = useApp()
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [clubCode, setClubCode] = useState('')
-  const [clubError, setClubError] = useState('')
-  const [clubSuccess, setClubSuccess] = useState('')
+  const [clubNotice, setClubNotice] = useState('')
 
   const [view, setView] = useState<CheckoutView>('plans')
   const [checkoutTier, setCheckoutTier] = useState<'pro' | 'club'>('pro')
@@ -56,8 +55,7 @@ export default function SubscriptionModal() {
 
   useEffect(() => {
     if (!subscriptionModalOpen) return
-    setClubError('')
-    setClubSuccess('')
+    setClubNotice('')
     setCheckoutError('')
     setGuestName('')
     setGuestEmail('')
@@ -85,18 +83,14 @@ export default function SubscriptionModal() {
 
   const currentTier = user?.tier ?? 'free'
 
+  /** El código no se valida aquí: se envía por WhatsApp VIP y el equipo activa el Club tras verificarlo. */
   function handleRedeemCode() {
-    setClubError('')
-    setClubSuccess('')
+    setClubNotice('')
     if (!clubCode.trim()) return
     if (checkDemoRestriction(t('subscription.clubCodeTitle'))) return
-    const clubName = redeemClubCode(clubCode)
-    if (clubName) {
-      setClubSuccess(t('subscription.clubCodeSuccess', { club: clubName }))
-      setClubCode('')
-    } else {
-      setClubError(t('subscription.clubCodeInvalid'))
-    }
+    redeemClubCode(clubCode)
+    setClubNotice(t('subscription.clubVipNotice'))
+    setClubCode('')
   }
 
   function startCheckout(tier: 'pro' | 'club') {
@@ -177,9 +171,9 @@ export default function SubscriptionModal() {
     }
   }
 
-  /** Pago por QR: al enviar el comprobante por WhatsApp (sin pasarela automática que lo confirme), se activa
-   *  el plan de inmediato en confianza —incluyendo el mes de regalo— y el equipo verifica el comprobante del
-   *  lado humano; si el usuario llegó como invitado, primero se crea su cuenta real con sus datos. */
+  /** Pago por QR: enviar el comprobante por WhatsApp NO activa el plan (ni en memoria ni en Supabase). El modal
+   *  pasa a "Comprobante en revisión" y el equipo activa el plan —con el mes de regalo si es anual— solo tras
+   *  verificar la transferencia. Si el usuario llegó como invitado, primero se crea su cuenta real. */
   async function handleQrReceiptClick(e: React.MouseEvent<HTMLAnchorElement>) {
     if (isGuest && (!guestName.trim() || !guestEmail.trim() || guestPassword.trim().length < 6)) {
       e.preventDefault()
@@ -204,8 +198,7 @@ export default function SubscriptionModal() {
           remember: true,
         })
       }
-      await upgradeTier(checkoutTier, billingCycle, true)
-      setView('success')
+      setView('qrPending')
     } catch (err) {
       setCheckoutError(err instanceof Error ? err.message : t('auth.errorGeneric'))
     }
@@ -317,8 +310,12 @@ export default function SubscriptionModal() {
                   {t('subscription.redeemCode')}
                 </button>
               </div>
-              {clubError && <p className="mt-2 text-xs text-status-danger">{clubError}</p>}
-              {clubSuccess && <p className="mt-2 text-xs text-status-ok">{clubSuccess}</p>}
+              {clubNotice && (
+                <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-600" role="status">
+                  <IconWhatsApp className="mt-px h-3.5 w-3.5 flex-shrink-0 text-emerald-600" strokeWidth={2.25} />
+                  {clubNotice}
+                </p>
+              )}
             </div>
           </>
         )}
@@ -577,6 +574,23 @@ export default function SubscriptionModal() {
           <div className="flex flex-col items-center gap-4 py-14 text-center">
             <span className="h-10 w-10 animate-spin rounded-full border-4 border-bike-border border-t-bike-orange" />
             <p className="text-sm font-semibold text-slate-600">{t('subscription.processing')}</p>
+          </div>
+        )}
+
+        {view === 'qrPending' && (
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+              <IconClock className="h-9 w-9" strokeWidth={2} />
+            </span>
+            <h2 className="font-display text-lg font-bold text-bike-ink">{t('subscription.qrPendingTitle')}</h2>
+            <p className="max-w-xs text-sm text-slate-500">{t('subscription.qrPendingDesc')}</p>
+            <div className="w-full rounded-xl border border-bike-border bg-slate-50 px-3 py-2.5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t('subscription.qrPendingReference')}</p>
+              <p className="mt-0.5 break-all font-mono text-xs font-semibold text-bike-ink">{qrReference}</p>
+            </div>
+            <button onClick={handleClose} className="mt-3 min-h-[52px] w-full rounded-xl bg-orange-600 text-sm font-bold text-white">
+              {t('subscription.qrPendingClose')}
+            </button>
           </div>
         )}
 

@@ -134,7 +134,7 @@ export default function LandingContact() {
             </a>
 
             <a
-              href={`mailto:${CONTACT_EMAIL}?subject=Consulta%20Bike%20Tracker`}
+              href={`mailto:${CONTACT_EMAIL}?subject=Consulta%20LC%20Rider`}
               className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-slate-900/60 p-5 transition hover:border-white/20 hover:bg-slate-900"
             >
               <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300">

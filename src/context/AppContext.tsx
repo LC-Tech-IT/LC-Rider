@@ -39,12 +39,8 @@ const DEFAULT_POSITION: LatLng = { lat: 4.711, lng: -74.0721 }
 const TIER_CONVOY_LIMIT: Record<SubscriptionTier, number> = { free: 3, pro: 12, club: 50 }
 const TIER_VEHICLE_LIMIT: Record<SubscriptionTier, number> = { free: 1, pro: 5, club: 5 }
 
-/** Códigos de canje de Biker Club (demo): activan el tier 'club' con el nombre del club asociado. */
-const CLUB_CODES: Record<string, string> = {
-  'CLUB-YAMAHA': 'Yamaha Riders Club',
-  'BIKER-CREW': 'Biker Crew',
-  'CLUB-BMW': 'BMW Motorrad Club',
-}
+/** Línea oficial de WhatsApp VIP: único canal donde se validan y activan los Códigos de Club. */
+const WHATSAPP_VIP_NUMBER = '573505208592'
 
 function daysUntil(dateIso: string): number {
   const target = new Date(dateIso).getTime()
@@ -351,7 +347,7 @@ interface AppContextValue {
   openSubscriptionCheckout: (tier?: SubscriptionTier, billingCycle?: 'monthly' | 'yearly') => void
   /** Resuelve cuando el plan quedó guardado en Supabase (o, sin conexión, solo en la caché local). */
   upgradeTier: (tier: SubscriptionTier, billingCycle?: 'monthly' | 'yearly', paidViaQr?: boolean) => Promise<void>
-  redeemClubCode: (code: string) => string | null
+  redeemClubCode: (code: string) => void
   vehicleLimit: number
   convoyMemberLimit: number
 
@@ -939,8 +935,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ...(tier !== 'club' ? { clubName: undefined, clubCode: undefined } : {}),
       }
       commitUser(next)
-      // Si Supabase no responde, el plan queda en la caché local y la próxima sincronización lo sube
-      // (la nube en 'free' nunca pisa un plan de pago local vigente).
+      // Supabase es la única fuente de verdad: si aquí no responde, el plan solo vive en esta sesión y la
+      // próxima sincronización lo alinea con lo que diga la nube (nunca sube un plan local a la nube).
       if (isCloudUser(next) && !(await pushProfileToCloud(next, subscriptionToRow(next)))) {
         showToast(t('cloud.syncPending'))
       }
@@ -948,21 +944,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [commitUser, showToast, t],
   )
 
-  /** Canjea un Código de Club válido, activando el tier 'club' con cupo de hasta 50 pilotos.
-   *  Devuelve el nombre del club si el código es válido, o null si no existe. El modal permanece abierto
-   *  para que el usuario vea el mensaje de bienvenida al club antes de cerrarlo. */
+  /** Los Códigos de Club se validan y activan exclusivamente por la línea oficial de WhatsApp VIP: el cliente no
+   *  guarda códigos (cualquiera podría leerlos en el bundle público) ni activa el tier 'club' por su cuenta.
+   *  Abre WhatsApp con el código prellenado; el equipo activa el plan tras validarlo. */
   const redeemClubCode = useCallback(
-    (code: string): string | null => {
+    (code: string) => {
       const normalized = code.trim().toUpperCase()
-      const clubName = CLUB_CODES[normalized]
-      const prev = userRef.current
-      if (!clubName || !prev) return null
-      const next: UserProfile = { ...prev, tier: 'club', clubName, clubCode: normalized, subscriptionExpiresAt: futureDate(30) }
-      commitUser(next)
-      if (isCloudUser(next)) void pushProfileToCloud(next, subscriptionToRow(next))
-      return clubName
+      if (!normalized) return
+      const message = t('subscription.clubCodeWhatsappMessage', { code: normalized })
+      window.open(`https://wa.me/${WHATSAPP_VIP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
     },
-    [commitUser],
+    [t],
   )
 
   // --- Vehículos: el estado de React + localStorage responde al instante (y sin señal); Supabase se actualiza
@@ -1215,13 +1207,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             clubName: row?.club_name ?? undefined,
             clubCode: row?.club_code ?? undefined,
           })
-          const localSub = normalizeSubscription(current)
-          if (cloudSub.tier === 'free' && localSub.tier !== 'free') {
-            // Migración transparente: plan pagado antes de existir la sincronización (o sin red al pagar).
-            await pushProfileToCloud(current, subscriptionToRow(current))
-          } else {
-            commitUser({ ...current, ...cloudSub })
-          }
+          // La nube es la única fuente de verdad del plan: el cliente siempre se alinea a ella y jamás sube a
+          // Supabase un plan leído de la caché local (un localStorage manipulado no puede autoasignarse Pro/Club).
+          commitUser({ ...current, ...cloudSub })
         }
       } catch {
         /* Sin conexión: se conserva el plan de la caché local. */

@@ -33,7 +33,7 @@ const HERO_METRICS = [
 ]
 
 const WHATSAPP_URL =
-  'https://wa.me/573505208592?text=Hola%20Bike%20Tracker%2C%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20la%20app%20y%20los%20planes%20Pro'
+  'https://wa.me/573505208592?text=Hola%20LC%20Rider%2C%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20la%20app%20y%20los%20planes%20Pro'
 
 export default function LandingPage() {
   const { setTopLevelMode, setInstallModalOpen, setAuthModalOpen, setPrivacyModalOpen, requestAppAccess, user } = useApp()
