@@ -18,8 +18,17 @@ serve(async (req) => {
 
     const { reference, amountInCents, currency = 'COP' } = await req.json()
 
-    if (!reference || !amountInCents) {
-      return new Response(JSON.stringify({ error: 'Missing reference or amountInCents' }), {
+    // Validación estricta: solo firmar referencias oficiales de LC Rider y montos autorizados
+    const ALLOWED_AMOUNTS = [1490000, 9900000, 3490000, 29900000] // $14.900, $99.000, $34.900, $299.000 COP
+    if (
+      !reference ||
+      typeof reference !== 'string' ||
+      !reference.startsWith('LCR-SUB-') ||
+      !amountInCents ||
+      !ALLOWED_AMOUNTS.includes(Number(amountInCents)) ||
+      currency !== 'COP'
+    ) {
+      return new Response(JSON.stringify({ error: 'Invalid reference, currency or amount for LC Rider plans' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
