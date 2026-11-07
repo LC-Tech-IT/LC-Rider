@@ -5,6 +5,48 @@ const PREFIX = 'lcrider.'
 const LEGACY_PREFIX = 'biketracker.'
 const ACCOUNTS_KEY = 'accounts'
 const CURRENT_USER_KEY = 'currentUserEmail'
+const PENDING_CHECKOUT_KEY = PREFIX + 'pending_checkout'
+/** Una intención de compra más vieja que esto (p. ej. el usuario abandonó el login de Google) ya no reabre el checkout. */
+const PENDING_CHECKOUT_TTL_MS = 30 * 60 * 1000
+
+export interface PendingCheckout {
+  tier: 'pro' | 'club'
+  billingCycle: 'monthly' | 'yearly'
+}
+
+/** Recuerda en sessionStorage (misma pestaña) el plan que el invitado iba a comprar antes de salir a Google OAuth,
+ *  para reabrir el checkout de ese plan al volver ya autenticado. */
+export function savePendingCheckout(checkout: PendingCheckout): void {
+  try {
+    window.sessionStorage.setItem(PENDING_CHECKOUT_KEY, JSON.stringify({ ...checkout, savedAt: Date.now() }))
+  } catch {
+    /* sessionStorage no disponible: el usuario vuelve a elegir el plan manualmente. */
+  }
+}
+
+/** Lee y borra (uso único) la intención de compra pendiente, si existe y sigue vigente. */
+export function takePendingCheckout(): PendingCheckout | null {
+  try {
+    const raw = window.sessionStorage.getItem(PENDING_CHECKOUT_KEY)
+    if (raw === null) return null
+    window.sessionStorage.removeItem(PENDING_CHECKOUT_KEY)
+    const data = JSON.parse(raw) as Partial<PendingCheckout & { savedAt: number }>
+    const validTier = data.tier === 'pro' || data.tier === 'club'
+    const validCycle = data.billingCycle === 'monthly' || data.billingCycle === 'yearly'
+    const fresh = typeof data.savedAt === 'number' && Date.now() - data.savedAt < PENDING_CHECKOUT_TTL_MS
+    return validTier && validCycle && fresh ? { tier: data.tier!, billingCycle: data.billingCycle! } : null
+  } catch {
+    return null
+  }
+}
+
+export function clearPendingCheckout(): void {
+  try {
+    window.sessionStorage.removeItem(PENDING_CHECKOUT_KEY)
+  } catch {
+    /* nada que limpiar */
+  }
+}
 
 /** Copia al prefijo `lcrider.` todo lo guardado con `biketracker.` (cuentas, garaje, sesión, id de dispositivo,
  *  preferencias) y borra la copia antigua. Si ya existe un valor con el prefijo nuevo, gana el nuevo. Se ejecuta al

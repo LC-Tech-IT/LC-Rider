@@ -336,7 +336,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     'subscription.errorCard': 'Completa el número de tarjeta, fecha de expiración y CVC.',
     'subscription.errorPaymentDeclined': 'El pago no se pudo completar (rechazado o cancelado). Intenta de nuevo o usa otro método de pago.',
     'subscription.payAndActivate': 'Pagar {{price}} y Activar Plan',
-    'subscription.checkoutDisclaimer': 'Pago simulado con fines de demostración. No se realiza ningún cobro real.',
+    'subscription.checkoutDisclaimer': 'Pago 100% seguro procesado por Wompi (Bancolombia). Tus datos de pago nunca pasan por LC Rider.',
+    'subscription.orFillYourData': 'o completa tus datos',
+    'subscription.successConfirmEmail':
+      'Pago aprobado. Confirma tu cuenta desde el enlace que enviamos a tu correo e inicia sesión para disfrutar tu plan.',
     'subscription.processing': 'Procesando tu pago de forma segura...',
     'subscription.successTitle': '¡{{plan}} activado!',
     'subscription.successBody': 'Tu suscripción quedó vigente hasta el {{date}}.',
@@ -760,7 +763,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     'subscription.errorCard': 'Fill in the card number, expiry date and CVC.',
     'subscription.errorPaymentDeclined': 'The payment could not be completed (declined or cancelled). Try again or use a different payment method.',
     'subscription.payAndActivate': 'Pay {{price}} and Activate Plan',
-    'subscription.checkoutDisclaimer': 'Simulated payment for demo purposes. No real charge is made.',
+    'subscription.checkoutDisclaimer': '100% secure payment processed by Wompi (Bancolombia). Your payment details never pass through LC Rider.',
+    'subscription.orFillYourData': 'or fill in your details',
+    'subscription.successConfirmEmail':
+      'Payment approved. Confirm your account from the link we sent to your email and sign in to enjoy your plan.',
     'subscription.processing': 'Securely processing your payment...',
     'subscription.successTitle': '{{plan}} activated!',
     'subscription.successBody': 'Your subscription is active until {{date}}.',

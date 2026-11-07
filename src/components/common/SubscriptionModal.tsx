@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { formatLongDate } from '../../utils/formatDate'
-import { buildPaymentReference, getPlanAmountCOP, isPaymentGatewayConfigured, openWompiCheckout } from '../../services/paymentService'
+import { buildPaymentReference, getPlanAmountCOP, openWompiCheckout } from '../../services/paymentService'
+import { clearPendingCheckout, savePendingCheckout } from '../../utils/storage'
 import type { ComponentType, SVGProps } from 'react'
 import type { SubscriptionTier } from '../../types'
 import { IconBank, IconCard, IconCheck, IconCheckCircle, IconClock, IconPhone, IconSend, IconWhatsApp, IconZap } from './Icons'
 
 type PaymentMethod = 'nequi' | 'pse' | 'card' | 'qr'
 type CheckoutView = 'plans' | 'checkout' | 'processing' | 'success' | 'qrPending'
-
-const PSE_BANKS = ['Bancolombia', 'Davivienda', 'BBVA Colombia', 'Banco de Bogotá', 'Nequi', 'Banco Popular']
 
 const WHATSAPP_SALES_NUMBER = '573505208592'
 
@@ -28,6 +27,7 @@ export default function SubscriptionModal() {
     upgradeTier,
     redeemClubCode,
     supabaseSignUp,
+    signInWithGoogle,
     checkDemoRestriction,
     setPrivacyModalOpen,
     lang,
@@ -40,12 +40,8 @@ export default function SubscriptionModal() {
   const [view, setView] = useState<CheckoutView>('plans')
   const [checkoutTier, setCheckoutTier] = useState<'pro' | 'club'>('pro')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('nequi')
-  const [phoneNumber, setPhoneNumber] = useState('')
-  const [pseBank, setPseBank] = useState(PSE_BANKS[0])
-  const [psePersonType, setPsePersonType] = useState<'natural' | 'juridica'>('natural')
-  const [cardNumber, setCardNumber] = useState('')
-  const [cardExpiry, setCardExpiry] = useState('')
-  const [cardCvc, setCardCvc] = useState('')
+  /** Invitado registrado en el checkout cuya cuenta aún espera la confirmación del correo. */
+  const [accountPendingConfirmation, setAccountPendingConfirmation] = useState(false)
   const [checkoutError, setCheckoutError] = useState('')
   const [guestName, setGuestName] = useState('')
   const [guestEmail, setGuestEmail] = useState('')
@@ -61,6 +57,7 @@ export default function SubscriptionModal() {
     setGuestEmail('')
     setGuestPassword('')
     setGuestAcceptTerms(false)
+    setAccountPendingConfirmation(false)
     if (subscriptionCheckoutTarget === 'pro' || subscriptionCheckoutTarget === 'club') {
       setCheckoutTier(subscriptionCheckoutTarget)
       setBillingCycle(subscriptionCheckoutBillingCycle)
@@ -111,25 +108,14 @@ export default function SubscriptionModal() {
       return
     }
 
-    const gatewayConfigured = isPaymentGatewayConfigured()
-    // Las validaciones del formulario local (teléfono Nequi, datos de tarjeta) solo aplican al checkout
-    // simulado: con la pasarela real configurada, esos datos se capturan dentro del widget oficial de Wompi.
-    if (!gatewayConfigured) {
-      if (paymentMethod === 'nequi' && phoneNumber.trim().length < 10) {
-        setCheckoutError(t('subscription.errorPhone'))
-        return
-      }
-      if (paymentMethod === 'card' && (cardNumber.trim().length < 12 || cardExpiry.trim().length < 4 || cardCvc.trim().length < 3)) {
-        setCheckoutError(t('subscription.errorCard'))
-        return
-      }
-    }
-
     setView('processing')
     try {
-      // Checkout de invitado: crea la cuenta en el mismo paso, antes de activar el plan de pago.
+      let payerId = user?.id
+      // Checkout de invitado: crea la cuenta en el mismo paso. Un aviso de "confirma tu correo" no bloquea el pago:
+      // la cuenta ya existe y la referencia lleva su id para que el webhook active el plan sobre ella. Un error real
+      // de registro (correo ya usado, registro deshabilitado) sí detiene el pago: nadie paga sin cuenta asociada.
       if (isGuest) {
-        await supabaseSignUp({
+        const account = await supabaseSignUp({
           name: guestName.trim(),
           lastName: '',
           gender: undefined,
@@ -137,38 +123,44 @@ export default function SubscriptionModal() {
           email: guestEmail.trim(),
           password: guestPassword,
           remember: true,
+          allowPendingConfirmation: true,
         })
+        payerId = account.userId
+        setAccountPendingConfirmation(account.pendingConfirmation)
       }
 
-      if (gatewayConfigured) {
-        const amount = getPlanAmountCOP(checkoutTier, billingCycle)
-        const reference = buildPaymentReference(user?.id ?? guestEmail.trim() ?? 'guest')
-        const result = await openWompiCheckout({
-          amountInCOP: amount,
-          reference,
-          customerEmail: (user?.email || guestEmail).trim(),
-          customerFullName: (user?.name || guestName).trim(),
-        })
-        if (result.status === 'APPROVED') {
-          // La activación autoritativa la hace el webhook `wompi-webhook` (service_role). upgradeTier refleja el plan
-          // al instante en la UI; la siguiente sincronización lo alinea con lo que haya escrito el backend.
-          await upgradeTier(checkoutTier, billingCycle)
-          setView('success')
-        } else {
-          setCheckoutError(t('subscription.errorPaymentDeclined'))
-          setView('checkout')
-        }
+      const amount = getPlanAmountCOP(checkoutTier, billingCycle)
+      const reference = buildPaymentReference(payerId ?? 'invitado')
+      const result = await openWompiCheckout({
+        amountInCOP: amount,
+        reference,
+        customerEmail: (user?.email || guestEmail).trim(),
+        customerFullName: (user?.name || guestName).trim(),
+      })
+      if (result.status === 'APPROVED') {
+        // La activación autoritativa la hace el webhook `wompi-webhook` (service_role). upgradeTier refleja el plan
+        // al instante en la UI; la siguiente sincronización lo alinea con lo que haya escrito el backend.
+        await upgradeTier(checkoutTier, billingCycle)
+        setView('success')
       } else {
-        // Sin pasarela real configurada (VITE_WOMPI_PUBLIC_KEY), se conserva el checkout simulado para no
-        // bloquear la demostración del producto.
-        window.setTimeout(async () => {
-          await upgradeTier(checkoutTier, billingCycle)
-          setView('success')
-        }, 1000)
+        setCheckoutError(t('subscription.errorPaymentDeclined'))
+        setView('checkout')
       }
     } catch (err) {
       setCheckoutError(err instanceof Error ? err.message : t('auth.errorGeneric'))
       setView('checkout')
+    }
+  }
+
+  /** Google OAuth desde el checkout: guarda el plan elegido y redirige; al volver autenticado se reabre este checkout. */
+  async function handleGoogleCheckout() {
+    setCheckoutError('')
+    savePendingCheckout({ tier: checkoutTier, billingCycle })
+    try {
+      await signInWithGoogle()
+    } catch (err) {
+      clearPendingCheckout()
+      setCheckoutError(err instanceof Error ? err.message : t('auth.errorGeneric'))
     }
   }
 
@@ -197,6 +189,7 @@ export default function SubscriptionModal() {
           email: guestEmail.trim(),
           password: guestPassword,
           remember: true,
+          allowPendingConfirmation: true,
         })
       }
       setView('qrPending')
@@ -339,6 +332,31 @@ export default function SubscriptionModal() {
             {isGuest && (
               <div className="mb-4 space-y-3 rounded-2xl border border-bike-border bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{t('subscription.riderDataTitle')}</p>
+                <button
+                  type="button"
+                  onClick={handleGoogleCheckout}
+                  className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-bike-border bg-white py-3 text-sm font-bold text-bike-ink shadow-card transition active:scale-[0.98]"
+                >
+                  <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.3 5.1 29.4 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.8-.4-4.5z" />
+                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.9 19 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.3 5.1 29.4 3 24 3 16.3 3 9.7 7.3 6.3 14.7z" />
+                    <path fill="#4CAF50" d="M24 45c5.3 0 10.1-2 13.7-5.4l-6.3-5.3C29.4 35.9 26.9 37 24 37c-5.3 0-9.7-3.4-11.3-8l-6.5 5C9.6 40.6 16.2 45 24 45z" />
+                    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.3 5.3C40.9 36.6 45 31 45 24c0-1.4-.1-2.8-.4-4.5z" />
+                  </svg>
+                  {t('auth.continueWithGoogle')}
+                </button>
+                {/* Google puede crear la cuenta en el mismo paso: la autorización se otorga por conducta inequívoca. */}
+                <p className="text-center text-[11px] text-slate-400">
+                  {t('auth.googleConsentPrefix')}{' '}
+                  <button type="button" onClick={() => setPrivacyModalOpen(true)} className="font-semibold text-bike-orange underline">
+                    {t('auth.privacyPolicyLink')}
+                  </button>
+                </p>
+                <div className="flex items-center gap-3 text-xs text-slate-400">
+                  <span className="h-px flex-1 bg-bike-border" />
+                  {t('subscription.orFillYourData')}
+                  <span className="h-px flex-1 bg-bike-border" />
+                </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">{t('auth.name')}</label>
                   <input
@@ -464,95 +482,6 @@ export default function SubscriptionModal() {
               </div>
             )}
 
-            {paymentMethod === 'nequi' && (
-              <div className="mb-4">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">
-                  {t('subscription.phoneLabel')}
-                </label>
-                <input
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="300 123 4567"
-                  inputMode="numeric"
-                  className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
-                />
-              </div>
-            )}
-
-            {paymentMethod === 'pse' && (
-              <div className="mb-4 space-y-3">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">{t('subscription.bankLabel')}</label>
-                  <select
-                    value={pseBank}
-                    onChange={(e) => setPseBank(e.target.value)}
-                    className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink focus:border-bike-blue focus:outline-none"
-                  >
-                    {PSE_BANKS.map((bank) => (
-                      <option key={bank} value={bank}>
-                        {bank}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400">{t('subscription.personType')}</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setPsePersonType('natural')}
-                      className={`flex-1 rounded-xl border py-2 text-xs font-semibold transition ${psePersonType === 'natural' ? 'border-bike-orange bg-orange-50 text-bike-ink' : 'border-bike-border bg-white text-slate-600'}`}
-                    >
-                      {t('subscription.personNatural')}
-                    </button>
-                    <button
-                      onClick={() => setPsePersonType('juridica')}
-                      className={`flex-1 rounded-xl border py-2 text-xs font-semibold transition ${psePersonType === 'juridica' ? 'border-bike-orange bg-orange-50 text-bike-ink' : 'border-bike-border bg-white text-slate-600'}`}
-                    >
-                      {t('subscription.personJuridica')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {paymentMethod === 'card' && (
-              <div className="mb-4 space-y-3">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">
-                    {t('subscription.cardNumberLabel')}
-                  </label>
-                  <input
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
-                    placeholder="4111 1111 1111 1111"
-                    inputMode="numeric"
-                    className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">MM/AA</label>
-                    <input
-                      value={cardExpiry}
-                      onChange={(e) => setCardExpiry(e.target.value.replace(/[^\d/]/g, '').slice(0, 5))}
-                      placeholder="12/28"
-                      className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">CVC</label>
-                    <input
-                      value={cardCvc}
-                      onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      placeholder="123"
-                      inputMode="numeric"
-                      className="w-full rounded-xl border border-bike-border bg-slate-50 px-4 py-3 text-sm text-bike-ink placeholder:text-slate-400 focus:border-bike-blue focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
             {checkoutError && <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-status-danger">{checkoutError}</p>}
 
             {paymentMethod === 'qr' ? (
@@ -604,7 +533,9 @@ export default function SubscriptionModal() {
               {t('subscription.successTitle', { plan: t(checkoutTier === 'pro' ? 'subscription.proName' : 'subscription.clubName') })}
             </h2>
             <p className="max-w-xs text-sm text-slate-500">
-              {t('subscription.successBody', { date: user?.subscriptionExpiresAt ? formatLongDate(user.subscriptionExpiresAt, lang) : '' })}
+              {accountPendingConfirmation
+                ? t('subscription.successConfirmEmail')
+                : t('subscription.successBody', { date: user?.subscriptionExpiresAt ? formatLongDate(user.subscriptionExpiresAt, lang) : '' })}
             </p>
             <button onClick={handleClose} className="mt-3 min-h-[52px] w-full rounded-xl bg-orange-600 text-sm font-bold text-white">
               {t('subscription.done')}

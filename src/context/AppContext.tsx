@@ -23,7 +23,16 @@ import { playConfirmBeep, startSiren, stopSiren, vibrateAlert, vibrateStop } fro
 import { translateAuthError } from '../utils/authErrorTranslator'
 import { translate } from '../utils/i18n'
 import { isStandaloneApp } from '../utils/navigationHelper'
-import { getAccount, getCurrentUserEmail, loadStorage, removeAccount, saveAccount, saveStorage, setCurrentUserEmail } from '../utils/storage'
+import {
+  getAccount,
+  getCurrentUserEmail,
+  loadStorage,
+  removeAccount,
+  saveAccount,
+  saveStorage,
+  setCurrentUserEmail,
+  takePendingCheckout,
+} from '../utils/storage'
 
 /** Versión vigente de la Política de Tratamiento de Datos; se guarda junto a la autorización del titular. */
 export const PRIVACY_POLICY_VERSION = '2026-10-11'
@@ -327,7 +336,9 @@ interface AppContextValue {
     email: string
     password: string
     remember?: boolean
-  }) => Promise<void>
+    /** Checkout: si Supabase exige confirmar el correo, no lanza error y devuelve la cuenta como pendiente. */
+    allowPendingConfirmation?: boolean
+  }) => Promise<{ userId: string; pendingConfirmation: boolean }>
   updateProfile: (partial: Partial<Pick<UserProfile, 'name' | 'avatarUrl' | 'gender' | 'age'>>) => void
   logout: () => void
 
@@ -472,6 +483,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (billingCycle) setSubscriptionCheckoutBillingCycle(billingCycle)
     setSubscriptionModalOpen(true)
   }, [])
+
+  // Vuelta de Google OAuth iniciado desde el checkout: reabre el checkout del plan que el invitado iba a comprar.
+  useEffect(() => {
+    if (!user?.isLoggedIn || !isCloudUser(user)) return
+    const pending = takePendingCheckout()
+    if (pending) openSubscriptionCheckout(pending.tier, pending.billingCycle)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   const [vehicleDocs, setVehicleDocs] = useState<Vehicle[]>(() => loadInitialSession().vehicles)
   const [activeVehicleId, setActiveVehicleId] = useState<string>(() => loadInitialSession().activeVehicleId)
@@ -736,7 +755,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       email: string
       password: string
       remember?: boolean
-    }) => {
+      allowPendingConfirmation?: boolean
+    }): Promise<{ userId: string; pendingConfirmation: boolean }> => {
       const normalizedEmail = payload.email.trim().toLowerCase()
       const { data, error } = await supabase.auth.signUp({
         email: normalizedEmail,
@@ -779,12 +799,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!data.session) {
-        // El proyecto de Supabase exige confirmación de correo antes de iniciar sesión.
+        // El proyecto de Supabase exige confirmación de correo antes de iniciar sesión. En el checkout la cuenta (y su
+        // perfil, creado por el trigger) ya existe, así que el pago puede seguir y el webhook activa el plan sobre su id.
+        if (payload.allowPendingConfirmation) return { userId: data.user.id, pendingConfirmation: true }
         throw new Error(t('auth.errorConfirmEmail'))
       }
 
       applyAuthenticatedProfile(profile, payload.remember ?? true)
       setAuthModalOpen(false)
+      return { userId: data.user.id, pendingConfirmation: false }
     },
     [applyAuthenticatedProfile, lang, t],
   )

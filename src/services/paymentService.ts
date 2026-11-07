@@ -43,6 +43,8 @@ declare global {
 }
 
 const WOMPI_WIDGET_SRC = 'https://checkout.wompi.co/widget.js'
+/** Llave PÚBLICA de producción (no es un secreto: viaja en el widget). Respaldo si el build no trae la variable de entorno. */
+const DEFAULT_WOMPI_PUBLIC_KEY = 'pub_prod_TrD9lOZvcoJMYG5pGfw6fnXg63ZJvh20'
 /** Edge Function de Supabase que calcula la firma de integridad con el secreto guardado en el servidor. */
 const WOMPI_FIRMA_URL = 'https://bzltbdqwbizvhlrnghmq.supabase.co/functions/v1/wompi-firma'
 const SIGNATURE_TIMEOUT_MS = 10000
@@ -97,7 +99,8 @@ function loadWompiWidgetScript(): Promise<void> {
  */
 export function getWompiPublicKey(): string | null {
   const key = import.meta.env.VITE_WOMPI_PUBLIC_KEY as string | undefined
-  return typeof key === 'string' && key.trim().length > 0 ? key.trim() : null
+  if (typeof key === 'string' && key.trim().length > 0) return key.trim()
+  return DEFAULT_WOMPI_PUBLIC_KEY
 }
 
 /** Permite a la UI decidir, de forma segura, si debe abrir el checkout real o su alternativa simulada. */
