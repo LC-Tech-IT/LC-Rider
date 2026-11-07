@@ -26,11 +26,10 @@ export default function LandingPricing() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly')
   const yearly = billingCycle === 'yearly'
 
+  /** Comprar no pasa por el modal de instalación ni cambia de modo: el checkout se abre directo sobre la landing
+   *  (SubscriptionModal está montado en LandingPage). La invitación a instalar queda para las acciones de uso. */
   function goToCheckout(tier: 'pro' | 'club') {
-    requestAppAccess(() => {
-      setTopLevelMode('app')
-      openSubscriptionCheckout(tier, billingCycle)
-    })
+    openSubscriptionCheckout(tier, billingCycle)
   }
 
   function startFree() {

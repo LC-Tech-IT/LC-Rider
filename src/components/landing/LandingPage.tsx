@@ -36,7 +36,15 @@ const WHATSAPP_URL =
   'https://wa.me/573505208592?text=Hola%20LC%20Rider%2C%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20la%20app%20y%20los%20planes%20Pro'
 
 export default function LandingPage() {
-  const { setTopLevelMode, setInstallModalOpen, setAuthModalOpen, setPrivacyModalOpen, requestAppAccess, user } = useApp()
+  const {
+    setTopLevelMode,
+    setInstallModalOpen,
+    setAuthModalOpen,
+    setPrivacyModalOpen,
+    requestAppAccess,
+    subscriptionModalOpen,
+    user,
+  } = useApp()
   const [chatOpen, setChatOpen] = useState(false)
   const heroCluster = useScrollReveal<HTMLDivElement>()
 
@@ -274,7 +282,13 @@ export default function LandingPage() {
 
       <LandingChatbot open={chatOpen} onOpenChange={setChatOpen} />
       <InstallAppModal />
-      <SubscriptionModal />
+      {/* El modal se posiciona con `absolute inset-0` (pensado para el marco de la app); en la landing larga eso lo
+          estiraría a toda la página y lo dejaría fuera de la vista. Este contenedor fijo lo ancla al viewport. */}
+      {subscriptionModalOpen && (
+        <div className="fixed inset-0 z-[100]">
+          <SubscriptionModal />
+        </div>
+      )}
       <PrivacyPolicyModal />
       <Toast />
     </div>
