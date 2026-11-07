@@ -169,6 +169,17 @@ function normalizeSubscription(s: SubscriptionFields): SubscriptionFields {
   return s
 }
 
+/** Convierte una fila de public.profiles (consulta o evento Realtime) en el plan vigente, ya normalizado. */
+function rowToSubscription(row: Record<string, unknown> | null | undefined): SubscriptionFields {
+  const tier: SubscriptionTier = row?.tier === 'pro' || row?.tier === 'club' ? row.tier : 'free'
+  return normalizeSubscription({
+    tier,
+    subscriptionExpiresAt: row?.subscription_expires_at ? String(row.subscription_expires_at).slice(0, 10) : undefined,
+    clubName: typeof row?.club_name === 'string' ? row.club_name : undefined,
+    clubCode: typeof row?.club_code === 'string' ? row.club_code : undefined,
+  })
+}
+
 function subscriptionToRow(u: UserProfile) {
   return {
     tier: u.tier,
@@ -359,6 +370,8 @@ interface AppContextValue {
   /** Resuelve cuando el plan quedó guardado en Supabase (o, sin conexión, solo en la caché local). */
   upgradeTier: (tier: SubscriptionTier, billingCycle?: 'monthly' | 'yearly', paidViaQr?: boolean) => Promise<void>
   redeemClubCode: (code: string) => void
+  /** Relee el plan desde Supabase (única fuente de verdad) y lo aplica. null si no hay sesión cloud o sin red. */
+  refreshSubscriptionFromCloud: () => Promise<SubscriptionFields | null>
   vehicleLimit: number
   convoyMemberLimit: number
 
@@ -945,6 +958,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
    *  total): en el mensual, un mes gratis equivaldría a un 50% de descuento, muy por encima de la comisión de
    *  Wompi que se ahorra. El modal permanece abierto
    *  para que el usuario vea la confirmación ("Plan activo") antes de cerrarlo. */
+  const refreshSubscriptionFromCloud = useCallback(async (): Promise<SubscriptionFields | null> => {
+    const current = userRef.current
+    if (!isCloudUser(current)) return null
+    try {
+      const { data: row, error } = await supabase
+        .from('profiles')
+        .select('tier, subscription_expires_at, club_name, club_code')
+        .eq('id', current.id)
+        .maybeSingle()
+      const latest = userRef.current
+      if (error || !isCloudUser(latest) || latest.id !== current.id) return null
+      const sub = rowToSubscription(row)
+      commitUser({ ...latest, ...sub })
+      return sub
+    } catch {
+      return null
+    }
+  }, [commitUser])
+
   const upgradeTier = useCallback(
     async (tier: SubscriptionTier, billingCycle: 'monthly' | 'yearly' = 'monthly', paidViaQr: boolean = false) => {
       const prev = userRef.current
@@ -1205,7 +1237,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const sessionChannel = supabase
       .channel(`session-watch:${userId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` }, (payload) => {
-        const remoteSessionId = (payload.new as { active_session_id?: string | null } | undefined)?.active_session_id
+        const row = payload.new as Record<string, unknown> | undefined
+        // Un plan activado o renovado por el webhook de Wompi (o por el equipo, en pagos QR) se refleja al instante.
+        const current = userRef.current
+        if (row && 'tier' in row && isCloudUser(current) && current.id === userId) {
+          commitUser({ ...current, ...rowToSubscription(row) })
+        }
+        const remoteSessionId = (row as { active_session_id?: string | null } | undefined)?.active_session_id
         if (remoteSessionId && remoteSessionId !== getDeviceSessionId()) {
           handleConcurrentSessionDetected()
         }
@@ -1223,13 +1261,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const current = userRef.current
         if (cancelled || !isCloudUser(current) || current.id !== userId) return
         if (!error) {
-          const cloudTier: SubscriptionTier = row?.tier === 'pro' || row?.tier === 'club' ? row.tier : 'free'
-          const cloudSub = normalizeSubscription({
-            tier: cloudTier,
-            subscriptionExpiresAt: row?.subscription_expires_at ? String(row.subscription_expires_at).slice(0, 10) : undefined,
-            clubName: row?.club_name ?? undefined,
-            clubCode: row?.club_code ?? undefined,
-          })
+          const cloudSub = rowToSubscription(row)
           // La nube es la única fuente de verdad del plan: el cliente siempre se alinea a ella y jamás sube a
           // Supabase un plan leído de la caché local (un localStorage manipulado no puede autoasignarse Pro/Club).
           commitUser({ ...current, ...cloudSub })
@@ -1616,6 +1648,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     openSubscriptionCheckout,
     upgradeTier,
     redeemClubCode,
+    refreshSubscriptionFromCloud,
     vehicleLimit,
     convoyMemberLimit,
     vehicles: vehicleDocs,

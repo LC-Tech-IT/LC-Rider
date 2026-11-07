@@ -128,6 +128,46 @@ serve(async (req) => {
     }
 
     if (!targetUserId) {
+      if (transaction.customer_email) {
+        const cleanEmail = String(transaction.customer_email).trim().toLowerCase()
+        console.log(`[LC Rider Webhook] Usuario aún no registrado para email: ${cleanEmail}. Guardando en pending_subscriptions.`)
+        // upsert idempotente: un reintento de Wompi con la misma transacción no duplica el plan.
+        const { error: insertPendingError } = await supabaseAdmin
+          .from('pending_subscriptions')
+          .upsert(
+            {
+              email: cleanEmail,
+              tier: planConfig.tier,
+              duration_days: planConfig.days,
+              transaction_id: String(transaction.id || ''),
+              reference: reference
+            },
+            { onConflict: 'transaction_id', ignoreDuplicates: true }
+          )
+
+        if (insertPendingError) {
+          // Nunca responder 200 si el pago no quedó guardado: con 500 Wompi reintenta (30 min, 3 h y 24 h).
+          console.error('[LC Rider Webhook] Error al guardar en pending_subscriptions:', insertPendingError)
+          return new Response(JSON.stringify({ error: 'Could not store pending subscription' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            pendingRegistration: true,
+            email: cleanEmail,
+            tier: planConfig.tier,
+            durationDays: planConfig.days,
+            reference,
+            transactionId: transaction.id
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
       console.error('[LC Rider Webhook] No se encontró usuario para reference:', reference, 'ni email:', transaction.customer_email)
       return new Response(JSON.stringify({ error: 'User not found for payment' }), {
         status: 404,

@@ -44,7 +44,7 @@ declare global {
 
 const WOMPI_WIDGET_SRC = 'https://checkout.wompi.co/widget.js'
 /** Llave PÚBLICA de producción (no es un secreto: viaja en el widget). Respaldo si el build no trae la variable de entorno. */
-const DEFAULT_WOMPI_PUBLIC_KEY = 'pub_prod_TrD9lOZvcoJMYG5pGfw6fnXg63ZJvh20'
+const DEFAULT_WOMPI_PUBLIC_KEY = 'pub_prod_TrD9iOZvcojMYGSpGfw6fnXg63ZJvh20'
 /** Edge Function de Supabase que calcula la firma de integridad con el secreto guardado en el servidor. */
 const WOMPI_FIRMA_URL = 'https://bzltbdqwbizvhlrnghmq.supabase.co/functions/v1/wompi-firma'
 const SIGNATURE_TIMEOUT_MS = 10000

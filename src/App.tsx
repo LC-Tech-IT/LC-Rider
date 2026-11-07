@@ -23,6 +23,7 @@ import ConcurrentSessionModal from './components/common/ConcurrentSessionModal'
 import PrivacyPolicyModal from './components/common/PrivacyPolicyModal'
 import RideSummaryModal from './components/common/RideSummaryModal'
 import LandingPage from './components/landing/LandingPage'
+import { isStandaloneApp } from './utils/navigationHelper'
 
 function PhoneFrame({ children }: { children: ReactNode }) {
   return (
@@ -35,18 +36,20 @@ function PhoneFrame({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  const { view, rideActive } = useApp()
+  const { view, rideActive, topLevelMode } = useApp()
 
   // Pantalla siempre activa durante la rodada o en las vistas de Tablero/Mapa, para que el velocímetro y la
   // navegación turn-by-turn nunca se pierdan por un bloqueo automático de pantalla a mitad de curva.
   useWakeLock(rideActive || view === 'cockpit' || view === 'map')
 
-  // El aviso de actualización se monta a nivel raíz: está activo en la landing, la bienvenida/login, el
-  // onboarding y la app principal, y no depende de que el usuario haya iniciado sesión.
+  // El aviso de actualización solo existe dentro de la app instalada (PWA standalone o Android): ahí el código
+  // puede quedar viejo en memoria. La landing y la versión web nunca lo muestran; en el navegador cada recarga ya
+  // trae el build nuevo (el Service Worker sirve la navegación desde la red primero).
+  const showUpdateBanner = isStandaloneApp() && topLevelMode === 'app'
   return (
     <>
       <AppScreen />
-      <UpdateBanner />
+      {showUpdateBanner && <UpdateBanner />}
     </>
   )
 }
