@@ -150,7 +150,8 @@ export default function SubscriptionModal() {
           customerFullName: (user?.name || guestName).trim(),
         })
         if (result.status === 'APPROVED') {
-          // Se espera a que el plan quede persistido en Supabase antes de mostrar la confirmación.
+          // La activación autoritativa la hace el webhook `wompi-webhook` (service_role). upgradeTier refleja el plan
+          // al instante en la UI; la siguiente sincronización lo alinea con lo que haya escrito el backend.
           await upgradeTier(checkoutTier, billingCycle)
           setView('success')
         } else {

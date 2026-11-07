@@ -28,7 +28,7 @@ serve(async (req) => {
     const payload = await req.json()
     console.log('[LC Rider Webhook] Evento recibido:', JSON.stringify(payload))
 
-    const { event, data, signature } = payload
+    const { event, data, signature, timestamp } = payload
     const transaction = data?.transaction
 
     if (!transaction) {
@@ -38,40 +38,49 @@ serve(async (req) => {
       })
     }
 
-    // 1. BLINDAJE ANTIFRAUDE: Validación de Firma Criptográfica SHA-256 de Wompi
+    // 1. BLINDAJE ANTIFRAUDE ESTRICTO: La firma es obligatoria.
     const eventsSecret = Deno.env.get('WOMPI_EVENTS_SECRET') || ''
-    if (eventsSecret && signature?.properties && signature?.checksum) {
-      const properties = signature.properties as string[]
-      let stringToHash = ''
-      for (const prop of properties) {
-        const parts = prop.split('.')
-        let val: any = transaction
-        for (const part of parts) {
-          val = val?.[part]
-        }
-        stringToHash += String(val)
-      }
-      stringToHash += eventsSecret
-
-      const hashBuffer = await crypto.subtle.digest(
-        "SHA-256",
-        new TextEncoder().encode(stringToHash)
-      )
-      const calculatedChecksum = Array.from(new Uint8Array(hashBuffer))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('')
-
-      if (calculatedChecksum.toLowerCase() !== signature.checksum.toLowerCase()) {
-        console.error('[LC Rider Webhook] Firma inválida:', { calculatedChecksum, received: signature.checksum })
-        return new Response(JSON.stringify({ error: 'Invalid signature checksum' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
-      console.log('[LC Rider Webhook] Firma SHA-256 verificada con éxito.')
-    } else {
-      console.warn('[LC Rider Webhook] WOMPI_EVENTS_SECRET no configurado o firma incompleta en payload.')
+    if (!eventsSecret || !signature?.properties || !signature?.checksum || timestamp === undefined) {
+      console.error('[LC Rider Webhook] Intento de acceso sin firma o sin WOMPI_EVENTS_SECRET')
+      return new Response(JSON.stringify({ error: 'Missing signature, timestamp or events secret' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
+
+    // Concatenación según especificación oficial de Wompi:
+    // Propiedades relativas a data (ej. data.transaction.id + data.transaction.status + data.transaction.amount_in_cents)
+    // + timestamp + secreto de eventos
+    const properties = signature.properties as string[]
+    let stringToHash = ''
+    for (const prop of properties) {
+      const parts = prop.split('.')
+      let val: any = data
+      for (const part of parts) {
+        val = val?.[part]
+      }
+      stringToHash += String(val)
+    }
+    stringToHash += String(timestamp)
+    stringToHash += eventsSecret
+
+    const hashBuffer = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(stringToHash)
+    )
+    const calculatedChecksum = Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+
+    if (calculatedChecksum.toLowerCase() !== String(signature.checksum).toLowerCase()) {
+      console.error('[LC Rider Webhook] Firma inválida detectada:', { calculatedChecksum, received: signature.checksum })
+      return new Response(JSON.stringify({ error: 'Invalid signature checksum' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    console.log('[LC Rider Webhook] Firma criptográfica SHA-256 verificada con éxito.')
 
     const reference = String(transaction.reference || '')
     const status = String(transaction.status || '')
@@ -96,7 +105,7 @@ serve(async (req) => {
       })
     }
 
-    // 4. Inicializar cliente Supabase con Service Role (máximo privilegio para actualizar suscripción)
+    // 4. Inicializar cliente Supabase con Service Role
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
     const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole)
@@ -126,7 +135,7 @@ serve(async (req) => {
       })
     }
 
-    // 6. Activar plan mediante la función segura de PostgreSQL
+    // 6. Activar plan mediante función de base de datos
     const { error: rpcError } = await supabaseAdmin.rpc('activate_user_subscription', {
       target_user_id: targetUserId,
       new_tier: planConfig.tier,
@@ -137,7 +146,6 @@ serve(async (req) => {
 
     if (rpcError) {
       console.error('[LC Rider Webhook] Error en activate_user_subscription:', rpcError)
-      // Fallback directo a update sobre profiles con service_role
       const { error: updateError } = await supabaseAdmin
         .from('profiles')
         .update({

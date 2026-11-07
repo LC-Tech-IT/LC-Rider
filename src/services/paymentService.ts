@@ -33,6 +33,7 @@ interface WompiWidgetConfig {
   publicKey: string
   redirectUrl?: string
   customerData?: { email?: string; fullName?: string }
+  signature?: { integrity: string }
 }
 
 declare global {
@@ -42,7 +43,33 @@ declare global {
 }
 
 const WOMPI_WIDGET_SRC = 'https://checkout.wompi.co/widget.js'
+/** Edge Function de Supabase que calcula la firma de integridad con el secreto guardado en el servidor. */
+const WOMPI_FIRMA_URL = 'https://bzltbdqwbizvhlrnghmq.supabase.co/functions/v1/wompi-firma'
+const SIGNATURE_TIMEOUT_MS = 10000
 let widgetScriptPromise: Promise<void> | null = null
+
+/** Pide al backend la firma de integridad (SHA-256 de referencia + monto en centavos + moneda + secreto).
+ *  Wompi la exige para abrir el checkout, así que sin ella se lanza un error amigable en vez de abrir un
+ *  widget que fallaría. */
+async function fetchIntegritySignature(reference: string, amountInCents: number): Promise<string> {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), SIGNATURE_TIMEOUT_MS)
+  try {
+    const res = await fetch(WOMPI_FIRMA_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reference, amountInCents, currency: 'COP' }),
+      signal: controller.signal,
+    })
+    const data = res.ok ? ((await res.json()) as { signature?: unknown }) : null
+    if (typeof data?.signature === 'string' && /^[0-9a-f]{64}$/i.test(data.signature)) return data.signature
+  } catch (err) {
+    console.warn('No se pudo obtener la firma de integridad de Wompi:', err)
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+  throw new Error('No pudimos preparar un pago seguro en este momento. Revisa tu conexión e intenta de nuevo.')
+}
 
 function loadWompiWidgetScript(): Promise<void> {
   if (typeof window === 'undefined') return Promise.reject(new Error('La pasarela de pago no está disponible en este entorno.'))
@@ -65,10 +92,8 @@ function loadWompiWidgetScript(): Promise<void> {
 
 /**
  * Llave pública de Wompi, configurada vía variable de entorno (`VITE_WOMPI_PUBLIC_KEY`). Deliberadamente NO
- * existe aquí ningún secreto de integridad ni llave privada: esos valores firman transacciones en el backend
- * de Wompi y jamás deben viajar al bundle del cliente. Como este proyecto es una SPA sin backend propio, el
- * checkout se abre sin firma de integridad (modo soportado por Wompi); agregar la firma exigiría un endpoint
- * propio que la calcule del lado del servidor con el secreto de integridad guardado ahí, nunca en el frontend.
+ * existe aquí ningún secreto de integridad ni llave privada: la firma de integridad la calcula la Edge Function
+ * `wompi-firma` con el secreto guardado en Supabase, y jamás debe viajar al bundle del cliente.
  */
 export function getWompiPublicKey(): string | null {
   const key = import.meta.env.VITE_WOMPI_PUBLIC_KEY as string | undefined
@@ -108,18 +133,20 @@ export async function openWompiCheckout({
     throw new Error('La pasarela de pago no está configurada (falta VITE_WOMPI_PUBLIC_KEY).')
   }
 
-  await loadWompiWidgetScript()
+  const amountInCents = Math.round(amountInCOP * 100)
+  const [integritySignature] = await Promise.all([fetchIntegritySignature(reference, amountInCents), loadWompiWidgetScript()])
   if (!window.WidgetCheckout) {
     throw new Error('No se pudo inicializar la pasarela de pago.')
   }
 
   const checkout = new window.WidgetCheckout({
     currency: 'COP',
-    amountInCents: Math.round(amountInCOP * 100),
+    amountInCents,
     reference,
     publicKey,
     redirectUrl: redirectUrl ?? window.location.href,
     customerData: { email: customerEmail, fullName: customerFullName },
+    signature: { integrity: integritySignature },
   })
 
   return new Promise((resolve) => {
