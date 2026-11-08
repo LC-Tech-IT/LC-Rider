@@ -48,6 +48,17 @@ const DEFAULT_POSITION: LatLng = { lat: 4.711, lng: -74.0721 }
 const TIER_CONVOY_LIMIT: Record<SubscriptionTier, number> = { free: 3, pro: 12, club: 50 }
 const TIER_VEHICLE_LIMIT: Record<SubscriptionTier, number> = { free: 1, pro: 5, club: 5 }
 
+/** Presupuesto de Supabase Realtime: los mensajes por segundo son por PROYECTO (todas las salas juntas) y en una sala
+ *  de n pilotos cada envío se entrega n-1 veces. Si se supera el límite del plan, Supabase expulsa conexiones
+ *  ("Too many messages per second", medido en producción con 30 pilotos a 1 Hz). Por eso, en movimiento, cada
+ *  piloto transmite como máximo cada max(2 s, n × 200 ms): 3 pilotos → 2 s · 12 → 2,4 s · 50 → 10 s. */
+const CONVOY_MIN_INTERVAL_MOVING_MS = 2000
+const CONVOY_INTERVAL_PER_MEMBER_MS = 200
+const CONVOY_INTERVAL_STOPPED_MS = 10000
+/** Latido mínimo aunque el GPS no reporte, y tiempo sin noticias tras el cual un piloto se retira del mapa y del cupo. */
+const CONVOY_HEARTBEAT_MS = 15000
+const CONVOY_STALE_MS = 45000
+
 /** Línea oficial de WhatsApp VIP: único canal donde se validan y activan los Códigos de Club. */
 const WHATSAPP_VIP_NUMBER = '573505208592'
 
@@ -527,7 +538,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       : createSoloMember(DEFAULT_POSITION),
   )
   const [convoyRoom, setConvoyRoom] = useState<ConvoyRoom | null>(null)
+  /** Canal de la sala ya suscrito (listo para enviar). */
   const convoyChannelRef = useRef<RealtimeChannel | null>(null)
+  /** Canal en curso aunque aún no confirme la suscripción (para poder cerrarlo siempre). */
+  const convoyChannelPendingRef = useRef<RealtimeChannel | null>(null)
+  /** Cada apertura o cierre intencional sube la generación: así un CLOSED/CHANNEL_ERROR de un canal viejo o
+   *  cerrado a propósito nunca dispara la reconexión automática. */
+  const convoyGenerationRef = useRef(0)
+  const convoyRetryTimerRef = useRef<number | null>(null)
+  const convoyHeartbeatRef = useRef<number | null>(null)
+  /** Última vez que se recibió algo de cada piloto remoto (para retirar a los que perdieron señal o cerraron la app). */
+  const convoyLastSeenRef = useRef<Map<string, number>>(new Map())
+  const lastBroadcastAtRef = useRef(0)
+
+  /** Cierra el canal de la sala. Con `leavingId`, antes avisa a los demás que este piloto salió (libera su cupo). */
+  const teardownConvoyChannel = useCallback((leavingId?: string) => {
+    convoyGenerationRef.current++
+    if (convoyRetryTimerRef.current) {
+      clearTimeout(convoyRetryTimerRef.current)
+      convoyRetryTimerRef.current = null
+    }
+    if (convoyHeartbeatRef.current) {
+      clearInterval(convoyHeartbeatRef.current)
+      convoyHeartbeatRef.current = null
+    }
+    convoyLastSeenRef.current.clear()
+    const channel = convoyChannelPendingRef.current
+    const subscribed = convoyChannelRef.current === channel
+    convoyChannelPendingRef.current = null
+    convoyChannelRef.current = null
+    if (!channel) return
+    const remove = () => {
+      supabase.removeChannel(channel)
+    }
+    if (leavingId && subscribed) {
+      channel.send({ type: 'broadcast', event: 'pilot_left', payload: { id: leavingId } }).then(remove, remove)
+    } else {
+      remove()
+    }
+  }, [])
 
   const [rideActive, setRideActive] = useState(false)
   const [simulationRunning, setSimulationRunning] = useState(false)
@@ -829,10 +878,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const loginDemo = useCallback(() => {
     // El Modo Demo siempre arranca fresco con las 3 motos de prueba y el convoy simulado, sin importar sesiones anteriores.
-    if (convoyChannelRef.current) {
-      supabase.removeChannel(convoyChannelRef.current)
-      convoyChannelRef.current = null
-    }
+    teardownConvoyChannel(userRef.current?.id)
     setConvoyRoom(null)
     // El Modo Demo arranca en tier 'pro' para mostrar la experiencia completa (voz de intercomunicador, etc.).
     setUser(buildProfile('Piloto Demo', DEMO_EMAIL, '🕶️', 'email', 'pro'))
@@ -862,7 +908,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         // arranque automático de la rodada guiada (el visitante puede trazar una ruta manualmente).
         setNavigation({ status: 'idle', route: null, currentStepIndex: 0 })
       })
-  }, [])
+  },[teardownConvoyChannel])
 
   /** Guarda central del Modo Demo (showcase de solo lectura): bloquea cualquier mutación de datos reales
    *  (garaje, perfil, documentos) mostrando un toast explicativo, y deja intacto todo lo que es puramente
@@ -897,16 +943,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.signOut({ scope: 'local' }).catch(() => {
       /* Sesión ya inválida o sin conexión — el logout local continúa igualmente. */
     })
-    if (convoyChannelRef.current) {
-      supabase.removeChannel(convoyChannelRef.current)
-      convoyChannelRef.current = null
-    }
+    teardownConvoyChannel(userRef.current?.id)
     setConvoyRoom(null)
     setConvoyMembers(createSoloMember(DEFAULT_POSITION))
     setUser(null)
     setVehicleDocs([])
     setActiveVehicleId('')
-  }, [])
+  },[teardownConvoyChannel])
 
   /** Derecho de supresión (Ley 1581 de 2012). En la nube usa la función SQL delete_own_account(), que borra
    *  también las credenciales en auth.users; si aún no está desplegada, al menos borra public.profiles (y en
@@ -1095,77 +1138,113 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
    *  el líder (quien crea la sala) rechaza a los pilotos que exceden su cupo, avisando al piloto rechazado
    *  mediante un evento dirigido ('room_full') para que su propio dispositivo muestre el aviso de upgrade. */
   const setupConvoyChannel = useCallback((pin: string, isLeader: boolean, tier: SubscriptionTier, maxMembers: number) => {
-    if (convoyChannelRef.current) {
-      supabase.removeChannel(convoyChannelRef.current)
-    }
-    const selfId = userRef.current?.id ?? 'me'
-    const channel = supabase.channel(`convoy:${pin}`)
+    let failures = 0
+    openChannel()
 
-    function broadcastSelf() {
-      const self = convoyMembersRef.current.find((m) => m.isCurrentUser)
-      if (!self) return
-      channel.send({
-        type: 'broadcast',
-        event: 'location_update',
-        payload: {
-          id: selfId,
-          name: userRef.current?.name ?? self.name,
-          avatarEmoji: userRef.current?.avatarUrl ?? self.avatarEmoji,
-          role: self.role,
-          status: self.status,
-          position: self.position,
-          routeProgress: self.routeProgress,
-          speedKmh: self.speedKmh,
-          distanceToLeaderKm: 0,
-          ...(isLeader ? { roomTier: tier, roomMaxMembers: maxMembers } : {}),
-        },
-      })
-    }
+    function openChannel() {
+      teardownConvoyChannel()
+      const generation = convoyGenerationRef.current
+      const selfId = userRef.current?.id ?? 'me'
+      const channel = supabase.channel(`convoy:${pin}`)
+      convoyChannelPendingRef.current = channel
 
-    channel.on('broadcast', { event: 'location_update' }, ({ payload }) => {
-      const remote = payload as ConvoyMember & { roomTier?: SubscriptionTier; roomMaxMembers?: number }
-      if (!remote?.id || remote.id === selfId) return
-
-      const alreadyIn = convoyMembersRef.current.some((m) => m.id === remote.id)
-      if (isLeader && !alreadyIn && convoyMembersRef.current.length >= maxMembers) {
-        channel.send({ type: 'broadcast', event: 'room_full', payload: { targetId: remote.id } })
-        return
+      function broadcastSelf() {
+        const self = convoyMembersRef.current.find((m) => m.isCurrentUser)
+        if (!self) return
+        lastBroadcastAtRef.current = Date.now()
+        channel.send({
+          type: 'broadcast',
+          event: 'location_update',
+          payload: {
+            id: selfId,
+            name: userRef.current?.name ?? self.name,
+            avatarEmoji: userRef.current?.avatarUrl ?? self.avatarEmoji,
+            role: self.role,
+            status: self.status,
+            position: self.position,
+            routeProgress: self.routeProgress,
+            speedKmh: self.speedKmh,
+            distanceToLeaderKm: 0,
+            ...(isLeader ? { roomTier: tier, roomMaxMembers: maxMembers } : {}),
+          },
+        })
       }
 
-      setConvoyMembers((prev) => {
-        const idx = prev.findIndex((m) => m.id === remote.id)
-        if (idx === -1) return [...prev, { ...remote, isCurrentUser: false }]
-        const next = [...prev]
-        next[idx] = { ...next[idx], ...remote, isCurrentUser: false }
-        return next
+      channel.on('broadcast', { event: 'location_update' }, ({ payload }) => {
+        const remote = payload as ConvoyMember & { roomTier?: SubscriptionTier; roomMaxMembers?: number }
+        if (!remote?.id || remote.id === selfId) return
+
+        const alreadyIn = convoyMembersRef.current.some((m) => m.id === remote.id)
+        if (isLeader && !alreadyIn && convoyMembersRef.current.length >= maxMembers) {
+          channel.send({ type: 'broadcast', event: 'room_full', payload: { targetId: remote.id } })
+          return
+        }
+
+        convoyLastSeenRef.current.set(remote.id, Date.now())
+        setConvoyMembers((prev) => {
+          const idx = prev.findIndex((m) => m.id === remote.id)
+          if (idx === -1) return [...prev, { ...remote, isCurrentUser: false }]
+          const next = [...prev]
+          next[idx] = { ...next[idx], ...remote, isCurrentUser: false }
+          return next
+        })
+
+        // El unido adopta el tier/cupo real de la sala apenas lo conoce por un broadcast del líder.
+        // Solo si cambia: un objeto nuevo en cada mensaje del líder reiniciaría el watchPosition del GPS cada vez.
+        if (remote.roomTier && remote.roomMaxMembers) {
+          setConvoyRoom((prev) =>
+            prev && (prev.tier !== remote.roomTier || prev.maxMembers !== remote.roomMaxMembers)
+              ? { ...prev, tier: remote.roomTier!, maxMembers: remote.roomMaxMembers! }
+              : prev,
+          )
+        }
       })
 
-      // El unido adopta el tier/cupo real de la sala apenas lo conoce por un broadcast del líder.
-      if (remote.roomTier && remote.roomMaxMembers) {
-        setConvoyRoom((prev) => (prev ? { ...prev, tier: remote.roomTier!, maxMembers: remote.roomMaxMembers! } : prev))
-      }
-    })
+      // Un piloto salió de la sala: desaparece del mapa y libera su cupo de inmediato.
+      channel.on('broadcast', { event: 'pilot_left' }, ({ payload }) => {
+        const leftId = payload?.id
+        if (!leftId || leftId === selfId) return
+        convoyLastSeenRef.current.delete(leftId)
+        setConvoyMembers((prev) => prev.filter((m) => m.isCurrentUser || m.id !== leftId))
+      })
 
-    channel.on('broadcast', { event: 'room_full' }, ({ payload }) => {
-      if (payload?.targetId !== selfId) return
-      if (convoyChannelRef.current) {
-        supabase.removeChannel(convoyChannelRef.current)
+      channel.on('broadcast', { event: 'room_full' }, ({ payload }) => {
+        if (payload?.targetId !== selfId) return
+        teardownConvoyChannel()
+        setConvoyRoom(null)
+        setConvoyMembers((prev) => prev.filter((m) => m.isCurrentUser))
+        showToast(t('convoy.roomFullUpgrade'))
+      })
+
+      // El canal solo queda "listo" (convoyChannelRef con valor) cuando Realtime confirma la suscripción; recién
+      // entonces se anuncia la propia presencia, sin esperar al siguiente watchPosition (que podría tardar o no
+      // volver a dispararse si la posición no cambia), para que el líder pueda aplicar el cupo de inmediato.
+      channel.subscribe((status) => {
+        if (generation !== convoyGenerationRef.current) return
+        if (status === 'SUBSCRIBED') {
+          failures = 0
+          convoyChannelRef.current = channel
+          broadcastSelf()
+          // Latido: aunque el GPS no reporte (moto parqueada), los demás saben que este piloto sigue en la sala.
+          if (convoyHeartbeatRef.current) clearInterval(convoyHeartbeatRef.current)
+          convoyHeartbeatRef.current = window.setInterval(() => {
+            if (Date.now() - lastBroadcastAtRef.current >= CONVOY_HEARTBEAT_MS - 1000) broadcastSelf()
+          }, CONVOY_HEARTBEAT_MS)
+          return
+        }
+        // CHANNEL_ERROR / TIMED_OUT / CLOSED sin haberlo pedido (p. ej. Supabase expulsa por exceso de mensajes o se
+        // cayó la red): se vuelve a entrar a la sala con espera creciente (2 s, 4 s, 8 s… máx. 30 s).
         convoyChannelRef.current = null
-      }
-      setConvoyRoom(null)
-      setConvoyMembers((prev) => prev.filter((m) => m.isCurrentUser))
-      showToast(t('convoy.roomFullUpgrade'))
-    })
-
-    // El canal solo queda "listo" (convoyChannelRef con valor) cuando Realtime confirma la suscripción; recién
-    // entonces se anuncia la propia presencia, sin esperar al siguiente watchPosition (que podría tardar o no
-    // volver a dispararse si la posición no cambia), para que el líder pueda aplicar el cupo de inmediato.
-    channel.subscribe((status) => {
-      if (status !== 'SUBSCRIBED') return
-      convoyChannelRef.current = channel
-      broadcastSelf()
-    })
-  }, [showToast, t])
+        if (convoyRetryTimerRef.current) return
+        const delay = Math.min(30000, 2000 * 2 ** failures) + Math.random() * 1000
+        failures++
+        convoyRetryTimerRef.current = window.setTimeout(() => {
+          convoyRetryTimerRef.current = null
+          if (generation === convoyGenerationRef.current) openChannel()
+        }, delay)
+      })
+    }
+  }, [showToast, t, teardownConvoyChannel])
 
   const createConvoyRoom = useCallback(
     (name: string, role: ConvoyMember['role']) => {
@@ -1191,28 +1270,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   )
 
   const leaveConvoyRoom = useCallback(() => {
-    if (convoyChannelRef.current) {
-      supabase.removeChannel(convoyChannelRef.current)
-      convoyChannelRef.current = null
-    }
+    teardownConvoyChannel(userRef.current?.id)
     setConvoyRoom(null)
     // En convoy real, los pilotos remotos solo existían mientras el canal Realtime estaba activo; en Modo Demo
     // los 4 miembros simulados son permanentes y no deben desaparecer al salir de la sala.
     if (!isDemoUser) setConvoyMembers((prev) => prev.filter((m) => m.isCurrentUser))
-  }, [isDemoUser])
+  }, [isDemoUser, teardownConvoyChannel])
 
   // --- Sesión única activa: si la cuenta se abre en otro dispositivo, este deja de transmitir de inmediato
   // (convoy Realtime + ruta/rodada, que a su vez apagan los watchPosition del GPS) y queda bloqueado por el modal. ---
   const handleConcurrentSessionDetected = useCallback(() => {
-    if (convoyChannelRef.current) {
-      supabase.removeChannel(convoyChannelRef.current)
-      convoyChannelRef.current = null
-    }
+    teardownConvoyChannel(userRef.current?.id)
     setConvoyRoom(null)
     setConvoyMembers((prev) => prev.filter((m) => m.isCurrentUser))
     clearRoute()
     setConcurrentSessionModalOpen(true)
-  }, [clearRoute])
+  }, [clearRoute, teardownConvoyChannel])
 
   /** "Retomar control": vuelve a registrar este dispositivo como el activo; el otro recibe el cambio por Realtime.
    *  Devuelve false si Supabase no respondió (el modal sigue abierto y muestra el error). */
@@ -1406,7 +1479,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // --- Convoy real: mientras se está en una sala (y no es Modo Demo), transmite la posición GPS real del piloto
   // por Supabase Realtime para que los demás dispositivos del convoy la vean en su mapa. ---
-  const lastBroadcastAtRef = useRef(0)
   useEffect(() => {
     if (!convoyRoom || isDemoUser || !('geolocation' in navigator)) return
     const selfId = user?.id ?? 'me'
@@ -1419,14 +1491,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         setConvoyMembers((prev) => prev.map((m) => (m.isCurrentUser ? { ...m, position, speedKmh } : m)))
 
-        // Gestión de batería: con la moto detenida (< 3 km/h), el marcador local se sigue actualizando para
-        // que el mapa no se vea congelado, pero el broadcast por Supabase Realtime (red + batería) se limita
-        // a una vez cada 10s en vez de en cada lectura del GPS, ya que la posición apenas cambia en una parada.
+        // El marcador local se actualiza en cada lectura del GPS, pero el envío por Supabase Realtime se limita:
+        // detenido (< 3 km/h) cada 10 s (batería) y en movimiento según el tamaño de la sala (ver CONVOY_* arriba),
+        // para que salas grandes no superen el límite de mensajes por segundo del proyecto.
         const STOPPED_THRESHOLD_KMH = 3
-        const BROADCAST_INTERVAL_STOPPED_MS = 10000
         const isStopped = speedKmh < STOPPED_THRESHOLD_KMH
+        const roomSize = convoyMembersRef.current.length
+        const minInterval = isStopped
+          ? CONVOY_INTERVAL_STOPPED_MS
+          : Math.max(CONVOY_MIN_INTERVAL_MOVING_MS, roomSize * CONVOY_INTERVAL_PER_MEMBER_MS)
         const now = Date.now()
-        if (isStopped && now - lastBroadcastAtRef.current < BROADCAST_INTERVAL_STOPPED_MS) {
+        if (now - lastBroadcastAtRef.current < minInterval) {
           return
         }
         lastBroadcastAtRef.current = now
@@ -1459,6 +1534,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     return () => navigator.geolocation.clearWatch(watchId)
   }, [convoyRoom, isDemoUser, user, activeVehicle])
+
+  // Pilotos sin noticias por más de 45 s (cerraron la app, sin batería o sin señal sin avisar): salen del mapa y del
+  // cupo de la sala. Si vuelven a transmitir, reaparecen solos. Solo afecta a pilotos remotos reales (no al Modo Demo).
+  useEffect(() => {
+    if (!convoyRoom || isDemoUser) return
+    const timer = window.setInterval(() => {
+      const now = Date.now()
+      const stale: string[] = []
+      convoyLastSeenRef.current.forEach((seenAt, id) => {
+        if (now - seenAt > CONVOY_STALE_MS) stale.push(id)
+      })
+      if (stale.length === 0) return
+      stale.forEach((id) => convoyLastSeenRef.current.delete(id))
+      setConvoyMembers((prev) => prev.filter((m) => m.isCurrentUser || !stale.includes(m.id)))
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [convoyRoom, isDemoUser])
 
   useEffect(() => {
     if (!simulationRunning || !navigation.route || !isDemoUser) {
