@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import LandingConvoyRadar from './LandingConvoyRadar'
 import HeroHeadlightBeam from './HeroHeadlightBeam'
@@ -43,10 +43,26 @@ export default function LandingPage() {
     setPrivacyModalOpen,
     requestAppAccess,
     subscriptionModalOpen,
+    openSubscriptionCheckout,
     user,
   } = useApp()
   const [chatOpen, setChatOpen] = useState(false)
   const heroCluster = useScrollReveal<HTMLDivElement>()
+
+  // Deep link de checkout (bot de WhatsApp, campañas): ?checkout=pro&cycle=yearly · ?plan=club&billing=monthly.
+  // Abre el checkout del plan y retira solo estos parámetros de la URL (sin recargar); otros, como utm_*, se conservan.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const checkout = (params.get('checkout') || params.get('plan') || '').trim().toLowerCase()
+    const cycleParam = (params.get('cycle') || params.get('billing') || '').trim().toLowerCase()
+    if (checkout !== 'pro' && checkout !== 'club') return
+    openSubscriptionCheckout(checkout, cycleParam === 'monthly' ? 'monthly' : 'yearly')
+    ;['checkout', 'plan', 'cycle', 'billing'].forEach((key) => params.delete(key))
+    const query = params.toString()
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`)
+    // Solo al montar la landing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function enterApp() {
     requestAppAccess(() => setTopLevelMode('app'))

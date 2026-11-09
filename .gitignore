@@ -36,3 +36,6 @@ android/local.properties
 android/captures
 android/app/src/main/assets/public
 android/app/src/main/assets/capacitor.config.json
+
+# Marketing media
+public/images/*.mp4
