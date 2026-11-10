@@ -8,7 +8,7 @@ const SUBJECT_OPTIONS = [
   { value: 'plans', label: 'Información de Planes' },
 ]
 
-const WHATSAPP_NUMBER = '573505208592'
+const WHATSAPP_NUMBER = '573204502958'
 const WHATSAPP_MESSAGE = 'Hola LC Rider, quisiera más información sobre la app y los planes Pro'
 const CONTACT_EMAIL = 'contacto@lcsynctech.com'
 

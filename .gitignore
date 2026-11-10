@@ -39,3 +39,6 @@ android/app/src/main/assets/capacitor.config.json
 
 # Marketing media
 public/images/*.mp4
+
+# Supabase CLI temp cache
+supabase/.temp/

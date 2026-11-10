@@ -322,7 +322,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'subscription.qrPendingReference': 'Tu referencia de pago',
     'subscription.qrPendingClose': 'Cerrar y Explorar App',
     'subscription.clubVipNotice':
-      'Los Códigos de Club se validan y activan exclusivamente por nuestra línea oficial de WhatsApp VIP (+57 350 520 8592). Te abrimos el chat con tu código.',
+      'Los Códigos de Club se validan y activan exclusivamente por nuestra línea oficial de WhatsApp VIP (+57 320 450 2958). Te abrimos el chat con tu código.',
     'subscription.clubCodeWhatsappMessage': 'Hola LC Rider, quiero activar mi Código de Club: {{code}}',
     'subscription.qrWhatsappMessage':
       'Hola LC Rider, acabo de transferir {{price}} por el plan {{plan}} vía QR Bancolombia/Nequi. Mi correo es: {{email}}. Mi referencia es: {{reference}}. Adjunto el comprobante.',
@@ -768,7 +768,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     'subscription.qrPendingReference': 'Your payment reference',
     'subscription.qrPendingClose': 'Close and Explore App',
     'subscription.clubVipNotice':
-      'Club Codes are validated and activated exclusively through our official VIP WhatsApp line (+57 350 520 8592). We opened the chat with your code.',
+      'Club Codes are validated and activated exclusively through our official VIP WhatsApp line (+57 320 450 2958). We opened the chat with your code.',
     'subscription.clubCodeWhatsappMessage': 'Hi LC Rider, I want to activate my Club Code: {{code}}',
     'subscription.qrWhatsappMessage':
       'Hi LC Rider, I just transferred {{price}} for the {{plan}} plan via Bancolombia/Nequi QR. My email is: {{email}}. My reference is: {{reference}}. Receipt attached.',

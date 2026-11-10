@@ -61,7 +61,7 @@ const PRODUCT_INTENTS: ChatbotIntent[] = [
   {
     keywords: ['precio', 'costo', 'cuanto cuesta', 'cuánto cuesta', 'plan', 'suscripcion', 'suscripción'],
     response:
-      '¡De una, parce! Así están los planes pa\' que elijas con toda la info: 🆓 **Piloto Libre** ($0 COP, pa\' siempre — convoy de hasta 3 pilotos, 1 moto en el garaje y SOS básico). ⚡ **Convoy Pro**: el más popular es el **Anual a $99.000 COP** (te sale como a $8.250 COP al mes — ¡ahorras un 45%!), o si prefieres ir mes a mes, el **Mensual a $14.900 COP** — ambos con convoy de hasta 12 pilotos. 🏆 **Biker Club**, pensado pa\' tu club — hasta 50 pilotos en convoy simultáneo: el **Anual a $299.000 COP** (como a $24.916 COP al mes — ¡ahorras un 28%!) o el **Mensual a $34.900 COP** si prefieres flexibilidad mes a mes. Y ojo, hermano: si pagas por **QR de Bancolombia o Nequi** te ahorras las comisiones, y en los planes anuales te regalamos **1 mes adicional gratis** 🎁. Actívalo desde "Ver Planes" en la app, o escríbenos directo al WhatsApp 📲 +57 350 520 8592 y te ayudamos personalmente.',
+      '¡De una, parce! Así están los planes pa\' que elijas con toda la info: 🆓 **Piloto Libre** ($0 COP, pa\' siempre — convoy de hasta 3 pilotos, 1 moto en el garaje y SOS básico). ⚡ **Convoy Pro**: el más popular es el **Anual a $99.000 COP** (te sale como a $8.250 COP al mes — ¡ahorras un 45%!), o si prefieres ir mes a mes, el **Mensual a $14.900 COP** — ambos con convoy de hasta 12 pilotos. 🏆 **Biker Club**, pensado pa\' tu club — hasta 50 pilotos en convoy simultáneo: el **Anual a $299.000 COP** (como a $24.916 COP al mes — ¡ahorras un 28%!) o el **Mensual a $34.900 COP** si prefieres flexibilidad mes a mes. Y ojo, hermano: si pagas por **QR de Bancolombia o Nequi** te ahorras las comisiones, y en los planes anuales te regalamos **1 mes adicional gratis** 🎁. Actívalo desde "Ver Planes" en la app, o escríbenos directo al WhatsApp 📲 +57 320 450 2958 y te ayudamos personalmente.',
   },
   {
     keywords: [
@@ -69,7 +69,7 @@ const PRODUCT_INTENTS: ChatbotIntent[] = [
       'tarjeta de credito', 'tarjeta de crédito', 'tarjeta de debito', 'tarjeta de débito', 'pagar', 'qr', 'codigo qr', 'código qr',
     ],
     response:
-      'Tienes varias formas de pagar, parce: ⚡ la más recomendada es el **QR de Bancolombia/Nequi** (sin comisiones + 1 mes adicional gratis de regalo en los planes anuales — solo escaneas, transfieres el valor exacto de tu plan y nos mandas el comprobante por WhatsApp al 📲 +57 350 520 8592), o si prefieres, también aceptamos 📱 Nequi/Daviplata, 🏦 PSE (con los bancos principales de Colombia) y 💳 tarjeta de crédito/débito, todo desde el checkout dentro de la app en "Ver Planes".',
+      'Tienes varias formas de pagar, parce: ⚡ la más recomendada es el **QR de Bancolombia/Nequi** (sin comisiones + 1 mes adicional gratis de regalo en los planes anuales — solo escaneas, transfieres el valor exacto de tu plan y nos mandas el comprobante por WhatsApp al 📲 +57 320 450 2958), o si prefieres, también aceptamos 📱 Nequi/Daviplata, 🏦 PSE (con los bancos principales de Colombia) y 💳 tarjeta de crédito/débito, todo desde el checkout dentro de la app en "Ver Planes".',
   },
   {
     keywords: ['renovar', 'renovacion', 'renovación', 'vencimiento', 'vence mi plan', 'cuando vence', 'cuándo vence', 'cambiar de plan', 'actualizar plan'],
@@ -119,7 +119,7 @@ const PRODUCT_INTENTS: ChatbotIntent[] = [
   {
     keywords: ['contacto', 'lc synctech', 'synctech', 'lc tech', 'soporte', 'ayuda tecnica', 'ayuda técnica', 'whatsapp', 'correo', 'club motero', 'registrar mi club'],
     response:
-      '¡Claro que sí, parce! Somos LC SyncTech — Tecnología inteligente que te respalda 🏍️. Escríbenos directo por WhatsApp al 📲 +57 350 520 8592 o al correo 📧 contacto@lcsynctech.com. Ahí también puedes registrar tu club motero pa\' activar el plan Biker Club.',
+      '¡Claro que sí, parce! Somos LC SyncTech — Tecnología inteligente que te respalda 🏍️. Escríbenos directo por WhatsApp al 📲 +57 320 450 2958 o al correo 📧 contacto@lcsynctech.com. Ahí también puedes registrar tu club motero pa\' activar el plan Biker Club.',
   },
 ]
 

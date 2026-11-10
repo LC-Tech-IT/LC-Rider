@@ -2,7 +2,7 @@ import { useApp } from '../../context/AppContext'
 import type { Lang } from '../../types'
 
 const CONTACT_EMAIL = 'contacto@lcsynctech.com'
-const CONTACT_WHATSAPP = '+57 350 520 8592'
+const CONTACT_WHATSAPP = '+57 320 450 2958'
 
 interface PolicySection {
   title: string

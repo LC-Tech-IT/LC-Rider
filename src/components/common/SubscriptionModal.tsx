@@ -17,7 +17,7 @@ const ACTIVATION_MAX_ATTEMPTS = 20
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
-const WHATSAPP_SALES_NUMBER = '573505208592'
+const WHATSAPP_SALES_NUMBER = '573204502958'
 
 const PLAN_PRICE: Record<'pro' | 'club', { monthly: string; yearly: string }> = {
   pro: { monthly: '$14.900 COP', yearly: '$99.000 COP' },

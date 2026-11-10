@@ -60,7 +60,7 @@ const CONVOY_HEARTBEAT_MS = 15000
 const CONVOY_STALE_MS = 45000
 
 /** Línea oficial de WhatsApp VIP: único canal donde se validan y activan los Códigos de Club. */
-const WHATSAPP_VIP_NUMBER = '573505208592'
+const WHATSAPP_VIP_NUMBER = '573204502958'
 
 function daysUntil(dateIso: string): number {
   const target = new Date(dateIso).getTime()
